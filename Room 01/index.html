@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="An abandoned horror bedroom built for three.js. Drop your own glTF character into the centre.">
+<title>Room 01</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Special+Elite&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{color-scheme:dark;--bg:#050506;--ink:#d8d2c4;--dim:#8b857a;--line:rgba(216,210,196,.14);--blood:#8e1b17;--moon:#9fb4d8;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;--type:"Special Elite","Courier New",monospace}
+  [hidden]{display:none!important}
+  html,body{height:100%;margin:0}
+  body{background:var(--bg);color:var(--ink);font:13px/1.5 var(--mono);overflow:hidden}
+  #c{position:fixed;inset:0;display:block;width:100%;height:100%;touch-action:none}
+  .hud{position:fixed;z-index:2}
+  #title{top:calc(env(safe-area-inset-top,0px) + 18px);left:20px;pointer-events:none}
+  #title h1{margin:0;font:400 clamp(26px,4vw,40px)/1 var(--type);letter-spacing:.06em;color:var(--ink);text-shadow:0 0 18px rgba(0,0,0,.9)}
+  #title p{margin:6px 0 0;color:var(--dim);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+  #panel{right:16px;top:calc(env(safe-area-inset-top,0px) + 16px);width:min(260px,calc(100% - 32px));background:rgba(8,8,10,.78);border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;backdrop-filter:blur(6px)}
+  #panel h2{margin:0;font:500 10px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+  .row{display:flex;gap:8px;align-items:center;justify-content:space-between}
+  button,select,label.file{font:500 12px/1 var(--mono);color:var(--ink);background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:6px;padding:9px 10px;cursor:pointer}
+  button:hover,select:hover,label.file:hover,button:focus-visible,select:focus-visible,label.file:focus-within{border-color:var(--ink);outline:none}
+  button[aria-pressed="true"]{background:var(--ink);color:#0b0b0b}
+  label.file{display:block;text-align:center;background:var(--blood);border-color:var(--blood);color:#f1e9dc}
+  label.file input{position:absolute;opacity:0;width:1px;height:1px}
+  select{width:100%}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  #stats{color:var(--dim);font-size:11px;line-height:1.6;font-variant-numeric:tabular-nums}
+  #stats b{color:var(--ink);font-weight:500}
+  #drop{position:fixed;inset:12px;z-index:3;border:1px dashed var(--ink);border-radius:14px;display:grid;place-items:center;font:400 22px var(--type);background:rgba(0,0,0,.6);pointer-events:none}
+  #msg{left:20px;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);color:var(--dim);font-size:11px;max-width:min(520px,calc(100% - 40px))}
+  #msg.err{color:#e0827d}
+  #toggle{display:none}
+  @media (max-width:640px){#toggle{display:block;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px)}#panel.collapsed{display:none}#panel{bottom:calc(env(safe-area-inset-bottom,0px) + 60px)!important;top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);right:12px;left:12px;width:auto}#msg{display:none}#title p{display:none}}
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="Horror room with a character in the centre"></canvas>
+
+<div class="hud" id="title"><h1>ROOM 01</h1><p>drag to look · scroll to move closer</p></div>
+
+<aside class="hud" id="panel" aria-label="Viewer controls">
+  <h2>Character</h2>
+  <label class="file">Load .glb / .gltf<input id="file" type="file" accept=".glb,.gltf,.bin,.png,.jpg,.jpeg,.webp,.ktx2" multiple></label>
+  <select id="clip" aria-label="Animation clip"><option>No animation</option></select>
+  <div class="row"><label for="autoscale">Auto-scale to 1.75 m</label><input id="autoscale" type="checkbox" checked></div>
+  <h2>Room</h2>
+  <div class="grid">
+    <button id="flicker" aria-pressed="true">Flicker</button>
+    <button id="door">Open door</button>
+    <button id="sound" aria-pressed="false">Sound</button>
+    <button id="quality" aria-pressed="true">AO + grain</button>
+  </div>
+  <div class="row"><label for="expo">Brightness</label><input id="expo" type="range" min="0.5" max="2.5" step="0.05" value="1.5" style="width:120px;accent-color:#d8d2c4"></div>
+  <div id="stats">Loading…</div>
+</aside>
+<button class="hud" id="toggle" aria-controls="panel" aria-expanded="false">Controls</button>
+<div class="hud" id="msg">Drop a .glb (or a .gltf with its files) anywhere to put your character in the room.</div>
+<div id="drop" hidden>Drop to place character</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
+import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { GTAOPass } from "three/addons/postprocessing/GTAOPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+
+// Where the models live. The published preview overrides this with base64 copies.
+const CONFIG = Object.assign({
+  room: "models/horror_room.web.glb",
+  character: "models/placeholder_character.glb",
+}, window.HORROR_CONFIG || {});
+
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const $ = (s) => document.querySelector(s);
+const say = (t, err = false) => { const m = $("#msg"); m.textContent = t; m.classList.toggle("err", err); };
+
+/* ---------------- renderer, scene, camera ---------------- */
+const canvas = $("#c");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.5;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFShadowMap;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x030304);
+scene.fog = new THREE.FogExp2(0x040406, 0.075);
+scene.add(new THREE.HemisphereLight(0x3a4866, 0x1a110a, 1.3));
+
+const camera = new THREE.PerspectiveCamera(50, 1, 0.05, 60);
+camera.position.set(0.55, 1.55, 2.35);
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.dampingFactor = 0.07;
+controls.minDistance = 0.8;
+controls.maxDistance = 3.4;
+controls.maxPolarAngle = Math.PI * 0.62;
+controls.target.set(0, 1.05, 0);
+controls.enablePan = false;
+
+/* ---------------- loaders ---------------- */
+const draco = new DRACOLoader().setDecoderPath("https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/libs/draco/gltf/");
+function makeLoader(manager) {
+  const l = new GLTFLoader(manager);
+  l.setDRACOLoader(draco);
+  l.setMeshoptDecoder(MeshoptDecoder);
+  return l;
+}
+async function loadGLB(src) {
+  const loader = makeLoader();
+  if (src.endsWith(".b64.txt")) {                     // base64 copy (used by the hosted preview)
+    const txt = (await (await fetch(src)).text()).trim();
+    const bin = Uint8Array.from(atob(txt), (c) => c.charCodeAt(0));
+    return loader.parseAsync(bin.buffer, "");
+  }
+  return loader.loadAsync(src);
+}
+
+/* ---------------- room ---------------- */
+const NO_SHADOW_MATS = new Set(["M_WindowGlass", "M_NightSky", "M_Void", "M_BulbGlass"]);
+let room, bulbLight, moonLight, hallLight, bulbMat, bulbBase = 1, bulbEmissive = 1, doorAction, roomMixer;
+let spawn = new THREE.Object3D();
+const findLight = (root, name) => {
+  const o = root.getObjectByName(name);
+  let l = o && o.isLight ? o : null;
+  o && !l && o.traverse((c) => { if (!l && c.isLight) l = c; });
+  return l;
+};
+
+async function loadRoom() {
+  const gltf = await loadGLB(CONFIG.room);
+  room = gltf.scene;
+  room.traverse((o) => {
+    if (o.isMesh) {
+      const names = [].concat(o.material).map((m) => m.name);
+      o.receiveShadow = true;
+      [].concat(o.material).forEach((m) => { m.shadowSide = THREE.DoubleSide; });   // seals light leaks at thin wall seams
+      o.castShadow = !names.some((n) => NO_SHADOW_MATS.has(n)) && !/Hanging_Bulb/.test(o.parent?.name + o.name);
+      if (names.includes("M_BulbGlass")) bulbMat = [].concat(o.material).find((m) => m.name === "M_BulbGlass");
+    }
+  });
+  scene.add(room);
+
+  spawn = room.getObjectByName("CharacterSpawn") || spawn;
+  const camStart = room.getObjectByName("CameraStart"), camTarget = room.getObjectByName("CameraTarget");
+  if (camStart && camTarget) {
+    camStart.getWorldPosition(camera.position);
+    camTarget.getWorldPosition(controls.target);
+  }
+
+  bulbLight = findLight(room, "Light_Bulb");
+  moonLight = findLight(room, "Light_Moon");
+  hallLight = findLight(room, "Light_Hall");
+  if (bulbLight) {
+    bulbLight.castShadow = true;
+    bulbLight.shadow.mapSize.set(1024, 1024);
+    bulbLight.shadow.bias = -0.002;
+    bulbLight.shadow.normalBias = 0.02;
+    bulbLight.shadow.radius = 3;
+    bulbBase = bulbLight.intensity;
+  }
+  if (moonLight) {
+    moonLight.castShadow = true;
+    moonLight.shadow.mapSize.set(1024, 1024);
+    moonLight.shadow.bias = -0.0008;
+    moonLight.shadow.normalBias = 0.02;
+    moonLight.shadow.camera.near = 1;
+    moonLight.shadow.camera.far = 12;
+  }
+  if (bulbMat) bulbEmissive = bulbMat.emissiveIntensity;
+
+  if (gltf.animations.length) {
+    roomMixer = new THREE.AnimationMixer(room);
+    const clip = THREE.AnimationClip.findByName(gltf.animations, "Door_Creak") || gltf.animations[0];
+    doorAction = roomMixer.clipAction(clip);
+    doorAction.setLoop(THREE.LoopOnce, 1);
+    doorAction.clampWhenFinished = true;
+  }
+  addDust();
+  updateStats();
+}
+
+/* ---------------- character ---------------- */
+let character = null, charMixer = null, charClips = [], charHeight = 0, charSource = null;
+
+async function loadCharacter(src, fileMap) {
+  let gltf;
+  try {
+    if (fileMap) {
+      const manager = new THREE.LoadingManager();
+      manager.setURLModifier((url) => {
+        const name = decodeURIComponent(url.split("/").pop().split("?")[0]);
+        return fileMap.get(name) || url;
+      });
+      gltf = await makeLoader(manager).loadAsync(src);
+    } else {
+      gltf = await loadGLB(src);
+    }
+  } catch (e) {
+    say("Could not load that file: " + (e.message || e), true);
+    return;
+  }
+  if (character) { spawn.remove(character); charMixer?.stopAllAction(); }
+  character = gltf.scene;
+  charSource = gltf;
+  character.traverse((o) => {
+    if (o.isMesh || o.isSkinnedMesh) {
+      o.castShadow = true;
+      o.receiveShadow = true;
+      if (o.isSkinnedMesh) o.frustumCulled = false;      // skinned bounds are often wrong
+    }
+  });
+  spawn.add(character);
+  fitCharacter();
+
+  charClips = gltf.animations;
+  charMixer = charClips.length ? new THREE.AnimationMixer(character) : null;
+  const sel = $("#clip");
+  sel.innerHTML = charClips.length
+    ? charClips.map((c, i) => `<option value="${i}">${c.name || "Clip " + (i + 1)} (${c.duration.toFixed(1)}s)</option>`).join("")
+    : "<option>No animation</option>";
+  const idle = charClips.findIndex((c) => /idle|breath|stand/i.test(c.name));
+  if (charClips.length) { sel.value = String(idle >= 0 ? idle : 0); playClip(+sel.value); }
+  say(`Loaded character · ${charClips.length} clip(s) · ${charHeight.toFixed(2)} m tall as authored`);
+  updateStats();
+}
+
+function fitCharacter() {
+  if (!character) return;
+  character.scale.setScalar(1);
+  character.position.set(0, 0, 0);
+  character.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(character, true);
+  const size = box.getSize(new THREE.Vector3());
+  charHeight = size.y;
+  let s = 1;
+  if ($("#autoscale").checked && (size.y < 1.2 || size.y > 2.6)) s = 1.75 / size.y;   // cm-scale FBX exports etc.
+  character.scale.setScalar(s);
+  const center = box.getCenter(new THREE.Vector3());
+  character.position.set(-center.x * s, -box.min.y * s, -center.z * s);                 // feet on the floor, centred
+}
+
+function playClip(i) {
+  if (!charMixer) return;
+  charMixer.stopAllAction();
+  charMixer.clipAction(charClips[i]).reset().fadeIn(0.3).play();
+}
+
+/* ---------------- dust motes ---------------- */
+let dust;
+function addDust() {
+  const N = 900, pos = new Float32Array(N * 3), seed = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    pos[i * 3] = (Math.random() - 0.5) * 5.4;
+    pos[i * 3 + 1] = Math.random() * 2.9;
+    pos[i * 3 + 2] = (Math.random() - 0.5) * 5.4;
+    seed[i] = Math.random() * 100;
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  g.setAttribute("seed", new THREE.BufferAttribute(seed, 1));
+  const m = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    uniforms: { t: { value: 0 }, bulb: { value: new THREE.Vector3(0, 2.1, 0.3) }, glow: { value: 1 } },
+    vertexShader: `attribute float seed; uniform float t; uniform vec3 bulb; varying float a;
+      void main(){ vec3 p = position;
+        p.x += sin(t*0.13 + seed)*0.25; p.z += cos(t*0.11 + seed*1.3)*0.25; p.y = mod(p.y + t*0.02 + sin(seed)*0.1, 2.9);
+        vec4 mv = modelViewMatrix * vec4(p,1.0);
+        float d = distance(p, bulb); a = smoothstep(2.4, 0.2, d);
+        gl_PointSize = min(5.0, (1.0 + fract(seed)*1.6) * (3.0 / -mv.z) * 1.5); gl_Position = projectionMatrix * mv; }`,
+    fragmentShader: `varying float a; uniform float glow;
+      void main(){ float r = length(gl_PointCoord - 0.5); if (r > 0.5) discard;
+        gl_FragColor = vec4(vec3(1.0, 0.8, 0.6) * a * glow * 0.5 * smoothstep(0.5, 0.1, r), 1.0); }`,
+  });
+  dust = new THREE.Points(g, m);
+  dust.frustumCulled = false;
+  scene.add(dust);
+}
+
+/* ---------------- post-processing ---------------- */
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const gtao = new GTAOPass(scene, camera, 1, 1);
+gtao.blendIntensity = 0.85;
+gtao.updateGtaoMaterial({ radius: 0.35, distanceExponent: 1.4, thickness: 1.2, scale: 1.0 });
+composer.addPass(gtao);
+const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.3, 0.5, 0.9);
+composer.addPass(bloom);
+const film = new ShaderPass({
+  uniforms: { tDiffuse: { value: null }, t: { value: 0 }, amount: { value: 1 } },
+  vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+  fragmentShader: `uniform sampler2D tDiffuse; uniform float t, amount; varying vec2 vUv;
+    float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233)) + t*7.0) * 43758.5453); }
+    void main(){
+      vec2 c = vUv - 0.5; float d = dot(c,c);
+      vec2 off = c * d * 0.012 * amount;                                   // slight lens fringe at edges
+      vec3 col = vec3(texture2D(tDiffuse, vUv + off).r, texture2D(tDiffuse, vUv).g, texture2D(tDiffuse, vUv - off).b);
+      col *= mix(1.0, smoothstep(0.85, 0.12, d), 0.85);                  // vignette
+      col += (h(vUv*vec2(1920.0,1080.0)) - 0.5) * 0.035 * amount;           // film grain
+      gl_FragColor = vec4(col, 1.0); }`,
+});
+composer.addPass(film);
+composer.addPass(new OutputPass());
+
+function resize() {
+  const w = innerWidth, h = innerHeight;
+  renderer.setSize(w, h, false);
+  composer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.fov = w < h ? 64 : 50;
+  camera.updateProjectionMatrix();
+}
+addEventListener("resize", resize);
+resize();
+
+/* ---------------- flicker ---------------- */
+let flickerOn = !reduce, nextEvent = 3, eventEnd = 0, eventKind = "";
+function bulbLevel(t) {
+  if (!flickerOn) return 1;
+  if (t > nextEvent) {
+    eventKind = Math.random() < 0.22 ? "out" : "stutter";
+    eventEnd = t + (eventKind === "out" ? 0.8 + Math.random() * 1.2 : 0.35 + Math.random() * 0.5);
+    nextEvent = eventEnd + 3 + Math.random() * 7;
+  }
+  if (t < eventEnd) {
+    if (eventKind === "out") return 0.02;
+    return Math.sin(t * 90) > 0.2 ? 1 : 0.08;
+  }
+  return 0.94 + 0.06 * Math.sin(t * 50) * Math.sin(t * 13.7);         // mains buzz
+}
+
+/* ---------------- sound (synthesised, starts from a click) ---------------- */
+let audio = null;
+function toggleSound() {
+  const btn = $("#sound");
+  if (audio) { audio.ctx.close(); audio = null; btn.setAttribute("aria-pressed", "false"); return; }
+  const ctx = new AudioContext();
+  const out = ctx.createGain(); out.gain.value = 0.5; out.connect(ctx.destination);
+  const len = ctx.sampleRate * 4, buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+  let last = 0; for (let i = 0; i < len; i++) { last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02; d[i] = last * 3.5; }
+  const rumble = ctx.createBufferSource(); rumble.buffer = buf; rumble.loop = true;
+  const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 180;
+  const rg = ctx.createGain(); rg.gain.value = 0.9;
+  rumble.connect(lp).connect(rg).connect(out); rumble.start();
+  const hum = ctx.createOscillator(); hum.type = "sawtooth"; hum.frequency.value = 100;
+  const hf = ctx.createBiquadFilter(); hf.type = "bandpass"; hf.frequency.value = 200; hf.Q.value = 6;
+  const hg = ctx.createGain(); hg.gain.value = 0.0;
+  hum.connect(hf).connect(hg).connect(out); hum.start();
+  audio = { ctx, hum: hg };
+  btn.setAttribute("aria-pressed", "true");
+}
+
+/* ---------------- controls ---------------- */
+$("#flicker").setAttribute("aria-pressed", String(flickerOn));
+$("#flicker").onclick = (e) => { flickerOn = !flickerOn; e.currentTarget.setAttribute("aria-pressed", String(flickerOn)); };
+$("#sound").onclick = toggleSound;
+if (innerWidth <= 640) $("#panel").classList.add("collapsed");
+$("#toggle").onclick = (e) => { const c = $("#panel").classList.toggle("collapsed"); e.currentTarget.setAttribute("aria-expanded", String(!c)); };
+let doorOpen = false;
+$("#door").onclick = (e) => {
+  if (!doorAction) return;
+  doorOpen = !doorOpen;
+  doorAction.paused = false;
+  doorAction.timeScale = doorOpen ? 1 : -1.6;
+  if (doorOpen && doorAction.time >= doorAction.getClip().duration) doorAction.time = 0;
+  doorAction.play();
+  e.currentTarget.textContent = doorOpen ? "Close door" : "Open door";
+};
+let hq = true;
+$("#quality").onclick = (e) => { hq = !hq; gtao.enabled = hq; film.enabled = hq; e.currentTarget.setAttribute("aria-pressed", String(hq)); };
+$("#expo").oninput = (e) => { renderer.toneMappingExposure = +e.target.value; };
+$("#clip").onchange = (e) => playClip(+e.target.value);
+$("#autoscale").onchange = () => { fitCharacter(); updateStats(); };
+
+async function useFiles(files) {
+  files = [...files];
+  const main = files.find((f) => /\.(glb|gltf)$/i.test(f.name));
+  if (!main) { say("Pick a .glb, or a .gltf together with its .bin and texture files.", true); return; }
+  const map = new Map(files.map((f) => [f.name, URL.createObjectURL(f)]));
+  await loadCharacter(map.get(main.name), map);
+}
+$("#file").onchange = (e) => useFiles(e.target.files);
+addEventListener("dragover", (e) => { e.preventDefault(); $("#drop").hidden = false; });
+addEventListener("dragleave", (e) => { if (!e.relatedTarget) $("#drop").hidden = true; });
+addEventListener("drop", (e) => { e.preventDefault(); $("#drop").hidden = true; useFiles(e.dataTransfer.files); });
+
+function updateStats() {
+  let tris = 0;
+  scene.traverse((o) => { if (o.isMesh && o.geometry) { const g = o.geometry; tris += (g.index ? g.index.count : g.attributes.position.count) / 3; } });
+  const scaled = character ? (charHeight * character.scale.x).toFixed(2) : "–";
+  let meshes = 0; room?.traverse((o) => { if (o.isMesh) meshes++; });
+  $("#stats").innerHTML = `Triangles <b>${Math.round(tris).toLocaleString()}</b><br>Room meshes <b>${meshes}</b><br>Character <b>${scaled} m</b>${character && character.scale.x !== 1 ? " (auto-scaled)" : ""}`;
+}
+
+/* ---------------- loop ---------------- */
+const timer = new THREE.Timer();
+const ROOM_MIN = new THREE.Vector3(-2.8, 0.25, -2.8), ROOM_MAX = new THREE.Vector3(2.8, 2.8, 2.8);
+let statTimer = 0;
+renderer.setAnimationLoop((now) => {
+  timer.update(now);
+  const dt = Math.min(timer.getDelta(), 0.05), t = timer.getElapsed();
+  controls.update();
+  camera.position.clamp(ROOM_MIN, ROOM_MAX);
+  const lvl = bulbLevel(t);
+  if (bulbLight) bulbLight.intensity = bulbBase * lvl;
+  if (bulbMat) bulbMat.emissiveIntensity = bulbEmissive * lvl;
+  if (dust) { dust.material.uniforms.t.value = reduce ? 0 : t; dust.material.uniforms.glow.value = lvl; }
+  if (audio) audio.hum.gain.setTargetAtTime(lvl > 0.5 ? 0.035 : 0.0, audio.ctx.currentTime, 0.01);
+  film.uniforms.t.value = t;
+  roomMixer?.update(dt);
+  charMixer?.update(dt);
+  composer.render(dt);
+  if ((statTimer += dt) > 1) { statTimer = 0; updateStats(); }
+});
+
+try {
+  await loadRoom();
+  await loadCharacter(CONFIG.character);
+  say("Drop your own .glb (or a .gltf with its files) anywhere to replace the mannequin.");
+} catch (e) {
+  console.error(e);
+  say("Could not load the room: " + (e.message || e), true);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+node_modules
+dist
+.vercel
+*.local
+*.log
+.DS_Store
+.env
+.env.*
+
+# Duplicated into docs/ and public/models/ when the handoff was unpacked.
+# Delete the originals once you are happy nothing is missing.
+/room01-handoff/
+/ROOM01_SPEC.md
