@@ -1,0 +1,10127 @@
+{
+ "name": "Room 01",
+ "files": {
+  "room": "models/horror_room.glb",
+  "roomWeb": "models/horror_room.web.glb (WebP + meshopt; needs MeshoptDecoder)",
+  "placeholderCharacter": "models/placeholder_character.glb"
+ },
+ "conventions": {
+  "units": "metres",
+  "up": "+Y",
+  "forward": "character faces +Z (towards the default camera)",
+  "handedness": "right-handed (three.js)",
+  "rotation": "Euler order XYZ, radians in 'rotation', degrees in 'rotationDeg'; quaternion [x, y, z, w]",
+  "threeRevision": "186",
+  "blenderToThree": "Blender (x, y, z) → three (x, z, −y)"
+ },
+ "shell": {
+  "room": {
+   "xMin": -3.0,
+   "xMax": 3.0,
+   "zMin": -3.0,
+   "zMax": 3.0,
+   "floorY": 0.0,
+   "ceilingY": 3.0,
+   "wainscotTopY": 1.0,
+   "baseboardHeight": 0.14,
+   "chairRailHeight": 0.05,
+   "crownHeight": 0.1
+  },
+  "window": {
+   "wall": "back (z = -3)",
+   "xMin": -1.0,
+   "xMax": 0.2,
+   "yMin": 1.1,
+   "yMax": 2.4,
+   "revealDepth": 0.18,
+   "glassZ": -3.14,
+   "skyPlaneZ": -4.2
+  },
+  "door": {
+   "wall": "right (x = 3)",
+   "zMin": -1.45,
+   "zMax": -0.55,
+   "yMax": 2.1,
+   "revealDepth": 0.18,
+   "hingeWorld": [
+    3.1,
+    0.005,
+    -1.445
+   ],
+   "slab": {
+    "width": 0.88,
+    "height": 2.08,
+    "thickness": 0.045
+   },
+   "yawClosedDeg": 0,
+   "yawRestDeg": -14,
+   "yawOpenDeg": -68
+  },
+  "hallway": {
+   "xMin": 3.0,
+   "xMax": 7.0,
+   "zMin": -1.9,
+   "zMax": -0.10000000000000003,
+   "ceilingY": 2.7
+  },
+  "bulb": {
+   "position": [
+    0.0,
+    2.22,
+    0.3
+   ],
+   "lightPosition": [
+    0.0,
+    2.16,
+    0.3
+   ]
+  },
+  "characterSpawn": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "cameraStart": [
+   0.55,
+   1.55,
+   2.35
+  ],
+  "cameraTarget": [
+   0.0,
+   1.05,
+   0.0
+  ]
+ },
+ "markers": {
+  "CharacterSpawn": {
+   "position": [
+    0,
+    0,
+    0
+   ],
+   "note": "Place the character's root here. Feet on y=0, facing +Z (three.js)."
+  },
+  "CameraStart": {
+   "position": [
+    0.55,
+    1.55,
+    2.35
+   ],
+   "note": ""
+  },
+  "CameraTarget": {
+   "position": [
+    0,
+    1.05,
+    0
+   ],
+   "note": ""
+  }
+ },
+ "character": {
+  "placeholderHeight": 1.764,
+  "placeholderBounds": {
+   "min": [
+    -0.314,
+    0.017,
+    -0.1239
+   ],
+   "max": [
+    0.3129,
+    1.781,
+    0.1534
+   ],
+   "size": [
+    0.6269,
+    1.764,
+    0.2773
+   ],
+   "center": [
+    -0.0005,
+    0.899,
+    0.0147
+   ]
+  },
+  "clips": [
+   {
+    "name": "Idle_Sway",
+    "duration": 4
+   }
+  ],
+  "fitRule": "scale 1 unless height < 1.2 or > 2.6 m, then scale to 1.75 m; then offset so the bounding box is centred on x/z and its bottom sits on y = 0"
+ },
+ "models": [
+  {
+   "name": "Floor",
+   "category": "structure",
+   "description": "Floor plane, worn wooden planks. y = 0.",
+   "threeName": "Floor",
+   "threeType": "Mesh",
+   "parent": null,
+   "position": [
+    0,
+    0,
+    0
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     -3,
+     0,
+     -3
+    ],
+    "max": [
+     3,
+     0,
+     3
+    ],
+    "size": [
+     6,
+     0,
+     6
+    ],
+    "center": [
+     0,
+     0,
+     0
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_Floor"
+   ],
+   "triangles": 2,
+   "parts": [
+    {
+     "shape": "quad",
+     "material": "M_Floor",
+     "corners": [
+      [
+       -3.0,
+       0.0,
+       3.0
+      ],
+      [
+       3.0,
+       0.0,
+       3.0
+      ],
+      [
+       3.0,
+       0.0,
+       -3.0
+      ],
+      [
+       -3.0,
+       0.0,
+       -3.0
+      ]
+     ],
+     "facing": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "localCorners": [
+      [
+       -3.0,
+       0.0,
+       3.0
+      ],
+      [
+       3.0,
+       0.0,
+       3.0
+      ],
+      [
+       3.0,
+       0.0,
+       -3.0
+      ],
+      [
+       -3.0,
+       0.0,
+       -3.0
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Ceiling",
+   "category": "structure",
+   "description": "Ceiling plane, stained cracked plaster. y = 3.",
+   "threeName": "Ceiling",
+   "threeType": "Mesh",
+   "parent": null,
+   "position": [
+    0,
+    0,
+    0
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     -3,
+     3,
+     -3
+    ],
+    "max": [
+     3,
+     3,
+     3
+    ],
+    "size": [
+     6,
+     0,
+     6
+    ],
+    "center": [
+     0,
+     3,
+     0
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_Plaster"
+   ],
+   "triangles": 2,
+   "parts": [
+    {
+     "shape": "quad",
+     "material": "M_Plaster",
+     "corners": [
+      [
+       -3.0,
+       3.0,
+       -3.0
+      ],
+      [
+       3.0,
+       3.0,
+       -3.0
+      ],
+      [
+       3.0,
+       3.0,
+       3.0
+      ],
+      [
+       -3.0,
+       3.0,
+       3.0
+      ]
+     ],
+     "facing": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "localCorners": [
+      [
+       -3.0,
+       3.0,
+       -3.0
+      ],
+      [
+       3.0,
+       3.0,
+       -3.0
+      ],
+      [
+       3.0,
+       3.0,
+       3.0
+      ],
+      [
+       -3.0,
+       3.0,
+       3.0
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Wall_Back",
+   "category": "structure",
+   "description": "Back wall (z = −3) with the window opening cut out. Wainscot below y = 1, wallpaper above.",
+   "threeName": "Wall_Back",
+   "threeType": "Group",
+   "parent": null,
+   "position": [
+    0,
+    0,
+    0
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     -3,
+     0,
+     -3
+    ],
+    "max": [
+     3,
+     3,
+     -3
+    ],
+    "size": [
+     6,
+     3,
+     0
+    ],
+    "center": [
+     0,
+     1.5,
+     -3
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_Wainscot",
+    "M_Wallpaper"
+   ],
+   "triangles": 14,
+   "parts": [
+    {
+     "shape": "quad",
+     "material": "M_Wainscot",
+     "corners": [
+      [
+       -3.0,
+       0.0,
+       -3.0
+      ],
+      [
+       -1.0,
+       0.0,
+       -3.0
+      ],
+      [
+       -1.0,
+       1.0,
+       -3.0
+      ],
+      [
+       -3.0,
+       1.0,
+       -3.0
+      ]
+     ],
+     "facing": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localCorners": [
+      [
+       -3.0,
+       0.0,
+       -3.0
+      ],
+      [
+       -1.0,
+       0.0,
+       -3.0
+      ],
+      [
+       -1.0,
+       1.0,
+       -3.0
+      ],
+      [
+       -3.0,
+       1.0,
+       -3.0
+      ]
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Wallpaper",
+     "corners": [
+      [
+       -3.0,
+       1.0,
+       -3.0
+      ],
+      [
+       -1.0,
+       1.0,
+       -3.0
+      ],
+      [
+       -1.0,
+       3.0,
+       -3.0
+      ],
+      [
+       -3.0,
+       3.0,
+       -3.0
+      ]
+     ],
+     "facing": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localCorners": [
+      [
+       -3.0,
+       1.0,
+       -3.0
+      ],
+      [
+       -1.0,
+       1.0,
+       -3.0
+      ],
+      [
+       -1.0,
+       3.0,
+       -3.0
+      ],
+      [
+       -3.0,
+       3.0,
+       -3.0
+      ]
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Wainscot",
+     "corners": [
+      [
+       0.2,
+       0.0,
+       -3.0
+      ],
+      [
+       3.0,
+       0.0,
+       -3.0
+      ],
+      [
+       3.0,
+       1.0,
+       -3.0
+      ],
+      [
+       0.2,
+       1.0,
+       -3.0
+      ]
+     ],
+     "facing": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localCorners": [
+      [
+       0.2,
+       0.0,
+       -3.0
+      ],
+      [
+       3.0,
+       0.0,
+       -3.0
+      ],
+      [
+       3.0,
+       1.0,
+       -3.0
+      ],
+      [
+       0.2,
+       1.0,
+       -3.0
+      ]
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Wallpaper",
+     "corners": [
+      [
+       0.2,
+       1.0,
+       -3.0
+      ],
+      [
+       3.0,
+       1.0,
+       -3.0
+      ],
+      [
+       3.0,
+       3.0,
+       -3.0
+      ],
+      [
+       0.2,
+       3.0,
+       -3.0
+      ]
+     ],
+     "facing": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localCorners": [
+      [
+       0.2,
+       1.0,
+       -3.0
+      ],
+      [
+       3.0,
+       1.0,
+       -3.0
+      ],
+      [
+       3.0,
+       3.0,
+       -3.0
+      ],
+      [
+       0.2,
+       3.0,
+       -3.0
+      ]
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Wainscot",
+     "corners": [
+      [
+       -1.0,
+       0.0,
+       -3.0
+      ],
+      [
+       0.2,
+       0.0,
+       -3.0
+      ],
+      [
+       0.2,
+       1.0,
+       -3.0
+      ],
+      [
+       -1.0,
+       1.0,
+       -3.0
+      ]
+     ],
+     "facing": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localCorners": [
+      [
+       -1.0,
+       0.0,
+       -3.0
+      ],
+      [
+       0.2,
+       0.0,
+       -3.0
+      ],
+      [
+       0.2,
+       1.0,
+       -3.0
+      ],
+      [
+       -1.0,
+       1.0,
+       -3.0
+      ]
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Wallpaper",
+     "corners": [
+      [
+       -1.0,
+       1.0,
+       -3.0
+      ],
+      [
+       0.2,
+       1.0,
+       -3.0
+      ],
+      [
+       0.2,
+       1.1,
+       -3.0
+      ],
+      [
+       -1.0,
+       1.1,
+       -3.0
+      ]
+     ],
+     "facing": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localCorners": [
+      [
+       -1.0,
+       1.0,
+       -3.0
+      ],
+      [
+       0.2,
+       1.0,
+       -3.0
+      ],
+      [
+       0.2,
+       1.1,
+       -3.0
+      ],
+      [
+       -1.0,
+       1.1,
+       -3.0
+      ]
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Wallpaper",
+     "corners": [
+      [
+       -1.0,
+       2.4,
+       -3.0
+      ],
+      [
+       0.2,
+       2.4,
+       -3.0
+      ],
+      [
+       0.2,
+       3.0,
+       -3.0
+      ],
+      [
+       -1.0,
+       3.0,
+       -3.0
+      ]
+     ],
+     "facing": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localCorners": [
+      [
+       -1.0,
+       2.4,
+       -3.0
+      ],
+      [
+       0.2,
+       2.4,
+       -3.0
+      ],
+      [
+       0.2,
+       3.0,
+       -3.0
+      ],
+      [
+       -1.0,
+       3.0,
+       -3.0
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Wall_Front",
+   "category": "structure",
+   "description": "Front wall (z = +3), behind the default camera.",
+   "threeName": "Wall_Front",
+   "threeType": "Group",
+   "parent": null,
+   "position": [
+    0,
+    0,
+    0
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     -3,
+     0,
+     3
+    ],
+    "max": [
+     3,
+     3,
+     3
+    ],
+    "size": [
+     6,
+     3,
+     0
+    ],
+    "center": [
+     0,
+     1.5,
+     3
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_Wainscot",
+    "M_Wallpaper"
+   ],
+   "triangles": 4,
+   "parts": [
+    {
+     "shape": "quad",
+     "material": "M_Wainscot",
+     "corners": [
+      [
+       -3.0,
+       1.0,
+       3.0
+      ],
+      [
+       3.0,
+       1.0,
+       3.0
+      ],
+      [
+       3.0,
+       0.0,
+       3.0
+      ],
+      [
+       -3.0,
+       0.0,
+       3.0
+      ]
+     ],
+     "facing": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "localCorners": [
+      [
+       -3.0,
+       1.0,
+       3.0
+      ],
+      [
+       3.0,
+       1.0,
+       3.0
+      ],
+      [
+       3.0,
+       0.0,
+       3.0
+      ],
+      [
+       -3.0,
+       0.0,
+       3.0
+      ]
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Wallpaper",
+     "corners": [
+      [
+       -3.0,
+       3.0,
+       3.0
+      ],
+      [
+       3.0,
+       3.0,
+       3.0
+      ],
+      [
+       3.0,
+       1.0,
+       3.0
+      ],
+      [
+       -3.0,
+       1.0,
+       3.0
+      ]
+     ],
+     "facing": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "localCorners": [
+      [
+       -3.0,
+       3.0,
+       3.0
+      ],
+      [
+       3.0,
+       3.0,
+       3.0
+      ],
+      [
+       3.0,
+       1.0,
+       3.0
+      ],
+      [
+       -3.0,
+       1.0,
+       3.0
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Wall_Left",
+   "category": "structure",
+   "description": "Left wall (x = −3).",
+   "threeName": "Wall_Left",
+   "threeType": "Group",
+   "parent": null,
+   "position": [
+    0,
+    0,
+    0
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     -3,
+     0,
+     -3
+    ],
+    "max": [
+     -3,
+     3,
+     3
+    ],
+    "size": [
+     0,
+     3,
+     6
+    ],
+    "center": [
+     -3,
+     1.5,
+     0
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_Wainscot",
+    "M_Wallpaper"
+   ],
+   "triangles": 4,
+   "parts": [
+    {
+     "shape": "quad",
+     "material": "M_Wainscot",
+     "corners": [
+      [
+       -3.0,
+       0.0,
+       3.0
+      ],
+      [
+       -3.0,
+       0.0,
+       -3.0
+      ],
+      [
+       -3.0,
+       1.0,
+       -3.0
+      ],
+      [
+       -3.0,
+       1.0,
+       3.0
+      ]
+     ],
+     "facing": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "localCorners": [
+      [
+       -3.0,
+       0.0,
+       3.0
+      ],
+      [
+       -3.0,
+       0.0,
+       -3.0
+      ],
+      [
+       -3.0,
+       1.0,
+       -3.0
+      ],
+      [
+       -3.0,
+       1.0,
+       3.0
+      ]
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Wallpaper",
+     "corners": [
+      [
+       -3.0,
+       1.0,
+       3.0
+      ],
+      [
+       -3.0,
+       1.0,
+       -3.0
+      ],
+      [
+       -3.0,
+       3.0,
+       -3.0
+      ],
+      [
+       -3.0,
+       3.0,
+       3.0
+      ]
+     ],
+     "facing": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "localCorners": [
+      [
+       -3.0,
+       1.0,
+       3.0
+      ],
+      [
+       -3.0,
+       1.0,
+       -3.0
+      ],
+      [
+       -3.0,
+       3.0,
+       -3.0
+      ],
+      [
+       -3.0,
+       3.0,
+       3.0
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Wall_Right",
+   "category": "structure",
+   "description": "Right wall (x = +3) with the door opening cut out.",
+   "threeName": "Wall_Right",
+   "threeType": "Group",
+   "parent": null,
+   "position": [
+    0,
+    0,
+    0
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     3,
+     0,
+     -3
+    ],
+    "max": [
+     3,
+     3,
+     3
+    ],
+    "size": [
+     0,
+     3,
+     6
+    ],
+    "center": [
+     3,
+     1.5,
+     0
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_Wainscot",
+    "M_Wallpaper"
+   ],
+   "triangles": 10,
+   "parts": [
+    {
+     "shape": "quad",
+     "material": "M_Wainscot",
+     "corners": [
+      [
+       3.0,
+       1.0,
+       3.0
+      ],
+      [
+       3.0,
+       1.0,
+       -0.55
+      ],
+      [
+       3.0,
+       0.0,
+       -0.55
+      ],
+      [
+       3.0,
+       0.0,
+       3.0
+      ]
+     ],
+     "facing": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "localCorners": [
+      [
+       3.0,
+       1.0,
+       3.0
+      ],
+      [
+       3.0,
+       1.0,
+       -0.55
+      ],
+      [
+       3.0,
+       0.0,
+       -0.55
+      ],
+      [
+       3.0,
+       0.0,
+       3.0
+      ]
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Wallpaper",
+     "corners": [
+      [
+       3.0,
+       3.0,
+       3.0
+      ],
+      [
+       3.0,
+       3.0,
+       -0.55
+      ],
+      [
+       3.0,
+       1.0,
+       -0.55
+      ],
+      [
+       3.0,
+       1.0,
+       3.0
+      ]
+     ],
+     "facing": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "localCorners": [
+      [
+       3.0,
+       3.0,
+       3.0
+      ],
+      [
+       3.0,
+       3.0,
+       -0.55
+      ],
+      [
+       3.0,
+       1.0,
+       -0.55
+      ],
+      [
+       3.0,
+       1.0,
+       3.0
+      ]
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Wainscot",
+     "corners": [
+      [
+       3.0,
+       1.0,
+       -1.45
+      ],
+      [
+       3.0,
+       1.0,
+       -3.0
+      ],
+      [
+       3.0,
+       0.0,
+       -3.0
+      ],
+      [
+       3.0,
+       0.0,
+       -1.45
+      ]
+     ],
+     "facing": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "localCorners": [
+      [
+       3.0,
+       1.0,
+       -1.45
+      ],
+      [
+       3.0,
+       1.0,
+       -3.0
+      ],
+      [
+       3.0,
+       0.0,
+       -3.0
+      ],
+      [
+       3.0,
+       0.0,
+       -1.45
+      ]
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Wallpaper",
+     "corners": [
+      [
+       3.0,
+       3.0,
+       -1.45
+      ],
+      [
+       3.0,
+       3.0,
+       -3.0
+      ],
+      [
+       3.0,
+       1.0,
+       -3.0
+      ],
+      [
+       3.0,
+       1.0,
+       -1.45
+      ]
+     ],
+     "facing": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "localCorners": [
+      [
+       3.0,
+       3.0,
+       -1.45
+      ],
+      [
+       3.0,
+       3.0,
+       -3.0
+      ],
+      [
+       3.0,
+       1.0,
+       -3.0
+      ],
+      [
+       3.0,
+       1.0,
+       -1.45
+      ]
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Wallpaper",
+     "corners": [
+      [
+       3.0,
+       3.0,
+       -0.55
+      ],
+      [
+       3.0,
+       3.0,
+       -1.45
+      ],
+      [
+       3.0,
+       2.1,
+       -1.45
+      ],
+      [
+       3.0,
+       2.1,
+       -0.55
+      ]
+     ],
+     "facing": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "localCorners": [
+      [
+       3.0,
+       3.0,
+       -0.55
+      ],
+      [
+       3.0,
+       3.0,
+       -1.45
+      ],
+      [
+       3.0,
+       2.1,
+       -1.45
+      ],
+      [
+       3.0,
+       2.1,
+       -0.55
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Trim",
+   "category": "structure",
+   "description": "Baseboards, chair rail at y = 1 and crown moulding, all four walls.",
+   "threeName": "Trim",
+   "threeType": "Mesh",
+   "parent": null,
+   "position": [
+    0,
+    0,
+    0
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     -3,
+     0,
+     -3
+    ],
+    "max": [
+     3,
+     3,
+     3
+    ],
+    "size": [
+     6,
+     3,
+     6
+    ],
+    "center": [
+     0,
+     1.5,
+     0
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_WoodDark"
+   ],
+   "triangles": 1512,
+   "parts": [
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.025,
+      0.14,
+      3.47
+     ],
+     "position": [
+      2.9875,
+      0.07,
+      1.265
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.004,
+     "localPosition": [
+      2.9875,
+      0.07,
+      1.265
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.035,
+      0.05,
+      3.47
+     ],
+     "position": [
+      2.9825,
+      1.0,
+      1.265
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.008,
+     "localPosition": [
+      2.9825,
+      1.0,
+      1.265
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.025,
+      0.14,
+      1.47
+     ],
+     "position": [
+      2.9875,
+      0.07,
+      -2.265
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.004,
+     "localPosition": [
+      2.9875,
+      0.07,
+      -2.265
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.035,
+      0.05,
+      1.47
+     ],
+     "position": [
+      2.9825,
+      1.0,
+      -2.265
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.008,
+     "localPosition": [
+      2.9825,
+      1.0,
+      -2.265
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.025,
+      0.14,
+      6.0
+     ],
+     "position": [
+      -2.9875,
+      0.07,
+      0.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.004,
+     "localPosition": [
+      -2.9875,
+      0.07,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.035,
+      0.05,
+      6.0
+     ],
+     "position": [
+      -2.9825,
+      1.0,
+      0.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.008,
+     "localPosition": [
+      -2.9825,
+      1.0,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      6.0,
+      0.14,
+      0.025
+     ],
+     "position": [
+      0.0,
+      0.07,
+      -2.9875
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.004,
+     "localPosition": [
+      0.0,
+      0.07,
+      -2.9875
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      6.0,
+      0.05,
+      0.035
+     ],
+     "position": [
+      0.0,
+      1.0,
+      -2.9825
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.008,
+     "localPosition": [
+      0.0,
+      1.0,
+      -2.9825
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      6.0,
+      0.14,
+      0.025
+     ],
+     "position": [
+      0.0,
+      0.07,
+      2.9875
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.004,
+     "localPosition": [
+      0.0,
+      0.07,
+      2.9875
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      6.0,
+      0.05,
+      0.035
+     ],
+     "position": [
+      0.0,
+      1.0,
+      2.9825
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.008,
+     "localPosition": [
+      0.0,
+      1.0,
+      2.9825
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      6.0,
+      0.1,
+      0.08
+     ],
+     "position": [
+      0.0,
+      2.95,
+      -2.96
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.015,
+     "localPosition": [
+      0.0,
+      2.95,
+      -2.96
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      6.0,
+      0.1,
+      0.08
+     ],
+     "position": [
+      0.0,
+      2.95,
+      2.96
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.015,
+     "localPosition": [
+      0.0,
+      2.95,
+      2.96
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.08,
+      0.1,
+      6.0
+     ],
+     "position": [
+      -2.96,
+      2.95,
+      0.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.015,
+     "localPosition": [
+      -2.96,
+      2.95,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.08,
+      0.1,
+      6.0
+     ],
+     "position": [
+      2.96,
+      2.95,
+      0.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.015,
+     "localPosition": [
+      2.96,
+      2.95,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Window",
+   "category": "structure",
+   "description": "Window reveal, sill, frame, sash bars, dark glass, and the emissive night-sky plane 1.2 m behind the wall.",
+   "threeName": "Window",
+   "threeType": "Group",
+   "parent": null,
+   "position": [
+    -0.4,
+    0,
+    -3.555
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     -3.4,
+     0,
+     -4.2
+    ],
+    "max": [
+     2.6,
+     4,
+     -2.91
+    ],
+    "size": [
+     6,
+     4,
+     1.29
+    ],
+    "center": [
+     -0.4,
+     2,
+     -3.555
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_NightSky",
+    "M_PaintedWood",
+    "M_Plaster",
+    "M_WindowGlass",
+    "M_WoodDark"
+   ],
+   "triangles": 496,
+   "parts": [
+    {
+     "shape": "box",
+     "material": "M_Plaster",
+     "size": [
+      0.02,
+      1.3,
+      0.18
+     ],
+     "position": [
+      -1.01,
+      1.75,
+      -3.09
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localPosition": [
+      -0.61,
+      1.75,
+      0.465
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Plaster",
+     "size": [
+      0.02,
+      1.3,
+      0.18
+     ],
+     "position": [
+      0.21,
+      1.75,
+      -3.09
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localPosition": [
+      0.61,
+      1.75,
+      0.465
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Plaster",
+     "size": [
+      1.2,
+      0.02,
+      0.18
+     ],
+     "position": [
+      -0.4,
+      2.41,
+      -3.09
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localPosition": [
+      0.0,
+      2.41,
+      0.465
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      1.34,
+      0.04,
+      0.26
+     ],
+     "position": [
+      -0.4,
+      1.08,
+      -3.04
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.01,
+     "localPosition": [
+      0.0,
+      1.08,
+      0.515
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_PaintedWood",
+     "size": [
+      0.08,
+      1.46,
+      0.03
+     ],
+     "position": [
+      -1.05,
+      1.77,
+      -2.985
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.008,
+     "localPosition": [
+      -0.65,
+      1.77,
+      0.57
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_PaintedWood",
+     "size": [
+      0.08,
+      1.46,
+      0.03
+     ],
+     "position": [
+      0.25,
+      1.77,
+      -2.985
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.008,
+     "localPosition": [
+      0.65,
+      1.77,
+      0.57
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_PaintedWood",
+     "size": [
+      1.38,
+      0.08,
+      0.03
+     ],
+     "position": [
+      -0.4,
+      2.45,
+      -2.985
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.008,
+     "localPosition": [
+      0.0,
+      2.45,
+      0.57
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_PaintedWood",
+     "size": [
+      1.2,
+      0.05,
+      0.04
+     ],
+     "position": [
+      -0.4,
+      1.75,
+      -3.12
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localPosition": [
+      0.0,
+      1.75,
+      0.435
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_PaintedWood",
+     "size": [
+      0.04,
+      1.3,
+      0.04
+     ],
+     "position": [
+      -0.4,
+      1.75,
+      -3.12
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localPosition": [
+      0.0,
+      1.75,
+      0.435
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_WindowGlass",
+     "corners": [
+      [
+       -1.0,
+       1.1,
+       -3.14
+      ],
+      [
+       0.2,
+       1.1,
+       -3.14
+      ],
+      [
+       0.2,
+       2.4,
+       -3.14
+      ],
+      [
+       -1.0,
+       2.4,
+       -3.14
+      ]
+     ],
+     "facing": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localCorners": [
+      [
+       -0.6,
+       1.1,
+       0.415
+      ],
+      [
+       0.6,
+       1.1,
+       0.415
+      ],
+      [
+       0.6,
+       2.4,
+       0.415
+      ],
+      [
+       -0.6,
+       2.4,
+       0.415
+      ]
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_NightSky",
+     "corners": [
+      [
+       -3.4,
+       0.0,
+       -4.2
+      ],
+      [
+       2.6,
+       0.0,
+       -4.2
+      ],
+      [
+       2.6,
+       4.0,
+       -4.2
+      ],
+      [
+       -3.4,
+       4.0,
+       -4.2
+      ]
+     ],
+     "facing": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localCorners": [
+      [
+       -3.0,
+       0.0,
+       -0.645
+      ],
+      [
+       3.0,
+       0.0,
+       -0.645
+      ],
+      [
+       3.0,
+       4.0,
+       -0.645
+      ],
+      [
+       -3.0,
+       4.0,
+       -0.645
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Window_Boards",
+   "category": "prop",
+   "description": "Four planks nailed across the window at angles. The moonlight shines through the gaps.",
+   "threeName": "Window_Boards",
+   "threeType": "Group",
+   "parent": null,
+   "position": [
+    -0.4,
+    1.1017,
+    -2.9507
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     -1.1998,
+     1.1017,
+     -2.9675
+    ],
+    "max": [
+     0.3998,
+     2.3151,
+     -2.934
+    ],
+    "size": [
+     1.5996,
+     1.2134,
+     0.0335
+    ],
+    "center": [
+     -0.4,
+     1.7084,
+     -2.9507
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_Boards",
+    "M_MetalDark"
+   ],
+   "triangles": 656,
+   "parts": [
+    {
+     "shape": "box",
+     "material": "M_Boards",
+     "size": [
+      1.55,
+      0.17,
+      0.025
+     ],
+     "position": [
+      -0.4,
+      1.28,
+      -2.955
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      -0.12217
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      -7.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      -0.06105,
+      0.99813
+     ],
+     "bevel": 0.004,
+     "localPosition": [
+      0.0,
+      0.1783,
+      -0.0043
+     ]
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_MetalDark",
+     "radiusTop": 0.009,
+     "radiusBottom": 0.009,
+     "height": 0.012,
+     "radialSegments": 8,
+     "position": [
+      -1.0898,
+      1.3647,
+      -2.94
+     ],
+     "rotation": [
+      1.5708,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      90.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.70711,
+      0.0,
+      0.0,
+      0.70711
+     ],
+     "localPosition": [
+      -0.6898,
+      0.263,
+      0.0107
+     ]
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_MetalDark",
+     "radiusTop": 0.009,
+     "radiusBottom": 0.009,
+     "height": 0.012,
+     "radialSegments": 8,
+     "position": [
+      0.2898,
+      1.1953,
+      -2.94
+     ],
+     "rotation": [
+      1.5708,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      90.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.70711,
+      0.0,
+      0.0,
+      0.70711
+     ],
+     "localPosition": [
+      0.6898,
+      0.0936,
+      0.0107
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Boards",
+     "size": [
+      1.5,
+      0.15,
+      0.025
+     ],
+     "position": [
+      -0.4,
+      1.58,
+      -2.955
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.06981
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      4.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0349,
+      0.99939
+     ],
+     "bevel": 0.004,
+     "localPosition": [
+      0.0,
+      0.4783,
+      -0.0043
+     ]
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_MetalDark",
+     "radiusTop": 0.009,
+     "radiusBottom": 0.009,
+     "height": 0.012,
+     "radialSegments": 8,
+     "position": [
+      -1.0684,
+      1.5333,
+      -2.94
+     ],
+     "rotation": [
+      1.5708,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      90.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.70711,
+      0.0,
+      0.0,
+      0.70711
+     ],
+     "localPosition": [
+      -0.6684,
+      0.4316,
+      0.0107
+     ]
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_MetalDark",
+     "radiusTop": 0.009,
+     "radiusBottom": 0.009,
+     "height": 0.012,
+     "radialSegments": 8,
+     "position": [
+      0.2684,
+      1.6267,
+      -2.94
+     ],
+     "rotation": [
+      1.5708,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      90.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.70711,
+      0.0,
+      0.0,
+      0.70711
+     ],
+     "localPosition": [
+      0.6684,
+      0.525,
+      0.0107
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Boards",
+     "size": [
+      1.6,
+      0.16,
+      0.025
+     ],
+     "position": [
+      -0.4,
+      1.96,
+      -2.955
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      -0.19199
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      -11.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      -0.09585,
+      0.9954
+     ],
+     "bevel": 0.004,
+     "localPosition": [
+      0.0,
+      0.8583,
+      -0.0043
+     ]
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_MetalDark",
+     "radiusTop": 0.009,
+     "radiusBottom": 0.009,
+     "height": 0.012,
+     "radialSegments": 8,
+     "position": [
+      -1.1068,
+      2.0974,
+      -2.94
+     ],
+     "rotation": [
+      1.5708,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      90.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.70711,
+      0.0,
+      0.0,
+      0.70711
+     ],
+     "localPosition": [
+      -0.7068,
+      0.9957,
+      0.0107
+     ]
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_MetalDark",
+     "radiusTop": 0.009,
+     "radiusBottom": 0.009,
+     "height": 0.012,
+     "radialSegments": 8,
+     "position": [
+      0.3068,
+      1.8226,
+      -2.94
+     ],
+     "rotation": [
+      1.5708,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      90.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.70711,
+      0.0,
+      0.0,
+      0.70711
+     ],
+     "localPosition": [
+      0.7068,
+      0.7209,
+      0.0107
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Boards",
+     "size": [
+      1.45,
+      0.14,
+      0.025
+     ],
+     "position": [
+      -0.4,
+      2.22,
+      -2.955
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.03491
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      2.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.01745,
+      0.99985
+     ],
+     "bevel": 0.004,
+     "localPosition": [
+      0.0,
+      1.1183,
+      -0.0043
+     ]
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_MetalDark",
+     "radiusTop": 0.009,
+     "radiusBottom": 0.009,
+     "height": 0.012,
+     "radialSegments": 8,
+     "position": [
+      -1.0446,
+      2.1975,
+      -2.94
+     ],
+     "rotation": [
+      1.5708,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      90.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.70711,
+      0.0,
+      0.0,
+      0.70711
+     ],
+     "localPosition": [
+      -0.6446,
+      1.0958,
+      0.0107
+     ]
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_MetalDark",
+     "radiusTop": 0.009,
+     "radiusBottom": 0.009,
+     "height": 0.012,
+     "radialSegments": 8,
+     "position": [
+      0.2446,
+      2.2425,
+      -2.94
+     ],
+     "rotation": [
+      1.5708,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      90.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.70711,
+      0.0,
+      0.0,
+      0.70711
+     ],
+     "localPosition": [
+      0.6446,
+      1.1408,
+      0.0107
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Door_Frame",
+   "category": "structure",
+   "description": "Door reveal (0.18 m deep) and painted casing.",
+   "threeName": "Door_Frame",
+   "threeType": "Group",
+   "parent": null,
+   "position": [
+    3.075,
+    0,
+    -1
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     2.97,
+     0,
+     -1.59
+    ],
+    "max": [
+     3.18,
+     2.21,
+     -0.41
+    ],
+    "size": [
+     0.21,
+     2.21,
+     1.18
+    ],
+    "center": [
+     3.075,
+     1.105,
+     -1
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_PaintedWood",
+    "M_Plaster"
+   ],
+   "triangles": 360,
+   "parts": [
+    {
+     "shape": "box",
+     "material": "M_Plaster",
+     "size": [
+      0.18,
+      2.1,
+      0.02
+     ],
+     "position": [
+      3.09,
+      1.05,
+      -0.54
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localPosition": [
+      0.015,
+      1.05,
+      0.46
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Plaster",
+     "size": [
+      0.18,
+      2.1,
+      0.02
+     ],
+     "position": [
+      3.09,
+      1.05,
+      -1.46
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localPosition": [
+      0.015,
+      1.05,
+      -0.46
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Plaster",
+     "size": [
+      0.18,
+      0.02,
+      0.9
+     ],
+     "position": [
+      3.09,
+      2.11,
+      -1.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localPosition": [
+      0.015,
+      2.11,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_PaintedWood",
+     "size": [
+      0.03,
+      2.17,
+      0.09
+     ],
+     "position": [
+      2.985,
+      1.085,
+      -0.5
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.008,
+     "localPosition": [
+      -0.09,
+      1.085,
+      0.5
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_PaintedWood",
+     "size": [
+      0.03,
+      2.17,
+      0.09
+     ],
+     "position": [
+      2.985,
+      1.085,
+      -1.5
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.008,
+     "localPosition": [
+      -0.09,
+      1.085,
+      -0.5
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_PaintedWood",
+     "size": [
+      0.03,
+      0.1,
+      1.18
+     ],
+     "position": [
+      2.985,
+      2.16,
+      -1.0
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.01,
+     "localPosition": [
+      -0.09,
+      2.16,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Door",
+   "category": "dynamic",
+   "description": "Panelled door slab with brass knobs. Child of Door_Hinge; parts are in hinge-local space.",
+   "threeName": "Door",
+   "threeType": "Group",
+   "parent": "Door_Hinge",
+   "position": [
+    0,
+    0,
+    0
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     2.8084,
+     0.005,
+     -1.4495
+    ],
+    "max": [
+     3.1209,
+     2.085,
+     -0.5867
+    ],
+    "size": [
+     0.3124,
+     2.08,
+     0.8628
+    ],
+    "center": [
+     2.9646,
+     1.045,
+     -1.0181
+    ]
+   },
+   "partsSpace": "Door_Hinge local",
+   "materials": [
+    "M_Brass",
+    "M_PaintedWood"
+   ],
+   "triangles": 1292,
+   "parts": [
+    {
+     "shape": "box",
+     "material": "M_PaintedWood",
+     "size": [
+      0.045,
+      2.08,
+      0.88
+     ],
+     "position": [
+      0.0,
+      1.04,
+      0.44
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.004
+    },
+    {
+     "shape": "box",
+     "material": "M_PaintedWood",
+     "size": [
+      0.012,
+      0.75,
+      0.66
+     ],
+     "position": [
+      -0.0275,
+      0.55,
+      0.44
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.004
+    },
+    {
+     "shape": "box",
+     "material": "M_PaintedWood",
+     "size": [
+      0.012,
+      0.85,
+      0.66
+     ],
+     "position": [
+      -0.0275,
+      1.5,
+      0.44
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.004
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_Brass",
+     "radiusTop": 0.028,
+     "radiusBottom": 0.028,
+     "height": 0.02,
+     "radialSegments": 16,
+     "position": [
+      -0.0325,
+      1.0,
+      0.8
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      -1.5708
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      -90.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      -0.70711,
+      0.70711
+     ]
+    },
+    {
+     "shape": "sphere",
+     "material": "M_Brass",
+     "radius": 0.028,
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "widthSegments": 16,
+     "position": [
+      -0.0725,
+      1.0,
+      0.8
+     ]
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_Brass",
+     "radiusTop": 0.008,
+     "radiusBottom": 0.008,
+     "height": 0.04,
+     "radialSegments": 8,
+     "position": [
+      -0.0525,
+      1.0,
+      0.8
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      -1.5708
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      -90.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      -0.70711,
+      0.70711
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_PaintedWood",
+     "size": [
+      0.012,
+      0.75,
+      0.66
+     ],
+     "position": [
+      0.0275,
+      0.55,
+      0.44
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.004
+    },
+    {
+     "shape": "box",
+     "material": "M_PaintedWood",
+     "size": [
+      0.012,
+      0.85,
+      0.66
+     ],
+     "position": [
+      0.0275,
+      1.5,
+      0.44
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.004
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_Brass",
+     "radiusTop": 0.028,
+     "radiusBottom": 0.028,
+     "height": 0.02,
+     "radialSegments": 16,
+     "position": [
+      0.0325,
+      1.0,
+      0.8
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      -1.5708
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      -90.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      -0.70711,
+      0.70711
+     ]
+    },
+    {
+     "shape": "sphere",
+     "material": "M_Brass",
+     "radius": 0.028,
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "widthSegments": 16,
+     "position": [
+      0.0725,
+      1.0,
+      0.8
+     ]
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_Brass",
+     "radiusTop": 0.008,
+     "radiusBottom": 0.008,
+     "height": 0.04,
+     "radialSegments": 8,
+     "position": [
+      0.0525,
+      1.0,
+      0.8
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      -1.5708
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      -90.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      -0.70711,
+      0.70711
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Hallway",
+   "category": "structure",
+   "description": "Dark corridor beyond the door: floor, ceiling, side walls, black end wall.",
+   "threeName": "Hallway",
+   "threeType": "Group",
+   "parent": null,
+   "position": [
+    0,
+    0,
+    0
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     3,
+     0,
+     -1.9
+    ],
+    "max": [
+     7,
+     2.7,
+     -0.1
+    ],
+    "size": [
+     4,
+     2.7,
+     1.8
+    ],
+    "center": [
+     5,
+     1.35,
+     -1
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_Floor",
+    "M_Plaster",
+    "M_Void",
+    "M_Wainscot",
+    "M_Wallpaper"
+   ],
+   "triangles": 18,
+   "parts": [
+    {
+     "shape": "quad",
+     "material": "M_Floor",
+     "corners": [
+      [
+       3.0,
+       0.0,
+       -0.1
+      ],
+      [
+       7.0,
+       0.0,
+       -0.1
+      ],
+      [
+       7.0,
+       0.0,
+       -1.9
+      ],
+      [
+       3.0,
+       0.0,
+       -1.9
+      ]
+     ],
+     "facing": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "localCorners": [
+      [
+       3.0,
+       0.0,
+       -0.1
+      ],
+      [
+       7.0,
+       0.0,
+       -0.1
+      ],
+      [
+       7.0,
+       0.0,
+       -1.9
+      ],
+      [
+       3.0,
+       0.0,
+       -1.9
+      ]
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Plaster",
+     "corners": [
+      [
+       3.18,
+       2.7,
+       -1.9
+      ],
+      [
+       7.0,
+       2.7,
+       -1.9
+      ],
+      [
+       7.0,
+       2.7,
+       -0.1
+      ],
+      [
+       3.18,
+       2.7,
+       -0.1
+      ]
+     ],
+     "facing": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "localCorners": [
+      [
+       3.18,
+       2.7,
+       -1.9
+      ],
+      [
+       7.0,
+       2.7,
+       -1.9
+      ],
+      [
+       7.0,
+       2.7,
+       -0.1
+      ],
+      [
+       3.18,
+       2.7,
+       -0.1
+      ]
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Wainscot",
+     "corners": [
+      [
+       3.18,
+       1.0,
+       -0.1
+      ],
+      [
+       7.0,
+       1.0,
+       -0.1
+      ],
+      [
+       7.0,
+       0.0,
+       -0.1
+      ],
+      [
+       3.18,
+       0.0,
+       -0.1
+      ]
+     ],
+     "facing": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "localCorners": [
+      [
+       3.18,
+       1.0,
+       -0.1
+      ],
+      [
+       7.0,
+       1.0,
+       -0.1
+      ],
+      [
+       7.0,
+       0.0,
+       -0.1
+      ],
+      [
+       3.18,
+       0.0,
+       -0.1
+      ]
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Wallpaper",
+     "corners": [
+      [
+       3.18,
+       2.7,
+       -0.1
+      ],
+      [
+       7.0,
+       2.7,
+       -0.1
+      ],
+      [
+       7.0,
+       1.0,
+       -0.1
+      ],
+      [
+       3.18,
+       1.0,
+       -0.1
+      ]
+     ],
+     "facing": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "localCorners": [
+      [
+       3.18,
+       2.7,
+       -0.1
+      ],
+      [
+       7.0,
+       2.7,
+       -0.1
+      ],
+      [
+       7.0,
+       1.0,
+       -0.1
+      ],
+      [
+       3.18,
+       1.0,
+       -0.1
+      ]
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Wainscot",
+     "corners": [
+      [
+       3.18,
+       0.0,
+       -1.9
+      ],
+      [
+       7.0,
+       0.0,
+       -1.9
+      ],
+      [
+       7.0,
+       1.0,
+       -1.9
+      ],
+      [
+       3.18,
+       1.0,
+       -1.9
+      ]
+     ],
+     "facing": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localCorners": [
+      [
+       3.18,
+       0.0,
+       -1.9
+      ],
+      [
+       7.0,
+       0.0,
+       -1.9
+      ],
+      [
+       7.0,
+       1.0,
+       -1.9
+      ],
+      [
+       3.18,
+       1.0,
+       -1.9
+      ]
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Wallpaper",
+     "corners": [
+      [
+       3.18,
+       1.0,
+       -1.9
+      ],
+      [
+       7.0,
+       1.0,
+       -1.9
+      ],
+      [
+       7.0,
+       2.7,
+       -1.9
+      ],
+      [
+       3.18,
+       2.7,
+       -1.9
+      ]
+     ],
+     "facing": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localCorners": [
+      [
+       3.18,
+       1.0,
+       -1.9
+      ],
+      [
+       7.0,
+       1.0,
+       -1.9
+      ],
+      [
+       7.0,
+       2.7,
+       -1.9
+      ],
+      [
+       3.18,
+       2.7,
+       -1.9
+      ]
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Void",
+     "corners": [
+      [
+       7.0,
+       2.7,
+       -0.1
+      ],
+      [
+       7.0,
+       2.7,
+       -1.9
+      ],
+      [
+       7.0,
+       0.0,
+       -1.9
+      ],
+      [
+       7.0,
+       0.0,
+       -0.1
+      ]
+     ],
+     "facing": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "localCorners": [
+      [
+       7.0,
+       2.7,
+       -0.1
+      ],
+      [
+       7.0,
+       2.7,
+       -1.9
+      ],
+      [
+       7.0,
+       0.0,
+       -1.9
+      ],
+      [
+       7.0,
+       0.0,
+       -0.1
+      ]
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Void",
+     "corners": [
+      [
+       3.18,
+       0.0,
+       -0.1
+      ],
+      [
+       3.18,
+       0.0,
+       -0.55
+      ],
+      [
+       3.18,
+       2.7,
+       -0.55
+      ],
+      [
+       3.18,
+       2.7,
+       -0.1
+      ]
+     ],
+     "facing": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "localCorners": [
+      [
+       3.18,
+       0.0,
+       -0.1
+      ],
+      [
+       3.18,
+       0.0,
+       -0.55
+      ],
+      [
+       3.18,
+       2.7,
+       -0.55
+      ],
+      [
+       3.18,
+       2.7,
+       -0.1
+      ]
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Void",
+     "corners": [
+      [
+       3.18,
+       0.0,
+       -1.45
+      ],
+      [
+       3.18,
+       0.0,
+       -1.9
+      ],
+      [
+       3.18,
+       2.7,
+       -1.9
+      ],
+      [
+       3.18,
+       2.7,
+       -1.45
+      ]
+     ],
+     "facing": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "localCorners": [
+      [
+       3.18,
+       0.0,
+       -1.45
+      ],
+      [
+       3.18,
+       0.0,
+       -1.9
+      ],
+      [
+       3.18,
+       2.7,
+       -1.9
+      ],
+      [
+       3.18,
+       2.7,
+       -1.45
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Bed",
+   "category": "prop",
+   "description": "Rusted iron bed against the left wall, head at the back. Stained mattress, pillow, sheet draped over the right side.",
+   "threeName": "Bed",
+   "threeType": "Group",
+   "parent": null,
+   "position": [
+    -2.4326,
+    0,
+    -1.91
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     -2.975,
+     0,
+     -2.955
+    ],
+    "max": [
+     -1.8903,
+     1.205,
+     -0.865
+    ],
+    "size": [
+     1.0847,
+     1.205,
+     2.09
+    ],
+    "center": [
+     -2.4326,
+     0.6025,
+     -1.91
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_Brass",
+    "M_RustedIron",
+    "M_StainedFabric"
+   ],
+   "triangles": 3296,
+   "parts": [
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -2.94,
+      0.0,
+      -2.92
+     ],
+     "end": [
+      -2.94,
+      1.15,
+      -2.92
+     ],
+     "radius": 0.022,
+     "length": 1.15,
+     "radialSegments": 12,
+     "localStart": [
+      -0.5074,
+      0.0,
+      -1.01
+     ],
+     "localEnd": [
+      -0.5074,
+      1.15,
+      -1.01
+     ]
+    },
+    {
+     "shape": "sphere",
+     "material": "M_Brass",
+     "radius": 0.035,
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "widthSegments": 16,
+     "position": [
+      -2.94,
+      1.17,
+      -2.92
+     ],
+     "localPosition": [
+      -0.5074,
+      1.17,
+      -1.01
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -1.94,
+      0.0,
+      -2.92
+     ],
+     "end": [
+      -1.94,
+      1.15,
+      -2.92
+     ],
+     "radius": 0.022,
+     "length": 1.15,
+     "radialSegments": 12,
+     "localStart": [
+      0.4926,
+      0.0,
+      -1.01
+     ],
+     "localEnd": [
+      0.4926,
+      1.15,
+      -1.01
+     ]
+    },
+    {
+     "shape": "sphere",
+     "material": "M_Brass",
+     "radius": 0.035,
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "widthSegments": 16,
+     "position": [
+      -1.94,
+      1.17,
+      -2.92
+     ],
+     "localPosition": [
+      0.4926,
+      1.17,
+      -1.01
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -2.94,
+      1.1,
+      -2.92
+     ],
+     "end": [
+      -1.94,
+      1.1,
+      -2.92
+     ],
+     "radius": 0.016,
+     "length": 1.0,
+     "radialSegments": 12,
+     "localStart": [
+      -0.5074,
+      1.1,
+      -1.01
+     ],
+     "localEnd": [
+      0.4926,
+      1.1,
+      -1.01
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -2.94,
+      0.42,
+      -2.92
+     ],
+     "end": [
+      -1.94,
+      0.42,
+      -2.92
+     ],
+     "radius": 0.014,
+     "length": 1.0,
+     "radialSegments": 12,
+     "localStart": [
+      -0.5074,
+      0.42,
+      -1.01
+     ],
+     "localEnd": [
+      0.4926,
+      0.42,
+      -1.01
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -2.7971,
+      0.42,
+      -2.92
+     ],
+     "end": [
+      -2.7971,
+      1.1,
+      -2.92
+     ],
+     "radius": 0.008,
+     "length": 0.68,
+     "radialSegments": 12,
+     "localStart": [
+      -0.3645,
+      0.42,
+      -1.01
+     ],
+     "localEnd": [
+      -0.3645,
+      1.1,
+      -1.01
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -2.6543,
+      0.42,
+      -2.92
+     ],
+     "end": [
+      -2.6543,
+      1.1,
+      -2.92
+     ],
+     "radius": 0.008,
+     "length": 0.68,
+     "radialSegments": 12,
+     "localStart": [
+      -0.2217,
+      0.42,
+      -1.01
+     ],
+     "localEnd": [
+      -0.2217,
+      1.1,
+      -1.01
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -2.5114,
+      0.42,
+      -2.92
+     ],
+     "end": [
+      -2.5114,
+      1.1,
+      -2.92
+     ],
+     "radius": 0.008,
+     "length": 0.68,
+     "radialSegments": 12,
+     "localStart": [
+      -0.0788,
+      0.42,
+      -1.01
+     ],
+     "localEnd": [
+      -0.0788,
+      1.1,
+      -1.01
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -2.3686,
+      0.42,
+      -2.92
+     ],
+     "end": [
+      -2.3686,
+      1.1,
+      -2.92
+     ],
+     "radius": 0.008,
+     "length": 0.68,
+     "radialSegments": 12,
+     "localStart": [
+      0.064,
+      0.42,
+      -1.01
+     ],
+     "localEnd": [
+      0.064,
+      1.1,
+      -1.01
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -2.2257,
+      0.42,
+      -2.92
+     ],
+     "end": [
+      -2.2257,
+      1.1,
+      -2.92
+     ],
+     "radius": 0.008,
+     "length": 0.68,
+     "radialSegments": 12,
+     "localStart": [
+      0.2069,
+      0.42,
+      -1.01
+     ],
+     "localEnd": [
+      0.2069,
+      1.1,
+      -1.01
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -2.0829,
+      0.42,
+      -2.92
+     ],
+     "end": [
+      -2.0829,
+      1.1,
+      -2.92
+     ],
+     "radius": 0.008,
+     "length": 0.68,
+     "radialSegments": 12,
+     "localStart": [
+      0.3497,
+      0.42,
+      -1.01
+     ],
+     "localEnd": [
+      0.3497,
+      1.1,
+      -1.01
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -2.94,
+      0.0,
+      -0.9
+     ],
+     "end": [
+      -2.94,
+      0.85,
+      -0.9
+     ],
+     "radius": 0.022,
+     "length": 0.85,
+     "radialSegments": 12,
+     "localStart": [
+      -0.5074,
+      0.0,
+      1.01
+     ],
+     "localEnd": [
+      -0.5074,
+      0.85,
+      1.01
+     ]
+    },
+    {
+     "shape": "sphere",
+     "material": "M_Brass",
+     "radius": 0.035,
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "widthSegments": 16,
+     "position": [
+      -2.94,
+      0.87,
+      -0.9
+     ],
+     "localPosition": [
+      -0.5074,
+      0.87,
+      1.01
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -1.94,
+      0.0,
+      -0.9
+     ],
+     "end": [
+      -1.94,
+      0.85,
+      -0.9
+     ],
+     "radius": 0.022,
+     "length": 0.85,
+     "radialSegments": 12,
+     "localStart": [
+      0.4926,
+      0.0,
+      1.01
+     ],
+     "localEnd": [
+      0.4926,
+      0.85,
+      1.01
+     ]
+    },
+    {
+     "shape": "sphere",
+     "material": "M_Brass",
+     "radius": 0.035,
+     "scale": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "widthSegments": 16,
+     "position": [
+      -1.94,
+      0.87,
+      -0.9
+     ],
+     "localPosition": [
+      0.4926,
+      0.87,
+      1.01
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -2.94,
+      0.8,
+      -0.9
+     ],
+     "end": [
+      -1.94,
+      0.8,
+      -0.9
+     ],
+     "radius": 0.016,
+     "length": 1.0,
+     "radialSegments": 12,
+     "localStart": [
+      -0.5074,
+      0.8,
+      1.01
+     ],
+     "localEnd": [
+      0.4926,
+      0.8,
+      1.01
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -2.94,
+      0.42,
+      -0.9
+     ],
+     "end": [
+      -1.94,
+      0.42,
+      -0.9
+     ],
+     "radius": 0.014,
+     "length": 1.0,
+     "radialSegments": 12,
+     "localStart": [
+      -0.5074,
+      0.42,
+      1.01
+     ],
+     "localEnd": [
+      0.4926,
+      0.42,
+      1.01
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -2.7971,
+      0.42,
+      -0.9
+     ],
+     "end": [
+      -2.7971,
+      0.8,
+      -0.9
+     ],
+     "radius": 0.008,
+     "length": 0.38,
+     "radialSegments": 12,
+     "localStart": [
+      -0.3645,
+      0.42,
+      1.01
+     ],
+     "localEnd": [
+      -0.3645,
+      0.8,
+      1.01
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -2.6543,
+      0.42,
+      -0.9
+     ],
+     "end": [
+      -2.6543,
+      0.8,
+      -0.9
+     ],
+     "radius": 0.008,
+     "length": 0.38,
+     "radialSegments": 12,
+     "localStart": [
+      -0.2217,
+      0.42,
+      1.01
+     ],
+     "localEnd": [
+      -0.2217,
+      0.8,
+      1.01
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -2.5114,
+      0.42,
+      -0.9
+     ],
+     "end": [
+      -2.5114,
+      0.8,
+      -0.9
+     ],
+     "radius": 0.008,
+     "length": 0.38,
+     "radialSegments": 12,
+     "localStart": [
+      -0.0788,
+      0.42,
+      1.01
+     ],
+     "localEnd": [
+      -0.0788,
+      0.8,
+      1.01
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -2.3686,
+      0.42,
+      -0.9
+     ],
+     "end": [
+      -2.3686,
+      0.8,
+      -0.9
+     ],
+     "radius": 0.008,
+     "length": 0.38,
+     "radialSegments": 12,
+     "localStart": [
+      0.064,
+      0.42,
+      1.01
+     ],
+     "localEnd": [
+      0.064,
+      0.8,
+      1.01
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -2.2257,
+      0.42,
+      -0.9
+     ],
+     "end": [
+      -2.2257,
+      0.8,
+      -0.9
+     ],
+     "radius": 0.008,
+     "length": 0.38,
+     "radialSegments": 12,
+     "localStart": [
+      0.2069,
+      0.42,
+      1.01
+     ],
+     "localEnd": [
+      0.2069,
+      0.8,
+      1.01
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -2.0829,
+      0.42,
+      -0.9
+     ],
+     "end": [
+      -2.0829,
+      0.8,
+      -0.9
+     ],
+     "radius": 0.008,
+     "length": 0.38,
+     "radialSegments": 12,
+     "localStart": [
+      0.3497,
+      0.42,
+      1.01
+     ],
+     "localEnd": [
+      0.3497,
+      0.8,
+      1.01
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -2.94,
+      0.36,
+      -0.9
+     ],
+     "end": [
+      -2.94,
+      0.36,
+      -2.92
+     ],
+     "radius": 0.015,
+     "length": 2.02,
+     "radialSegments": 12,
+     "localStart": [
+      -0.5074,
+      0.36,
+      1.01
+     ],
+     "localEnd": [
+      -0.5074,
+      0.36,
+      -1.01
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -1.94,
+      0.36,
+      -0.9
+     ],
+     "end": [
+      -1.94,
+      0.36,
+      -2.92
+     ],
+     "radius": 0.015,
+     "length": 2.02,
+     "radialSegments": 12,
+     "localStart": [
+      0.4926,
+      0.36,
+      1.01
+     ],
+     "localEnd": [
+      0.4926,
+      0.36,
+      -1.01
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_StainedFabric",
+     "size": [
+      0.94,
+      0.2,
+      1.92
+     ],
+     "position": [
+      -2.44,
+      0.49,
+      -1.91
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.05,
+     "localPosition": [
+      -0.0074,
+      0.49,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_StainedFabric",
+     "size": [
+      0.55,
+      0.12,
+      0.32
+     ],
+     "position": [
+      -2.39,
+      0.63,
+      -2.64
+     ],
+     "rotation": [
+      0.0,
+      0.15708,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      9.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.07846,
+      0.0,
+      0.99692
+     ],
+     "bevel": 0.05,
+     "localPosition": [
+      0.0426,
+      0.63,
+      -0.73
+     ]
+    },
+    {
+     "shape": "cloth",
+     "material": "M_StainedFabric",
+     "grid": [
+      24,
+      20
+     ],
+     "boundsMin": [
+      -2.89,
+      0.1355,
+      -2.29
+     ],
+     "boundsMax": [
+      -1.8903,
+      0.6447,
+      -1.05
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Wardrobe",
+   "category": "prop",
+   "description": "Painted wardrobe on the right wall near the front, leaning 1.6° away from the wall.",
+   "threeName": "Wardrobe",
+   "threeType": "Group",
+   "parent": null,
+   "position": [
+    2.6347,
+    -0.0172,
+    1.85
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     2.2915,
+     -0.0172,
+     1.21
+    ],
+    "max": [
+     2.9779,
+     2.1275,
+     2.49
+    ],
+    "size": [
+     0.6864,
+     2.1448,
+     1.28
+    ],
+    "center": [
+     2.6347,
+     1.0552,
+     1.85
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_Brass",
+    "M_PaintedWood",
+    "M_WoodDark"
+   ],
+   "triangles": 740,
+   "parts": [
+    {
+     "shape": "box",
+     "material": "M_PaintedWood",
+     "size": [
+      0.58,
+      1.95,
+      1.2
+     ],
+     "position": [
+      2.6407,
+      1.0496,
+      1.85
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.02793
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      1.6
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.01396,
+      0.9999
+     ],
+     "bevel": 0.01,
+     "localPosition": [
+      0.006,
+      1.0668,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.64,
+      0.1,
+      1.28
+     ],
+     "position": [
+      2.6122,
+      2.0692,
+      1.85
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.02793
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      1.6
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.01396,
+      0.9999
+     ],
+     "bevel": 0.02,
+     "localPosition": [
+      -0.0225,
+      2.0864,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.62,
+      0.08,
+      1.24
+     ],
+     "position": [
+      2.6672,
+      0.1,
+      1.85
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.02793
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      1.6
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.01396,
+      0.9999
+     ],
+     "bevel": 0.01,
+     "localPosition": [
+      0.0325,
+      0.1172,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_PaintedWood",
+     "size": [
+      0.02,
+      1.55,
+      0.5
+     ],
+     "position": [
+      2.3394,
+      1.0912,
+      2.14
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.02793
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      1.6
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.01396,
+      0.9999
+     ],
+     "bevel": 0.006,
+     "localPosition": [
+      -0.2953,
+      1.1084,
+      0.29
+     ]
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_Brass",
+     "radiusTop": 0.012,
+     "radiusBottom": 0.012,
+     "height": 0.12,
+     "radialSegments": 8,
+     "position": [
+      2.318,
+      1.1406,
+      1.91
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.02793
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      1.6
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.01396,
+      0.9999
+     ],
+     "localPosition": [
+      -0.3167,
+      1.1578,
+      0.06
+     ]
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_WoodDark",
+     "radiusTop": 0.04,
+     "radiusBottom": 0.04,
+     "height": 0.08,
+     "radialSegments": 10,
+     "position": [
+      2.4492,
+      0.0238,
+      2.4
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.02793
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      1.6
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.01396,
+      0.9999
+     ],
+     "localPosition": [
+      -0.1855,
+      0.041,
+      0.55
+     ]
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_WoodDark",
+     "radiusTop": 0.04,
+     "radiusBottom": 0.04,
+     "height": 0.08,
+     "radialSegments": 10,
+     "position": [
+      2.8891,
+      0.0361,
+      1.3
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.02793
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      1.6
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.01396,
+      0.9999
+     ],
+     "localPosition": [
+      0.2544,
+      0.0533,
+      -0.55
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_PaintedWood",
+     "size": [
+      0.02,
+      1.55,
+      0.5
+     ],
+     "position": [
+      2.3394,
+      1.0912,
+      1.56
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.02793
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      1.6
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.01396,
+      0.9999
+     ],
+     "bevel": 0.006,
+     "localPosition": [
+      -0.2953,
+      1.1084,
+      -0.29
+     ]
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_Brass",
+     "radiusTop": 0.012,
+     "radiusBottom": 0.012,
+     "height": 0.12,
+     "radialSegments": 8,
+     "position": [
+      2.318,
+      1.1406,
+      1.79
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.02793
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      1.6
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.01396,
+      0.9999
+     ],
+     "localPosition": [
+      -0.3167,
+      1.1578,
+      -0.06
+     ]
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_WoodDark",
+     "radiusTop": 0.04,
+     "radiusBottom": 0.04,
+     "height": 0.08,
+     "radialSegments": 10,
+     "position": [
+      2.4492,
+      0.0238,
+      2.4
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.02793
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      1.6
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.01396,
+      0.9999
+     ],
+     "localPosition": [
+      -0.1855,
+      0.041,
+      0.55
+     ]
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_WoodDark",
+     "radiusTop": 0.04,
+     "radiusBottom": 0.04,
+     "height": 0.08,
+     "radialSegments": 10,
+     "position": [
+      2.8891,
+      0.0361,
+      1.3
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.02793
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      1.6
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.01396,
+      0.9999
+     ],
+     "localPosition": [
+      0.2544,
+      0.0533,
+      -0.55
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Desk",
+   "category": "prop",
+   "description": "Dark wooden desk in the back-right corner with a drawer.",
+   "threeName": "Desk",
+   "threeType": "Group",
+   "parent": null,
+   "position": [
+    2.1,
+    0,
+    -2.67
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     1.425,
+     0,
+     -2.97
+    ],
+    "max": [
+     2.775,
+     0.78,
+     -2.37
+    ],
+    "size": [
+     1.35,
+     0.78,
+     0.6
+    ],
+    "center": [
+     2.1,
+     0.39,
+     -2.67
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_Brass",
+    "M_PaintedWood",
+    "M_WoodDark"
+   ],
+   "triangles": 784,
+   "parts": [
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      1.35,
+      0.04,
+      0.6
+     ],
+     "position": [
+      2.1,
+      0.76,
+      -2.67
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.008,
+     "localPosition": [
+      0.0,
+      0.76,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.05,
+      0.74,
+      0.05
+     ],
+     "position": [
+      1.48,
+      0.37,
+      -2.42
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.005,
+     "localPosition": [
+      -0.62,
+      0.37,
+      0.25
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.05,
+      0.74,
+      0.05
+     ],
+     "position": [
+      1.48,
+      0.37,
+      -2.92
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.005,
+     "localPosition": [
+      -0.62,
+      0.37,
+      -0.25
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.05,
+      0.74,
+      0.05
+     ],
+     "position": [
+      2.72,
+      0.37,
+      -2.42
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.005,
+     "localPosition": [
+      0.62,
+      0.37,
+      0.25
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.05,
+      0.74,
+      0.05
+     ],
+     "position": [
+      2.72,
+      0.37,
+      -2.92
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.005,
+     "localPosition": [
+      0.62,
+      0.37,
+      -0.25
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.5,
+      0.18,
+      0.5
+     ],
+     "position": [
+      2.48,
+      0.65,
+      -2.69
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.006,
+     "localPosition": [
+      0.38,
+      0.65,
+      -0.02
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_PaintedWood",
+     "size": [
+      0.44,
+      0.13,
+      0.012
+     ],
+     "position": [
+      2.48,
+      0.65,
+      -2.435
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.003,
+     "localPosition": [
+      0.38,
+      0.65,
+      0.235
+     ]
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_Brass",
+     "radiusTop": 0.012,
+     "radiusBottom": 0.012,
+     "height": 0.03,
+     "radialSegments": 8,
+     "position": [
+      2.48,
+      0.65,
+      -2.42
+     ],
+     "rotation": [
+      1.5708,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      90.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.70711,
+      0.0,
+      0.0,
+      0.70711
+     ],
+     "localPosition": [
+      0.38,
+      0.65,
+      0.25
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Desk_Items",
+   "category": "prop",
+   "description": "Candle in a brass holder, stack of three books, old radio, loose sheets of paper.",
+   "threeName": "Desk_Items",
+   "threeType": "Group",
+   "parent": null,
+   "position": [
+    2.1631,
+    0.78,
+    -2.6325
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     1.6061,
+     0.78,
+     -2.9157
+    ],
+    "max": [
+     2.72,
+     1,
+     -2.3494
+    ],
+    "size": [
+     1.1139,
+     0.22,
+     0.5663
+    ],
+    "center": [
+     2.1631,
+     0.89,
+     -2.6325
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_BookBrown",
+    "M_BookGreen",
+    "M_BookRed",
+    "M_Brass",
+    "M_MetalDark",
+    "M_Paper",
+    "M_Wax",
+    "M_WoodDark"
+   ],
+   "triangles": 664,
+   "parts": [
+    {
+     "shape": "cylinder",
+     "material": "M_Wax",
+     "radiusTop": 0.03,
+     "radiusBottom": 0.03,
+     "height": 0.14,
+     "radialSegments": 14,
+     "position": [
+      1.65,
+      0.85,
+      -2.77
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localPosition": [
+      -0.5131,
+      0.07,
+      -0.1375
+     ]
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_Brass",
+     "radiusTop": 0.045,
+     "radiusBottom": 0.045,
+     "height": 0.012,
+     "radialSegments": 14,
+     "position": [
+      1.65,
+      0.786,
+      -2.77
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localPosition": [
+      -0.5131,
+      0.006,
+      -0.1375
+     ]
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_MetalDark",
+     "radiusTop": 0.002,
+     "radiusBottom": 0.002,
+     "height": 0.018,
+     "radialSegments": 6,
+     "position": [
+      1.65,
+      0.929,
+      -2.77
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localPosition": [
+      -0.5131,
+      0.149,
+      -0.1375
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_BookRed",
+     "size": [
+      0.28,
+      0.05,
+      0.2
+     ],
+     "position": [
+      2.2,
+      0.805,
+      -2.79
+     ],
+     "rotation": [
+      0.0,
+      0.06981,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      4.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0349,
+      0.0,
+      0.99939
+     ],
+     "bevel": 0.006,
+     "localPosition": [
+      0.0369,
+      0.025,
+      -0.1575
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_BookGreen",
+     "size": [
+      0.28,
+      0.04,
+      0.2
+     ],
+     "position": [
+      2.2,
+      0.85,
+      -2.79
+     ],
+     "rotation": [
+      0.0,
+      -0.12217,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      -7.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      -0.06105,
+      0.0,
+      0.99813
+     ],
+     "bevel": 0.006,
+     "localPosition": [
+      0.0369,
+      0.07,
+      -0.1575
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_BookBrown",
+     "size": [
+      0.28,
+      0.06,
+      0.2
+     ],
+     "position": [
+      2.2,
+      0.91,
+      -2.79
+     ],
+     "rotation": [
+      0.0,
+      0.20944,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      12.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.10453,
+      0.0,
+      0.99452
+     ],
+     "bevel": 0.006,
+     "localPosition": [
+      0.0369,
+      0.13,
+      -0.1575
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.34,
+      0.22,
+      0.16
+     ],
+     "position": [
+      2.55,
+      0.89,
+      -2.77
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.015,
+     "localPosition": [
+      0.3869,
+      0.11,
+      -0.1375
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_MetalDark",
+     "size": [
+      0.2,
+      0.12,
+      0.01
+     ],
+     "position": [
+      2.5,
+      0.9,
+      -2.69
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localPosition": [
+      0.3369,
+      0.12,
+      -0.0575
+     ]
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_Brass",
+     "radiusTop": 0.025,
+     "radiusBottom": 0.025,
+     "height": 0.02,
+     "radialSegments": 16,
+     "position": [
+      2.67,
+      0.9,
+      -2.69
+     ],
+     "rotation": [
+      1.5708,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      90.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.70711,
+      0.0,
+      0.0,
+      0.70711
+     ],
+     "localPosition": [
+      0.5069,
+      0.12,
+      -0.0575
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Paper",
+     "size": [
+      0.21,
+      0.001,
+      0.297
+     ],
+     "position": [
+      1.95,
+      0.781,
+      -2.55
+     ],
+     "rotation": [
+      0.0,
+      0.13963,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      8.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.06976,
+      0.0,
+      0.99756
+     ],
+     "localPosition": [
+      -0.2131,
+      0.001,
+      0.0825
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Paper",
+     "size": [
+      0.21,
+      0.001,
+      0.297
+     ],
+     "position": [
+      2.15,
+      0.782,
+      -2.52
+     ],
+     "rotation": [
+      0.0,
+      -0.2618,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      -15.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      -0.13053,
+      0.0,
+      0.99144
+     ],
+     "localPosition": [
+      -0.0131,
+      0.002,
+      0.1125
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Paper",
+     "size": [
+      0.21,
+      0.001,
+      0.297
+     ],
+     "position": [
+      1.8,
+      0.783,
+      -2.62
+     ],
+     "rotation": [
+      0.0,
+      0.43633,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      25.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.21644,
+      0.0,
+      0.9763
+     ],
+     "localPosition": [
+      -0.3631,
+      0.003,
+      0.0125
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Chair",
+   "category": "prop",
+   "description": "Wooden chair knocked over on its back between the desk and the centre.",
+   "threeName": "Chair",
+   "threeType": "Mesh",
+   "parent": null,
+   "position": [
+    1.0597,
+    0,
+    -1.7316
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     0.6461,
+     0,
+     -2.1815
+    ],
+    "max": [
+     1.4733,
+     0.4811,
+     -1.2817
+    ],
+    "size": [
+     0.8272,
+     0.4811,
+     0.8998
+    ],
+    "center": [
+     1.0597,
+     0.2405,
+     -1.7316
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_WoodDark"
+   ],
+   "triangles": 1080,
+   "parts": [
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.44,
+      0.04,
+      0.42
+     ],
+     "position": [
+      0.9823,
+      0.2381,
+      -1.7075
+     ],
+     "rotation": [
+      0.0,
+      -0.61087,
+      1.50098
+     ],
+     "rotationDeg": [
+      0.0,
+      -35.0,
+      86.0
+     ],
+     "quaternion": [
+      -0.20508,
+      -0.21992,
+      0.65043,
+      0.6975
+     ],
+     "bevel": 0.006,
+     "localPosition": [
+      -0.0774,
+      0.2381,
+      0.0241
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.035,
+      0.45,
+      0.035
+     ],
+     "position": [
+      1.052,
+      0.0329,
+      -1.4389
+     ],
+     "rotation": [
+      0.0,
+      -0.61087,
+      1.50098
+     ],
+     "rotationDeg": [
+      0.0,
+      -35.0,
+      86.0
+     ],
+     "quaternion": [
+      -0.20508,
+      -0.21992,
+      0.65043,
+      0.6975
+     ],
+     "bevel": 0.004,
+     "localPosition": [
+      -0.0077,
+      0.0329,
+      0.2927
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.035,
+      0.45,
+      0.035
+     ],
+     "position": [
+      1.2585,
+      0.0329,
+      -1.7338
+     ],
+     "rotation": [
+      0.0,
+      -0.61087,
+      1.50098
+     ],
+     "rotationDeg": [
+      0.0,
+      -35.0,
+      86.0
+     ],
+     "quaternion": [
+      -0.20508,
+      -0.21992,
+      0.65043,
+      0.6975
+     ],
+     "bevel": 0.004,
+     "localPosition": [
+      0.1988,
+      0.0329,
+      -0.0022
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.035,
+      0.5,
+      0.035
+     ],
+     "position": [
+      0.8598,
+      0.0674,
+      -2.0252
+     ],
+     "rotation": [
+      0.0,
+      -0.61087,
+      1.50098
+     ],
+     "rotationDeg": [
+      0.0,
+      -35.0,
+      86.0
+     ],
+     "quaternion": [
+      -0.20508,
+      -0.21992,
+      0.65043,
+      0.6975
+     ],
+     "bevel": 0.004,
+     "localPosition": [
+      -0.1999,
+      0.0674,
+      -0.2936
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.035,
+      0.45,
+      0.035
+     ],
+     "position": [
+      1.0738,
+      0.4119,
+      -1.4237
+     ],
+     "rotation": [
+      0.0,
+      -0.61087,
+      1.50098
+     ],
+     "rotationDeg": [
+      0.0,
+      -35.0,
+      86.0
+     ],
+     "quaternion": [
+      -0.20508,
+      -0.21992,
+      0.65043,
+      0.6975
+     ],
+     "bevel": 0.004,
+     "localPosition": [
+      0.0141,
+      0.4119,
+      0.3079
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.035,
+      0.45,
+      0.035
+     ],
+     "position": [
+      1.2802,
+      0.4119,
+      -1.7186
+     ],
+     "rotation": [
+      0.0,
+      -0.61087,
+      1.50098
+     ],
+     "rotationDeg": [
+      0.0,
+      -35.0,
+      86.0
+     ],
+     "quaternion": [
+      -0.20508,
+      -0.21992,
+      0.65043,
+      0.6975
+     ],
+     "bevel": 0.004,
+     "localPosition": [
+      0.2205,
+      0.4119,
+      0.013
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.035,
+      0.5,
+      0.035
+     ],
+     "position": [
+      0.8815,
+      0.4465,
+      -2.01
+     ],
+     "rotation": [
+      0.0,
+      -0.61087,
+      1.50098
+     ],
+     "rotationDeg": [
+      0.0,
+      -35.0,
+      86.0
+     ],
+     "quaternion": [
+      -0.20508,
+      -0.21992,
+      0.65043,
+      0.6975
+     ],
+     "bevel": 0.004,
+     "localPosition": [
+      -0.1782,
+      0.4465,
+      -0.2784
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.38,
+      0.05,
+      0.025
+     ],
+     "position": [
+      0.9523,
+      0.25,
+      -1.9604
+     ],
+     "rotation": [
+      0.0,
+      -0.61087,
+      1.50098
+     ],
+     "rotationDeg": [
+      0.0,
+      -35.0,
+      86.0
+     ],
+     "quaternion": [
+      -0.20508,
+      -0.21992,
+      0.65043,
+      0.6975
+     ],
+     "bevel": 0.004,
+     "localPosition": [
+      -0.1074,
+      0.25,
+      -0.2288
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.38,
+      0.05,
+      0.025
+     ],
+     "position": [
+      0.8053,
+      0.2625,
+      -2.0634
+     ],
+     "rotation": [
+      0.0,
+      -0.61087,
+      1.50098
+     ],
+     "rotationDeg": [
+      0.0,
+      -35.0,
+      86.0
+     ],
+     "quaternion": [
+      -0.20508,
+      -0.21992,
+      0.65043,
+      0.6975
+     ],
+     "bevel": 0.004,
+     "localPosition": [
+      -0.2544,
+      0.2625,
+      -0.3318
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.38,
+      0.05,
+      0.025
+     ],
+     "position": [
+      0.6827,
+      0.273,
+      -2.1492
+     ],
+     "rotation": [
+      0.0,
+      -0.61087,
+      1.50098
+     ],
+     "rotationDeg": [
+      0.0,
+      -35.0,
+      86.0
+     ],
+     "quaternion": [
+      -0.20508,
+      -0.21992,
+      0.65043,
+      0.6975
+     ],
+     "bevel": 0.004,
+     "localPosition": [
+      -0.377,
+      0.273,
+      -0.4176
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Rug",
+   "category": "prop",
+   "description": "Worn red rug under the character, 2.2 × 1.5 m.",
+   "threeName": "Rug",
+   "threeType": "Mesh",
+   "parent": null,
+   "position": [
+    0,
+    0,
+    -0.05
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     -1.1,
+     0,
+     -0.8
+    ],
+    "max": [
+     1.1,
+     0.012,
+     0.7
+    ],
+    "size": [
+     2.2,
+     0.012,
+     1.5
+    ],
+    "center": [
+     0,
+     0.006,
+     -0.05
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_Rug"
+   ],
+   "triangles": 12,
+   "parts": [
+    {
+     "shape": "box",
+     "material": "M_Rug",
+     "size": [
+      2.2,
+      0.012,
+      1.5
+     ],
+     "position": [
+      0.0,
+      0.006,
+      -0.05
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localPosition": [
+      0.0,
+      0.006,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Hanging_Bulb",
+   "category": "prop",
+   "description": "Ceiling rose, cord and a bare bulb over the character. Emissive glass M_BulbGlass.",
+   "threeName": "Hanging_Bulb",
+   "threeType": "Group",
+   "parent": null,
+   "position": [
+    0,
+    2.17,
+    0.3
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     -0.09,
+     2.17,
+     0.21
+    ],
+    "max": [
+     0.09,
+     3,
+     0.39
+    ],
+    "size": [
+     0.18,
+     0.83,
+     0.18
+    ],
+    "center": [
+     0,
+     2.585,
+     0.3
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_Brass",
+    "M_BulbGlass",
+    "M_MetalDark",
+    "M_Plaster"
+   ],
+   "triangles": 444,
+   "parts": [
+    {
+     "shape": "cylinder",
+     "material": "M_Plaster",
+     "radiusTop": 0.09,
+     "radiusBottom": 0.09,
+     "height": 0.03,
+     "radialSegments": 24,
+     "position": [
+      0.0,
+      2.985,
+      0.3
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localPosition": [
+      0.0,
+      0.815,
+      0.0
+     ]
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_MetalDark",
+     "radiusTop": 0.004,
+     "radiusBottom": 0.004,
+     "height": 0.66,
+     "radialSegments": 6,
+     "position": [
+      0.0,
+      2.67,
+      0.3
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localPosition": [
+      0.0,
+      0.5,
+      0.0
+     ]
+    },
+    {
+     "shape": "cylinder",
+     "material": "M_Brass",
+     "radiusTop": 0.018,
+     "radiusBottom": 0.018,
+     "height": 0.07,
+     "radialSegments": 12,
+     "position": [
+      0.0,
+      2.305,
+      0.3
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localPosition": [
+      0.0,
+      0.135,
+      0.0
+     ]
+    },
+    {
+     "shape": "sphere",
+     "material": "M_BulbGlass",
+     "radius": 0.04,
+     "scale": [
+      1.0,
+      1.25,
+      1.0
+     ],
+     "widthSegments": 16,
+     "position": [
+      0.0,
+      2.22,
+      0.3
+     ],
+     "localPosition": [
+      0.0,
+      0.05,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Frame_Portrait",
+   "category": "prop",
+   "description": "Brass-framed portrait with the face scratched out, back wall, tilted 6°.",
+   "threeName": "Frame_Portrait",
+   "threeType": "Group",
+   "parent": null,
+   "position": [
+    2.05,
+    1.4517,
+    -2.97
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     1.714,
+     1.4517,
+     -2.99
+    ],
+    "max": [
+     2.386,
+     2.2483,
+     -2.95
+    ],
+    "size": [
+     0.672,
+     0.7966,
+     0.04
+    ],
+    "center": [
+     2.05,
+     1.85,
+     -2.97
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_Brass",
+    "M_Portrait"
+   ],
+   "triangles": 434,
+   "parts": [
+    {
+     "shape": "box",
+     "material": "M_Brass",
+     "size": [
+      0.6,
+      0.06,
+      0.04
+     ],
+     "position": [
+      2.0855,
+      2.1881,
+      -2.97
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      -0.10472
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      -6.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      -0.05234,
+      0.99863
+     ],
+     "bevel": 0.01,
+     "localPosition": [
+      0.0355,
+      0.7364,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Brass",
+     "size": [
+      0.6,
+      0.06,
+      0.04
+     ],
+     "position": [
+      2.0145,
+      1.5119,
+      -2.97
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      -0.10472
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      -6.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      -0.05234,
+      0.99863
+     ],
+     "bevel": 0.01,
+     "localPosition": [
+      -0.0355,
+      0.0602,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Brass",
+     "size": [
+      0.06,
+      0.64,
+      0.04
+     ],
+     "position": [
+      1.7815,
+      1.8782,
+      -2.97
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      -0.10472
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      -6.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      -0.05234,
+      0.99863
+     ],
+     "bevel": 0.01,
+     "localPosition": [
+      -0.2685,
+      0.4265,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Brass",
+     "size": [
+      0.06,
+      0.64,
+      0.04
+     ],
+     "position": [
+      2.3185,
+      1.8218,
+      -2.97
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      -0.10472
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      -6.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      -0.05234,
+      0.99863
+     ],
+     "bevel": 0.01,
+     "localPosition": [
+      0.2685,
+      0.3701,
+      0.0
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Portrait",
+     "corners": [
+      [
+       1.7679,
+       1.5579,
+       -2.965
+      ],
+      [
+       2.2652,
+       1.5056,
+       -2.965
+      ],
+      [
+       2.3321,
+       2.1421,
+       -2.965
+      ],
+      [
+       1.8348,
+       2.1944,
+       -2.965
+      ]
+     ],
+     "facing": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localCorners": [
+      [
+       -0.2821,
+       0.1062,
+       0.005
+      ],
+      [
+       0.2152,
+       0.0539,
+       0.005
+      ],
+      [
+       0.2821,
+       0.6904,
+       0.005
+      ],
+      [
+       -0.2152,
+       0.7427,
+       0.005
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Frame_Fallen",
+   "category": "prop",
+   "description": "Mirror frame that has fallen and leans against the left wall.",
+   "threeName": "Frame_Fallen",
+   "threeType": "Group",
+   "parent": null,
+   "position": [
+    -2.88,
+    0,
+    1.6
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     -2.9913,
+     0,
+     1.24
+    ],
+    "max": [
+     -2.7687,
+     0.7617,
+     1.96
+    ],
+    "size": [
+     0.2227,
+     0.7617,
+     0.72
+    ],
+    "center": [
+     -2.88,
+     0.3808,
+     1.6
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_Mirror",
+    "M_WoodDark"
+   ],
+   "triangles": 434,
+   "parts": [
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.7,
+      0.06,
+      0.04
+     ],
+     "position": [
+      -2.9671,
+      0.7301,
+      1.6
+     ],
+     "rotation": [
+      -1.5708,
+      1.32645,
+      1.5708
+     ],
+     "rotationDeg": [
+      -90.0,
+      76.0,
+      90.0
+     ],
+     "quaternion": [
+      -0.08617,
+      0.70184,
+      0.08617,
+      0.70184
+     ],
+     "bevel": 0.01,
+     "localPosition": [
+      -0.0871,
+      0.7301,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.7,
+      0.06,
+      0.04
+     ],
+     "position": [
+      -2.7929,
+      0.0315,
+      1.6
+     ],
+     "rotation": [
+      -1.5708,
+      1.32645,
+      1.5708
+     ],
+     "rotationDeg": [
+      -90.0,
+      76.0,
+      90.0
+     ],
+     "quaternion": [
+      -0.08617,
+      0.70184,
+      0.08617,
+      0.70184
+     ],
+     "bevel": 0.01,
+     "localPosition": [
+      0.0871,
+      0.0315,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.06,
+      0.72,
+      0.04
+     ],
+     "position": [
+      -2.88,
+      0.3808,
+      1.93
+     ],
+     "rotation": [
+      -1.5708,
+      1.32645,
+      1.5708
+     ],
+     "rotationDeg": [
+      -90.0,
+      76.0,
+      90.0
+     ],
+     "quaternion": [
+      -0.08617,
+      0.70184,
+      0.08617,
+      0.70184
+     ],
+     "bevel": 0.01,
+     "localPosition": [
+      0.0,
+      0.3808,
+      0.33
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_WoodDark",
+     "size": [
+      0.06,
+      0.72,
+      0.04
+     ],
+     "position": [
+      -2.88,
+      0.3808,
+      1.27
+     ],
+     "rotation": [
+      -1.5708,
+      1.32645,
+      1.5708
+     ],
+     "rotationDeg": [
+      -90.0,
+      76.0,
+      90.0
+     ],
+     "quaternion": [
+      -0.08617,
+      0.70184,
+      0.08617,
+      0.70184
+     ],
+     "bevel": 0.01,
+     "localPosition": [
+      0.0,
+      0.3808,
+      -0.33
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Mirror",
+     "corners": [
+      [
+       -2.7953,
+       0.0618,
+       1.9
+      ],
+      [
+       -2.7953,
+       0.0618,
+       1.3
+      ],
+      [
+       -2.955,
+       0.7022,
+       1.3
+      ],
+      [
+       -2.955,
+       0.7022,
+       1.9
+      ]
+     ],
+     "facing": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "localCorners": [
+      [
+       0.0847,
+       0.0618,
+       0.3
+      ],
+      [
+       0.0847,
+       0.0618,
+       -0.3
+      ],
+      [
+       -0.075,
+       0.7022,
+       -0.3
+      ],
+      [
+       -0.075,
+       0.7022,
+       0.3
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Radiator",
+   "category": "prop",
+   "description": "Cast-iron radiator on the front wall.",
+   "threeName": "Radiator",
+   "threeType": "Mesh",
+   "parent": null,
+   "position": [
+    0.034,
+    0,
+    2.88
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     -0.55,
+     0,
+     2.83
+    ],
+    "max": [
+     0.618,
+     0.78,
+     2.93
+    ],
+    "size": [
+     1.168,
+     0.78,
+     0.1
+    ],
+    "center": [
+     0.034,
+     0.39,
+     2.88
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_RustedIron"
+   ],
+   "triangles": 1644,
+   "parts": [
+    {
+     "shape": "box",
+     "material": "M_RustedIron",
+     "size": [
+      0.05,
+      0.62,
+      0.1
+     ],
+     "position": [
+      -0.5,
+      0.47,
+      2.88
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.015,
+     "localPosition": [
+      -0.534,
+      0.47,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_RustedIron",
+     "size": [
+      0.05,
+      0.62,
+      0.1
+     ],
+     "position": [
+      -0.423,
+      0.47,
+      2.88
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.015,
+     "localPosition": [
+      -0.457,
+      0.47,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_RustedIron",
+     "size": [
+      0.05,
+      0.62,
+      0.1
+     ],
+     "position": [
+      -0.346,
+      0.47,
+      2.88
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.015,
+     "localPosition": [
+      -0.38,
+      0.47,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_RustedIron",
+     "size": [
+      0.05,
+      0.62,
+      0.1
+     ],
+     "position": [
+      -0.269,
+      0.47,
+      2.88
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.015,
+     "localPosition": [
+      -0.303,
+      0.47,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_RustedIron",
+     "size": [
+      0.05,
+      0.62,
+      0.1
+     ],
+     "position": [
+      -0.192,
+      0.47,
+      2.88
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.015,
+     "localPosition": [
+      -0.226,
+      0.47,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_RustedIron",
+     "size": [
+      0.05,
+      0.62,
+      0.1
+     ],
+     "position": [
+      -0.115,
+      0.47,
+      2.88
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.015,
+     "localPosition": [
+      -0.149,
+      0.47,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_RustedIron",
+     "size": [
+      0.05,
+      0.62,
+      0.1
+     ],
+     "position": [
+      -0.038,
+      0.47,
+      2.88
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.015,
+     "localPosition": [
+      -0.072,
+      0.47,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_RustedIron",
+     "size": [
+      0.05,
+      0.62,
+      0.1
+     ],
+     "position": [
+      0.039,
+      0.47,
+      2.88
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.015,
+     "localPosition": [
+      0.005,
+      0.47,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_RustedIron",
+     "size": [
+      0.05,
+      0.62,
+      0.1
+     ],
+     "position": [
+      0.116,
+      0.47,
+      2.88
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.015,
+     "localPosition": [
+      0.082,
+      0.47,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_RustedIron",
+     "size": [
+      0.05,
+      0.62,
+      0.1
+     ],
+     "position": [
+      0.193,
+      0.47,
+      2.88
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.015,
+     "localPosition": [
+      0.159,
+      0.47,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_RustedIron",
+     "size": [
+      0.05,
+      0.62,
+      0.1
+     ],
+     "position": [
+      0.27,
+      0.47,
+      2.88
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.015,
+     "localPosition": [
+      0.236,
+      0.47,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_RustedIron",
+     "size": [
+      0.05,
+      0.62,
+      0.1
+     ],
+     "position": [
+      0.347,
+      0.47,
+      2.88
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.015,
+     "localPosition": [
+      0.313,
+      0.47,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_RustedIron",
+     "size": [
+      0.05,
+      0.62,
+      0.1
+     ],
+     "position": [
+      0.424,
+      0.47,
+      2.88
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.015,
+     "localPosition": [
+      0.39,
+      0.47,
+      0.0
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_RustedIron",
+     "size": [
+      0.05,
+      0.62,
+      0.1
+     ],
+     "position": [
+      0.501,
+      0.47,
+      2.88
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.015,
+     "localPosition": [
+      0.467,
+      0.47,
+      0.0
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -0.55,
+      0.2,
+      2.88
+     ],
+     "end": [
+      0.55,
+      0.2,
+      2.88
+     ],
+     "radius": 0.02,
+     "length": 1.1,
+     "radialSegments": 12,
+     "localStart": [
+      -0.584,
+      0.2,
+      0.0
+     ],
+     "localEnd": [
+      0.516,
+      0.2,
+      0.0
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      -0.55,
+      0.74,
+      2.88
+     ],
+     "end": [
+      0.55,
+      0.74,
+      2.88
+     ],
+     "radius": 0.02,
+     "length": 1.1,
+     "radialSegments": 12,
+     "localStart": [
+      -0.584,
+      0.74,
+      0.0
+     ],
+     "localEnd": [
+      0.516,
+      0.74,
+      0.0
+     ]
+    },
+    {
+     "shape": "tube",
+     "material": "M_RustedIron",
+     "start": [
+      0.6,
+      0.2,
+      2.88
+     ],
+     "end": [
+      0.6,
+      0.0,
+      2.88
+     ],
+     "radius": 0.018,
+     "length": 0.2,
+     "radialSegments": 12,
+     "localStart": [
+      0.566,
+      0.2,
+      0.0
+     ],
+     "localEnd": [
+      0.566,
+      0.0,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Mirror",
+   "category": "prop",
+   "description": "Wall mirror on the front wall (behind the camera).",
+   "threeName": "Mirror",
+   "threeType": "Group",
+   "parent": null,
+   "position": [
+    1.6,
+    1.15,
+    2.9825
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     1.29,
+     1.15,
+     2.965
+    ],
+    "max": [
+     1.91,
+     2.05,
+     3
+    ],
+    "size": [
+     0.62,
+     0.9,
+     0.035
+    ],
+    "center": [
+     1.6,
+     1.6,
+     2.9825
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_Mirror",
+    "M_PaintedWood"
+   ],
+   "triangles": 110,
+   "parts": [
+    {
+     "shape": "box",
+     "material": "M_PaintedWood",
+     "size": [
+      0.62,
+      0.9,
+      0.03
+     ],
+     "position": [
+      1.6,
+      1.6,
+      2.985
+     ],
+     "rotation": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+     ],
+     "bevel": 0.01,
+     "localPosition": [
+      0.0,
+      0.45,
+      0.0025
+     ]
+    },
+    {
+     "shape": "quad",
+     "material": "M_Mirror",
+     "corners": [
+      [
+       1.34,
+       2.0,
+       2.965
+      ],
+      [
+       1.86,
+       2.0,
+       2.965
+      ],
+      [
+       1.86,
+       1.2,
+       2.965
+      ],
+      [
+       1.34,
+       1.2,
+       2.965
+      ]
+     ],
+     "facing": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "localCorners": [
+      [
+       -0.26,
+       0.85,
+       -0.0175
+      ],
+      [
+       0.26,
+       0.85,
+       -0.0175
+      ],
+      [
+       0.26,
+       0.05,
+       -0.0175
+      ],
+      [
+       -0.26,
+       0.05,
+       -0.0175
+      ]
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Debris",
+   "category": "prop",
+   "description": "Loose pages, broken board pieces and plaster chunks on the floor. Kept clear of the character area.",
+   "threeName": "Debris",
+   "threeType": "Group",
+   "parent": null,
+   "position": [
+    0,
+    0,
+    0
+   ],
+   "rotationDeg": [
+    0,
+    0,
+    0
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "worldBounds": {
+    "min": [
+     -2.6127,
+     -0.0018,
+     -2.7223
+    ],
+    "max": [
+     2.2247,
+     0.0344,
+     2.3627
+    ],
+    "size": [
+     4.8374,
+     0.0361,
+     5.0849
+    ],
+    "center": [
+     -0.194,
+     0.0163,
+     -0.1798
+    ]
+   },
+   "partsSpace": "world",
+   "materials": [
+    "M_Boards",
+    "M_Paper",
+    "M_Plaster"
+   ],
+   "triangles": 1476,
+   "parts": [
+    {
+     "shape": "cloth",
+     "material": "M_Paper",
+     "grid": [
+      4,
+      4
+     ],
+     "boundsMin": [
+      -2.6127,
+      -0.0018,
+      -0.9395
+     ],
+     "boundsMax": [
+      -2.2563,
+      0.0297,
+      -0.6278
+     ]
+    },
+    {
+     "shape": "cloth",
+     "material": "M_Paper",
+     "grid": [
+      4,
+      4
+     ],
+     "boundsMin": [
+      1.4618,
+      -0.0018,
+      1.3419
+     ],
+     "boundsMax": [
+      1.7822,
+      0.0297,
+      1.5866
+     ]
+    },
+    {
+     "shape": "cloth",
+     "material": "M_Paper",
+     "grid": [
+      4,
+      4
+     ],
+     "boundsMin": [
+      -1.6961,
+      -0.0018,
+      1.1674
+     ],
+     "boundsMax": [
+      -1.3795,
+      0.0297,
+      1.4061
+     ]
+    },
+    {
+     "shape": "cloth",
+     "material": "M_Paper",
+     "grid": [
+      4,
+      4
+     ],
+     "boundsMin": [
+      -1.7823,
+      -0.0018,
+      -0.2266
+     ],
+     "boundsMax": [
+      -1.4457,
+      0.0297,
+      0.0448
+     ]
+    },
+    {
+     "shape": "cloth",
+     "material": "M_Paper",
+     "grid": [
+      4,
+      4
+     ],
+     "boundsMin": [
+      -2.4555,
+      -0.0018,
+      0.1907
+     ],
+     "boundsMax": [
+      -2.0926,
+      0.0297,
+      0.5251
+     ]
+    },
+    {
+     "shape": "cloth",
+     "material": "M_Paper",
+     "grid": [
+      4,
+      4
+     ],
+     "boundsMin": [
+      0.3743,
+      -0.0018,
+      2.1074
+     ],
+     "boundsMax": [
+      0.7013,
+      0.0297,
+      2.3627
+     ]
+    },
+    {
+     "shape": "cloth",
+     "material": "M_Paper",
+     "grid": [
+      4,
+      4
+     ],
+     "boundsMin": [
+      -1.7165,
+      -0.0018,
+      -1.7729
+     ],
+     "boundsMax": [
+      -1.3631,
+      0.0297,
+      -1.4687
+     ]
+    },
+    {
+     "shape": "cloth",
+     "material": "M_Paper",
+     "grid": [
+      4,
+      4
+     ],
+     "boundsMin": [
+      1.2753,
+      -0.0018,
+      -1.5285
+     ],
+     "boundsMax": [
+      1.5791,
+      0.0297,
+      -1.3088
+     ]
+    },
+    {
+     "shape": "cloth",
+     "material": "M_Paper",
+     "grid": [
+      4,
+      4
+     ],
+     "boundsMin": [
+      1.9192,
+      -0.0018,
+      -1.3831
+     ],
+     "boundsMax": [
+      2.2247,
+      0.0297,
+      -1.1608
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Boards",
+     "size": [
+      0.64,
+      0.02,
+      0.1
+     ],
+     "position": [
+      -0.4159,
+      0.01,
+      -2.498
+     ],
+     "rotation": [
+      0.0,
+      0.06717,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      3.85,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.03358,
+      0.0,
+      0.99944
+     ],
+     "bevel": 0.003,
+     "localPosition": [
+      -0.4159,
+      0.01,
+      -2.498
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Boards",
+     "size": [
+      0.4718,
+      0.02,
+      0.1
+     ],
+     "position": [
+      -0.563,
+      0.01,
+      -2.6281
+     ],
+     "rotation": [
+      0.0,
+      -0.19503,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      -11.17,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      -0.09736,
+      0.0,
+      0.99525
+     ],
+     "bevel": 0.003,
+     "localPosition": [
+      -0.563,
+      0.01,
+      -2.6281
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Boards",
+     "size": [
+      0.3469,
+      0.02,
+      0.1
+     ],
+     "position": [
+      -0.0164,
+      0.01,
+      -2.4807
+     ],
+     "rotation": [
+      0.0,
+      0.5086,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      29.14,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.25157,
+      0.0,
+      0.96784
+     ],
+     "bevel": 0.003,
+     "localPosition": [
+      -0.0164,
+      0.01,
+      -2.4807
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Boards",
+     "size": [
+      0.5764,
+      0.02,
+      0.1
+     ],
+     "position": [
+      -0.3349,
+      0.01,
+      -2.5006
+     ],
+     "rotation": [
+      0.0,
+      -0.38238,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      -21.91,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      -0.19003,
+      0.0,
+      0.98178
+     ],
+     "bevel": 0.003,
+     "localPosition": [
+      -0.3349,
+      0.01,
+      -2.5006
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Plaster",
+     "size": [
+      0.0706,
+      0.0282,
+      0.0565
+     ],
+     "position": [
+      -0.1811,
+      0.0141,
+      -1.165
+     ],
+     "rotation": [
+      0.0,
+      0.31829,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      18.24,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.15847,
+      0.0,
+      0.98736
+     ],
+     "bevel": 0.005,
+     "localPosition": [
+      -0.1811,
+      0.0141,
+      -1.165
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Plaster",
+     "size": [
+      0.0614,
+      0.0245,
+      0.0491
+     ],
+     "position": [
+      -0.7894,
+      0.0123,
+      -1.5892
+     ],
+     "rotation": [
+      0.0,
+      0.95112,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      54.49,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.45783,
+      0.0,
+      0.88904
+     ],
+     "bevel": 0.005,
+     "localPosition": [
+      -0.7894,
+      0.0123,
+      -1.5892
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Plaster",
+     "size": [
+      0.0537,
+      0.0215,
+      0.043
+     ],
+     "position": [
+      -1.1815,
+      0.0107,
+      -1.6363
+     ],
+     "rotation": [
+      0.0,
+      0.36984,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      21.19,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.18387,
+      0.0,
+      0.98295
+     ],
+     "bevel": 0.005,
+     "localPosition": [
+      -1.1815,
+      0.0107,
+      -1.6363
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Plaster",
+     "size": [
+      0.0441,
+      0.0177,
+      0.0353
+     ],
+     "position": [
+      -0.9777,
+      0.0088,
+      -1.4497
+     ],
+     "rotation": [
+      0.0,
+      0.1151,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      6.59,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.05752,
+      0.0,
+      0.99834
+     ],
+     "bevel": 0.005,
+     "localPosition": [
+      -0.9777,
+      0.0088,
+      -1.4497
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Plaster",
+     "size": [
+      0.0691,
+      0.0276,
+      0.0553
+     ],
+     "position": [
+      1.4517,
+      0.0138,
+      -1.4845
+     ],
+     "rotation": [
+      0.0,
+      1.12922,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      64.7,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.53509,
+      0.0,
+      0.8448
+     ],
+     "bevel": 0.005,
+     "localPosition": [
+      1.4517,
+      0.0138,
+      -1.4845
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Plaster",
+     "size": [
+      0.086,
+      0.0344,
+      0.0688
+     ],
+     "position": [
+      -1.4617,
+      0.0172,
+      -1.1126
+     ],
+     "rotation": [
+      0.0,
+      1.26621,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      72.55,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.59165,
+      0.0,
+      0.80619
+     ],
+     "bevel": 0.005,
+     "localPosition": [
+      -1.4617,
+      0.0172,
+      -1.1126
+     ]
+    },
+    {
+     "shape": "box",
+     "material": "M_Plaster",
+     "size": [
+      0.0803,
+      0.0321,
+      0.0642
+     ],
+     "position": [
+      0.445,
+      0.0161,
+      -1.1396
+     ],
+     "rotation": [
+      0.0,
+      0.64951,
+      0.0
+     ],
+     "rotationDeg": [
+      0.0,
+      37.21,
+      0.0
+     ],
+     "quaternion": [
+      0.0,
+      0.31908,
+      0.0,
+      0.94773
+     ],
+     "bevel": 0.005,
+     "localPosition": [
+      0.445,
+      0.0161,
+      -1.1396
+     ]
+    }
+   ]
+  }
+ ],
+ "lights": [
+  {
+   "name": "Light_Bulb",
+   "type": "PointLight",
+   "color": "#ffd1a2",
+   "intensity": 4.5,
+   "worldPosition": [
+    0,
+    2.16,
+    0.3
+   ],
+   "distance": 0,
+   "decay": 2,
+   "role": "warm key light over the character, flickers"
+  },
+  {
+   "name": "Light_Moon",
+   "type": "SpotLight",
+   "color": "#c4d4ff",
+   "intensity": 220,
+   "worldPosition": [
+    0.2,
+    3.4,
+    -5.2
+   ],
+   "distance": 0,
+   "decay": 2,
+   "angleDeg": 19,
+   "penumbra": 0.35,
+   "direction": [
+    -0.0669,
+    -0.5688,
+    0.8197
+   ],
+   "targetWorldPosition": [
+    0.1331,
+    2.8312,
+    -4.3803
+   ],
+   "role": "cold moonlight through the window boards, makes the floor stripes"
+  },
+  {
+   "name": "Light_Hall",
+   "type": "PointLight",
+   "color": "#cedff3",
+   "intensity": 16,
+   "worldPosition": [
+    5.6,
+    2.2,
+    -1
+   ],
+   "distance": 0,
+   "decay": 2,
+   "role": "dim cold light in the hallway, seen through the door"
+  }
+ ],
+ "materials": [
+  {
+   "name": "M_Floor",
+   "type": "MeshStandardMaterial",
+   "color": "#ffffff",
+   "roughness": 1,
+   "metalness": 1,
+   "emissive": "#000000",
+   "emissiveIntensity": 1,
+   "side": "front",
+   "transparent": false,
+   "map": {
+    "name": "floor_color",
+    "width": 1024,
+    "height": 1024,
+    "wrapS": "repeat",
+    "colorSpace": "srgb"
+   },
+   "normalMap": {
+    "name": "floor_normal",
+    "width": 1024,
+    "height": 1024,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "normalScale": [
+    1,
+    1
+   ],
+   "roughnessMap": {
+    "name": "floor_orm",
+    "width": 1024,
+    "height": 1024,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "metalnessMap": {
+    "name": "floor_orm",
+    "width": 1024,
+    "height": 1024,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "usedBy": [
+    "Floor",
+    "Hallway"
+   ],
+   "tiling": "1.2 m tile"
+  },
+  {
+   "name": "M_Plaster",
+   "type": "MeshStandardMaterial",
+   "color": "#ffffff",
+   "roughness": 1,
+   "metalness": 1,
+   "emissive": "#000000",
+   "emissiveIntensity": 1,
+   "side": "front",
+   "transparent": false,
+   "map": {
+    "name": "ceiling_color",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": "srgb"
+   },
+   "normalMap": {
+    "name": "ceiling_normal",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "normalScale": [
+    1,
+    1
+   ],
+   "roughnessMap": {
+    "name": "ceiling_orm",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "metalnessMap": {
+    "name": "ceiling_orm",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "usedBy": [
+    "Ceiling",
+    "Window",
+    "Door_Frame",
+    "Hallway",
+    "Hanging_Bulb",
+    "Debris"
+   ],
+   "tiling": "2 m tile"
+  },
+  {
+   "name": "M_Wainscot",
+   "type": "MeshStandardMaterial",
+   "color": "#ffffff",
+   "roughness": 1,
+   "metalness": 1,
+   "emissive": "#000000",
+   "emissiveIntensity": 1,
+   "side": "front",
+   "transparent": false,
+   "map": {
+    "name": "wainscot_color",
+    "width": 1024,
+    "height": 1024,
+    "wrapS": "repeat",
+    "colorSpace": "srgb"
+   },
+   "normalMap": {
+    "name": "wainscot_normal",
+    "width": 1024,
+    "height": 1024,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "normalScale": [
+    1,
+    1
+   ],
+   "roughnessMap": {
+    "name": "wainscot_orm",
+    "width": 1024,
+    "height": 1024,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "metalnessMap": {
+    "name": "wainscot_orm",
+    "width": 1024,
+    "height": 1024,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "usedBy": [
+    "Wall_Back",
+    "Wall_Front",
+    "Wall_Left",
+    "Wall_Right",
+    "Hallway"
+   ],
+   "tiling": "1 × 1 m tile, from the floor"
+  },
+  {
+   "name": "M_Wallpaper",
+   "type": "MeshStandardMaterial",
+   "color": "#ffffff",
+   "roughness": 1,
+   "metalness": 1,
+   "emissive": "#000000",
+   "emissiveIntensity": 1,
+   "side": "front",
+   "transparent": false,
+   "map": {
+    "name": "wallpaper_color",
+    "width": 1024,
+    "height": 2048,
+    "wrapS": "repeat",
+    "colorSpace": "srgb"
+   },
+   "normalMap": {
+    "name": "wallpaper_normal",
+    "width": 1024,
+    "height": 2048,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "normalScale": [
+    1,
+    1
+   ],
+   "roughnessMap": {
+    "name": "wallpaper_orm",
+    "width": 1024,
+    "height": 2048,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "metalnessMap": {
+    "name": "wallpaper_orm",
+    "width": 1024,
+    "height": 2048,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "usedBy": [
+    "Wall_Back",
+    "Wall_Front",
+    "Wall_Left",
+    "Wall_Right",
+    "Hallway"
+   ],
+   "tiling": "1 m wide × 2 m tall tile, starting at y = 1"
+  },
+  {
+   "name": "M_WoodDark",
+   "type": "MeshStandardMaterial",
+   "color": "#ffffff",
+   "roughness": 1,
+   "metalness": 1,
+   "emissive": "#000000",
+   "emissiveIntensity": 1,
+   "side": "front",
+   "transparent": false,
+   "map": {
+    "name": "wood_dark_color",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": "srgb"
+   },
+   "normalMap": {
+    "name": "wood_dark_normal",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "normalScale": [
+    1,
+    1
+   ],
+   "roughnessMap": {
+    "name": "wood_dark_orm",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "metalnessMap": {
+    "name": "wood_dark_orm",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "usedBy": [
+    "Trim",
+    "Window",
+    "Wardrobe",
+    "Desk",
+    "Desk_Items",
+    "Chair",
+    "Frame_Fallen"
+   ],
+   "tiling": "1 m tile"
+  },
+  {
+   "name": "M_PaintedWood",
+   "type": "MeshStandardMaterial",
+   "color": "#ffffff",
+   "roughness": 1,
+   "metalness": 1,
+   "emissive": "#000000",
+   "emissiveIntensity": 1,
+   "side": "front",
+   "transparent": false,
+   "map": {
+    "name": "painted_color",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": "srgb"
+   },
+   "normalMap": {
+    "name": "painted_normal",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "normalScale": [
+    1,
+    1
+   ],
+   "roughnessMap": {
+    "name": "painted_orm",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "metalnessMap": {
+    "name": "painted_orm",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "usedBy": [
+    "Window",
+    "Door_Frame",
+    "Door",
+    "Wardrobe",
+    "Desk",
+    "Mirror"
+   ],
+   "tiling": "1 m tile"
+  },
+  {
+   "name": "M_WindowGlass",
+   "type": "MeshStandardMaterial",
+   "color": "#272c35",
+   "roughness": 0.08,
+   "metalness": 0,
+   "emissive": "#000000",
+   "emissiveIntensity": 1,
+   "side": "front",
+   "transparent": false,
+   "map": null,
+   "normalMap": null,
+   "normalScale": null,
+   "roughnessMap": null,
+   "metalnessMap": null,
+   "usedBy": [
+    "Window"
+   ],
+   "tiling": "flat colour"
+  },
+  {
+   "name": "M_NightSky",
+   "type": "MeshStandardMaterial",
+   "color": "#000000",
+   "roughness": 0.7,
+   "metalness": 0,
+   "emissive": "#596f99",
+   "emissiveIntensity": 1,
+   "side": "front",
+   "transparent": false,
+   "map": null,
+   "normalMap": null,
+   "normalScale": null,
+   "roughnessMap": null,
+   "metalnessMap": null,
+   "usedBy": [
+    "Window"
+   ],
+   "tiling": "flat colour"
+  },
+  {
+   "name": "M_Boards",
+   "type": "MeshStandardMaterial",
+   "color": "#ffffff",
+   "roughness": 1,
+   "metalness": 1,
+   "emissive": "#000000",
+   "emissiveIntensity": 1,
+   "side": "front",
+   "transparent": false,
+   "map": {
+    "name": "boards_color",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": "srgb"
+   },
+   "normalMap": {
+    "name": "boards_normal",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "normalScale": [
+    1,
+    1
+   ],
+   "roughnessMap": {
+    "name": "boards_orm",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "metalnessMap": {
+    "name": "boards_orm",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "usedBy": [
+    "Window_Boards",
+    "Debris"
+   ],
+   "tiling": "1 m tile"
+  },
+  {
+   "name": "M_MetalDark",
+   "type": "MeshStandardMaterial",
+   "color": "#45423f",
+   "roughness": 0.45,
+   "metalness": 1,
+   "emissive": "#000000",
+   "emissiveIntensity": 1,
+   "side": "front",
+   "transparent": false,
+   "map": null,
+   "normalMap": null,
+   "normalScale": null,
+   "roughnessMap": null,
+   "metalnessMap": null,
+   "usedBy": [
+    "Window_Boards",
+    "Desk_Items",
+    "Hanging_Bulb"
+   ],
+   "tiling": "flat colour"
+  },
+  {
+   "name": "M_Brass",
+   "type": "MeshStandardMaterial",
+   "color": "#b39b69",
+   "roughness": 0.35,
+   "metalness": 1,
+   "emissive": "#000000",
+   "emissiveIntensity": 1,
+   "side": "front",
+   "transparent": false,
+   "map": null,
+   "normalMap": null,
+   "normalScale": null,
+   "roughnessMap": null,
+   "metalnessMap": null,
+   "usedBy": [
+    "Door",
+    "Bed",
+    "Wardrobe",
+    "Desk",
+    "Desk_Items",
+    "Hanging_Bulb",
+    "Frame_Portrait"
+   ],
+   "tiling": "flat colour"
+  },
+  {
+   "name": "M_Void",
+   "type": "MeshStandardMaterial",
+   "color": "#000000",
+   "roughness": 1,
+   "metalness": 0,
+   "emissive": "#000000",
+   "emissiveIntensity": 1,
+   "side": "front",
+   "transparent": false,
+   "map": null,
+   "normalMap": null,
+   "normalScale": null,
+   "roughnessMap": null,
+   "metalnessMap": null,
+   "usedBy": [
+    "Hallway"
+   ],
+   "tiling": "flat colour"
+  },
+  {
+   "name": "M_RustedIron",
+   "type": "MeshStandardMaterial",
+   "color": "#ffffff",
+   "roughness": 1,
+   "metalness": 1,
+   "emissive": "#000000",
+   "emissiveIntensity": 1,
+   "side": "front",
+   "transparent": false,
+   "map": {
+    "name": "rust_color",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": "srgb"
+   },
+   "normalMap": {
+    "name": "rust_normal",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "normalScale": [
+    1,
+    1
+   ],
+   "roughnessMap": {
+    "name": "rust_orm",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "metalnessMap": {
+    "name": "rust_orm",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "usedBy": [
+    "Bed",
+    "Radiator"
+   ],
+   "tiling": "0.5 m tile"
+  },
+  {
+   "name": "M_StainedFabric",
+   "type": "MeshStandardMaterial",
+   "color": "#ffffff",
+   "roughness": 1,
+   "metalness": 1,
+   "emissive": "#000000",
+   "emissiveIntensity": 1,
+   "side": "double",
+   "transparent": false,
+   "map": {
+    "name": "fabric_color",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": "srgb"
+   },
+   "normalMap": {
+    "name": "fabric_normal",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "normalScale": [
+    1,
+    1
+   ],
+   "roughnessMap": {
+    "name": "fabric_orm",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "metalnessMap": {
+    "name": "fabric_orm",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "usedBy": [
+    "Bed"
+   ],
+   "tiling": "1 m tile"
+  },
+  {
+   "name": "M_Wax",
+   "type": "MeshStandardMaterial",
+   "color": "#cec5b3",
+   "roughness": 0.55,
+   "metalness": 0,
+   "emissive": "#000000",
+   "emissiveIntensity": 1,
+   "side": "front",
+   "transparent": false,
+   "map": null,
+   "normalMap": null,
+   "normalScale": null,
+   "roughnessMap": null,
+   "metalnessMap": null,
+   "usedBy": [
+    "Desk_Items"
+   ],
+   "tiling": "flat colour"
+  },
+  {
+   "name": "M_BookRed",
+   "type": "MeshStandardMaterial",
+   "color": "#813f38",
+   "roughness": 0.8,
+   "metalness": 0,
+   "emissive": "#000000",
+   "emissiveIntensity": 1,
+   "side": "front",
+   "transparent": false,
+   "map": null,
+   "normalMap": null,
+   "normalScale": null,
+   "roughnessMap": null,
+   "metalnessMap": null,
+   "usedBy": [
+    "Desk_Items"
+   ],
+   "tiling": "flat colour"
+  },
+  {
+   "name": "M_BookGreen",
+   "type": "MeshStandardMaterial",
+   "color": "#456155",
+   "roughness": 0.8,
+   "metalness": 0,
+   "emissive": "#000000",
+   "emissiveIntensity": 1,
+   "side": "front",
+   "transparent": false,
+   "map": null,
+   "normalMap": null,
+   "normalScale": null,
+   "roughnessMap": null,
+   "metalnessMap": null,
+   "usedBy": [
+    "Desk_Items"
+   ],
+   "tiling": "flat colour"
+  },
+  {
+   "name": "M_BookBrown",
+   "type": "MeshStandardMaterial",
+   "color": "#7c654b",
+   "roughness": 0.8,
+   "metalness": 0,
+   "emissive": "#000000",
+   "emissiveIntensity": 1,
+   "side": "front",
+   "transparent": false,
+   "map": null,
+   "normalMap": null,
+   "normalScale": null,
+   "roughnessMap": null,
+   "metalnessMap": null,
+   "usedBy": [
+    "Desk_Items"
+   ],
+   "tiling": "flat colour"
+  },
+  {
+   "name": "M_Paper",
+   "type": "MeshStandardMaterial",
+   "color": "#ffffff",
+   "roughness": 1,
+   "metalness": 1,
+   "emissive": "#000000",
+   "emissiveIntensity": 1,
+   "side": "double",
+   "transparent": false,
+   "map": {
+    "name": "paper_color",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": "srgb"
+   },
+   "normalMap": null,
+   "normalScale": null,
+   "roughnessMap": {
+    "name": "paper_orm",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "metalnessMap": {
+    "name": "paper_orm",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "usedBy": [
+    "Desk_Items",
+    "Debris"
+   ],
+   "tiling": "0.3 m tile"
+  },
+  {
+   "name": "M_Rug",
+   "type": "MeshStandardMaterial",
+   "color": "#ffffff",
+   "roughness": 1,
+   "metalness": 1,
+   "emissive": "#000000",
+   "emissiveIntensity": 1,
+   "side": "front",
+   "transparent": false,
+   "map": {
+    "name": "rug_color",
+    "width": 1024,
+    "height": 1024,
+    "wrapS": "repeat",
+    "colorSpace": "srgb"
+   },
+   "normalMap": {
+    "name": "rug_normal",
+    "width": 1024,
+    "height": 1024,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "normalScale": [
+    1,
+    1
+   ],
+   "roughnessMap": {
+    "name": "rug_orm",
+    "width": 1024,
+    "height": 1024,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "metalnessMap": {
+    "name": "rug_orm",
+    "width": 1024,
+    "height": 1024,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "usedBy": [
+    "Rug"
+   ],
+   "tiling": "one image across the rug"
+  },
+  {
+   "name": "M_BulbGlass",
+   "type": "MeshStandardMaterial",
+   "color": "#ffedcb",
+   "roughness": 0.2,
+   "metalness": 0,
+   "emissive": "#ffce95",
+   "emissiveIntensity": 12,
+   "side": "front",
+   "transparent": false,
+   "map": null,
+   "normalMap": null,
+   "normalScale": null,
+   "roughnessMap": null,
+   "metalnessMap": null,
+   "usedBy": [
+    "Hanging_Bulb"
+   ],
+   "tiling": "flat colour"
+  },
+  {
+   "name": "M_Portrait",
+   "type": "MeshStandardMaterial",
+   "color": "#ffffff",
+   "roughness": 1,
+   "metalness": 1,
+   "emissive": "#000000",
+   "emissiveIntensity": 1,
+   "side": "front",
+   "transparent": false,
+   "map": {
+    "name": "portrait_color",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": "srgb"
+   },
+   "normalMap": null,
+   "normalScale": null,
+   "roughnessMap": {
+    "name": "portrait_orm",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "metalnessMap": {
+    "name": "portrait_orm",
+    "width": 512,
+    "height": 512,
+    "wrapS": "repeat",
+    "colorSpace": ""
+   },
+   "usedBy": [
+    "Frame_Portrait"
+   ],
+   "tiling": "one image across the canvas"
+  },
+  {
+   "name": "M_Mirror",
+   "type": "MeshStandardMaterial",
+   "color": "#c4c7cb",
+   "roughness": 0.06,
+   "metalness": 1,
+   "emissive": "#000000",
+   "emissiveIntensity": 1,
+   "side": "front",
+   "transparent": false,
+   "map": null,
+   "normalMap": null,
+   "normalScale": null,
+   "roughnessMap": null,
+   "metalnessMap": null,
+   "usedBy": [
+    "Frame_Fallen",
+    "Mirror"
+   ],
+   "tiling": "flat colour"
+  }
+ ],
+ "animation": {
+  "name": "Door_Creak",
+  "target": "Door_Hinge.quaternion (rotation about +Y)",
+  "duration": 4.5833,
+  "fps": 24,
+  "samples": 110,
+  "interpolation": "linear between baked samples (Bézier-eased in Blender)",
+  "keys": [
+   {
+    "time": 0.0417,
+    "yawDeg": -14.0
+   },
+   {
+    "time": 1.25,
+    "yawDeg": -24.0
+   },
+   {
+    "time": 1.5833,
+    "yawDeg": -22.0
+   },
+   {
+    "time": 4.5833,
+    "yawDeg": -68.0
+   }
+  ],
+  "doorBounds": {
+   "start": {
+    "Door_Hinge": {
+     "box": {
+      "min": [
+       2.8084,
+       0.005,
+       -1.4495
+      ],
+      "max": [
+       3.1209,
+       2.085,
+       -0.5867
+      ],
+      "size": [
+       0.3124,
+       2.08,
+       0.8628
+      ],
+      "center": [
+       2.9646,
+       1.045,
+       -1.0181
+      ]
+     },
+     "rotationDeg": [
+      0,
+      -14,
+      0
+     ],
+     "worldRotationDeg": [
+      0,
+      -14,
+      0
+     ]
+    },
+    "Door": {
+     "box": {
+      "min": [
+       2.8084,
+       0.005,
+       -1.4495
+      ],
+      "max": [
+       3.1209,
+       2.085,
+       -0.5867
+      ],
+      "size": [
+       0.3124,
+       2.08,
+       0.8628
+      ],
+      "center": [
+       2.9646,
+       1.045,
+       -1.0181
+      ]
+     },
+     "rotationDeg": [
+      0,
+      0,
+      0
+     ],
+     "worldRotationDeg": [
+      0,
+      -14,
+      0
+     ]
+    }
+   },
+   "end": {
+    "Door_Hinge": {
+     "box": {
+      "min": [
+       2.2771,
+       0.005,
+       -1.4644
+      ],
+      "max": [
+       3.1069,
+       2.085,
+       -1.0501
+      ],
+      "size": [
+       0.8298,
+       2.08,
+       0.4143
+      ],
+      "center": [
+       2.692,
+       1.045,
+       -1.2572
+      ]
+     },
+     "rotationDeg": [
+      0,
+      -67.9999,
+      0
+     ],
+     "worldRotationDeg": [
+      0,
+      -67.9999,
+      0
+     ]
+    },
+    "Door": {
+     "box": {
+      "min": [
+       2.2771,
+       0.005,
+       -1.4644
+      ],
+      "max": [
+       3.1069,
+       2.085,
+       -1.0501
+      ],
+      "size": [
+       0.8298,
+       2.08,
+       0.4143
+      ],
+      "center": [
+       2.692,
+       1.045,
+       -1.2572
+      ]
+     },
+     "rotationDeg": [
+      0,
+      0,
+      0
+     ],
+     "worldRotationDeg": [
+      0,
+      -67.9999,
+      0
+     ]
+    }
+   }
+  }
+ },
+ "render": {
+  "renderer": {
+   "antialias": true,
+   "pixelRatio": "min(devicePixelRatio, 1.75)",
+   "outputColorSpace": "SRGBColorSpace",
+   "toneMapping": "ACESFilmicToneMapping",
+   "toneMappingExposure": 1.5,
+   "shadowMap": "enabled, PCFShadowMap"
+  },
+  "scene": {
+   "background": "#030304",
+   "fog": "FogExp2(#040406, 0.075)",
+   "hemisphereLight": "HemisphereLight(#3a4866, #1a110a, 1.3)"
+  },
+  "camera": {
+   "type": "PerspectiveCamera",
+   "fov": "50 (landscape), 64 (portrait)",
+   "near": 0.05,
+   "far": 60,
+   "position": "CameraStart (0.55, 1.55, 2.35)",
+   "target": "CameraTarget (0, 1.05, 0)"
+  },
+  "orbitControls": {
+   "enableDamping": true,
+   "dampingFactor": 0.07,
+   "minDistance": 0.8,
+   "maxDistance": 3.4,
+   "maxPolarAngle": "0.62 × π",
+   "enablePan": false,
+   "cameraClamp": "position clamped to x,z ∈ [−2.8, 2.8], y ∈ [0.25, 2.8] every frame"
+  },
+  "shadows": {
+   "Light_Bulb": "castShadow, mapSize 1024, bias −0.002, normalBias 0.02, radius 3",
+   "Light_Moon": "castShadow, mapSize 1024, bias −0.0008, normalBias 0.02, shadow camera near 1 / far 12",
+   "Light_Hall": "no shadows",
+   "meshes": "all receiveShadow; castShadow except M_WindowGlass, M_NightSky, M_Void, M_BulbGlass and the Hanging_Bulb parts",
+   "materials": "material.shadowSide = DoubleSide on every room material (stops light leaking through thin wall seams)"
+  },
+  "postprocessing": {
+   "order": "RenderPass → GTAOPass → UnrealBloomPass → film ShaderPass → OutputPass",
+   "GTAOPass": "blendIntensity 0.85; radius 0.35, distanceExponent 1.4, thickness 1.2, scale 1.0",
+   "UnrealBloomPass": "strength 0.3, radius 0.5, threshold 0.9",
+   "film": "vignette mix 0.85 (smoothstep(0.85, 0.12, d), d = dot(uv−0.5)); grain ±0.035; chromatic fringe 0.012 × d",
+   "R3F equivalent": "@react-three/postprocessing: N8AO (aoRadius 0.35, intensity 2.2) + Bloom (0.3–0.35, threshold 0.9) + Noise (0.05) + Vignette (offset 0.25, darkness 0.85) + ToneMapping ACES_FILMIC. Tune by eye against reference_camera_start.jpg"
+  },
+  "bulbFlicker": {
+   "steady": "level = 0.94 + 0.06·sin(50t)·sin(13.7t)",
+   "events": "every 3–10 s: 22% chance of a blackout lasting 0.8–2.0 s (level 0.02), otherwise a stutter lasting 0.35–0.85 s (level 1 when sin(90t) > 0.2, else 0.08)",
+   "applies to": "Light_Bulb.intensity = 4.5 × level; M_BulbGlass.emissiveIntensity = 12 × level; dust glow × level"
+  },
+  "dust": {
+   "count": 900,
+   "volume": "x,z ∈ [−2.7, 2.7], y ∈ [0, 2.9]",
+   "drift": "x += 0.25·sin(0.13t + seed), z += 0.25·cos(0.11t + 1.3·seed), y rises 0.02 m/s and wraps at 2.9",
+   "look": "additive points, colour (1, 0.8, 0.6), brightness × smoothstep(2.4, 0.2, distance to (0, 2.1, 0.3)) × 0.5, size ≤ 5 px"
+  },
+  "sound": {
+   "rumble": "4 s looping brown noise → lowpass 180 Hz → gain 0.9",
+   "hum": "100 Hz sawtooth → bandpass 200 Hz, Q 6 → gain 0.035 while the bulb is lit, 0 during blackouts",
+   "master": 0.5,
+   "start": "only after a user click (browser autoplay rules)"
+  }
+ },
+ "colliders": {
+  "player": {
+   "shape": "capsule",
+   "radius": 0.3,
+   "height": 1.75,
+   "eyeHeight": 1.6,
+   "note": "matches the 1.76 m placeholder; use radius 0.3 when inflating obstacles for pathfinding"
+  },
+  "walls": [
+   {
+    "name": "wall_back",
+    "min": [
+     -3.2,
+     0,
+     -3.2
+    ],
+    "max": [
+     3.2,
+     3,
+     -3.0
+    ]
+   },
+   {
+    "name": "wall_front",
+    "min": [
+     -3.2,
+     0,
+     3.0
+    ],
+    "max": [
+     3.2,
+     3,
+     3.2
+    ]
+   },
+   {
+    "name": "wall_left",
+    "min": [
+     -3.2,
+     0,
+     -3.2
+    ],
+    "max": [
+     -3.0,
+     3,
+     3.2
+    ]
+   },
+   {
+    "name": "wall_right_back",
+    "min": [
+     3.0,
+     0,
+     -3.2
+    ],
+    "max": [
+     3.2,
+     3,
+     -1.45
+    ]
+   },
+   {
+    "name": "wall_right_front",
+    "min": [
+     3.0,
+     0,
+     -0.55
+    ],
+    "max": [
+     3.2,
+     3,
+     3.2
+    ]
+   },
+   {
+    "name": "door_lintel",
+    "min": [
+     3.0,
+     2.1,
+     -1.45
+    ],
+    "max": [
+     3.2,
+     3,
+     -0.55
+    ]
+   },
+   {
+    "name": "hall_wall_back",
+    "min": [
+     3.18,
+     0,
+     -2.1
+    ],
+    "max": [
+     7.2,
+     2.7,
+     -1.9
+    ]
+   },
+   {
+    "name": "hall_wall_front",
+    "min": [
+     3.18,
+     0,
+     -0.10000000000000003
+    ],
+    "max": [
+     7.2,
+     2.7,
+     0.09999999999999998
+    ]
+   },
+   {
+    "name": "hall_end",
+    "min": [
+     7.0,
+     0,
+     -1.9
+    ],
+    "max": [
+     7.2,
+     2.7,
+     -0.10000000000000003
+    ]
+   },
+   {
+    "name": "door_reveal_back",
+    "min": [
+     3.0,
+     0,
+     -1.9
+    ],
+    "max": [
+     3.18,
+     2.7,
+     -1.45
+    ]
+   },
+   {
+    "name": "door_reveal_front",
+    "min": [
+     3.0,
+     0,
+     -0.55
+    ],
+    "max": [
+     3.18,
+     2.7,
+     -0.10000000000000003
+    ]
+   }
+  ],
+  "props": [
+   {
+    "name": "Bed",
+    "min": [
+     -2.975,
+     0,
+     -2.955
+    ],
+    "max": [
+     -1.8903,
+     1.205,
+     -0.865
+    ]
+   },
+   {
+    "name": "Wardrobe",
+    "min": [
+     2.2915,
+     -0.0172,
+     1.21
+    ],
+    "max": [
+     2.9779,
+     2.1275,
+     2.49
+    ]
+   },
+   {
+    "name": "Desk",
+    "min": [
+     1.425,
+     0,
+     -2.97
+    ],
+    "max": [
+     2.775,
+     0.78,
+     -2.37
+    ]
+   },
+   {
+    "name": "Chair",
+    "min": [
+     0.6461,
+     0,
+     -2.1815
+    ],
+    "max": [
+     1.4733,
+     0.4811,
+     -1.2817
+    ]
+   },
+   {
+    "name": "Radiator",
+    "min": [
+     -0.55,
+     0,
+     2.83
+    ],
+    "max": [
+     0.618,
+     0.78,
+     2.93
+    ]
+   },
+   {
+    "name": "Frame_Fallen",
+    "min": [
+     -2.9913,
+     0,
+     1.24
+    ],
+    "max": [
+     -2.7687,
+     0.7617,
+     1.96
+    ]
+   }
+  ],
+  "door": {
+   "type": "oriented box rotating about the hinge",
+   "pivot": [
+    3.1,
+    0.005,
+    -1.445
+   ],
+   "width": 0.88,
+   "height": 2.08,
+   "thickness": 0.045,
+   "localCenter": [
+    0,
+    1.04,
+    0.44
+   ],
+   "yawDeg": {
+    "closed": 0,
+    "rest (file default)": -14,
+    "open (end of Door_Creak)": -68
+   },
+   "note": "yaw is rotation about +Y; negative swings the door into the room. Read Door_Hinge.rotation.y each frame."
+  },
+  "walkable": [
+   {
+    "name": "room",
+    "min": [
+     -3,
+     0,
+     -3
+    ],
+    "max": [
+     3,
+     0,
+     3
+    ]
+   },
+   {
+    "name": "doorway",
+    "min": [
+     3.0,
+     0,
+     -1.45
+    ],
+    "max": [
+     3.18,
+     0,
+     -0.55
+    ]
+   },
+   {
+    "name": "hallway",
+    "min": [
+     3.18,
+     0,
+     -1.9
+    ],
+    "max": [
+     7.0,
+     0,
+     -0.10000000000000003
+    ]
+   }
+  ]
+ },
+ "stats": {
+  "roomMeshes": 60,
+  "roomTriangles": 15488,
+  "characterTriangles": 4140
+ }
+}
