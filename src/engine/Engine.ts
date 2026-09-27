@@ -252,7 +252,8 @@ export class Engine {
       object: this.character.root,
       verb: "Examine",
       label: "The figure",
-      range: 2.6,
+      // Seated back against the chair, the figure is 2.62 m from the spawn point.
+      range: 2.8,
       onInteract: () => {
         this.audio?.blip(220, 0.12);
         this.store.set({ message: "It is tied to the chair. Where its face should be, there is only a sign." });
