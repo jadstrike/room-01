@@ -11,3 +11,6 @@ dist
 # Delete the originals once you are happy nothing is missing.
 /room01-handoff/
 /ROOM01_SPEC.md
+
+# Original chair character pack; the model is rebuilt from scripts/chair-character/.
+/chair_character_pack/

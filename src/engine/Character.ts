@@ -68,12 +68,13 @@ export class Character {
 
   /**
    * A footprint box, capped so an animation with outstretched arms cannot turn
-   * the figure into a wall. The placeholder is 0.63 x 0.28 m at the shoulders.
+   * the figure into a wall. It still has to cover the chair character's
+   * 0.86 x 0.92 m footprint, or the player walks into its legs and feet.
    */
   refreshCollider(): void {
     this.collider.setFromObject(this.root, true);
     const centre = this.collider.getCenter(new THREE.Vector3());
-    const maxHalf = 0.35;
+    const maxHalf = 0.47;
     this.collider.min.x = Math.max(this.collider.min.x, centre.x - maxHalf);
     this.collider.max.x = Math.min(this.collider.max.x, centre.x + maxHalf);
     this.collider.min.z = Math.max(this.collider.min.z, centre.z - maxHalf);

@@ -20,7 +20,7 @@ const BASE = import.meta.env.BASE_URL;
 export const ASSETS = {
   room: `${BASE}models/horror_room.web.glb`,
   roomUncompressed: `${BASE}models/horror_room.glb`,
-  character: `${BASE}models/placeholder_character.glb`,
+  character: `${BASE}models/chair_character.glb`,
 };
 
 export type EngineState = {
@@ -253,7 +253,7 @@ export class Engine {
       range: 2.6,
       onInteract: () => {
         this.audio?.blip(220, 0.12);
-        this.store.set({ message: "It does not move. Something is wrong with the way it is standing." });
+        this.store.set({ message: "It is tied to the chair. Where its face should be, there is only a sign." });
       },
     });
   }

@@ -1,6 +1,6 @@
 # Room 01
 
-A first-person horror room on the web. You wake up in a boarded-up bedroom with a figure standing in the middle of it, under a bulb that will not stay lit.
+A first-person horror room on the web. You wake up in a boarded-up bedroom with a figure tied to a chair in the middle of it, under a bulb that will not stay lit.
 
 Built with React 19, TypeScript, Vite and three.js 0.186. No game engine, no physics library.
 
@@ -45,4 +45,4 @@ Movement uses ground acceleration and friction rather than a smoothed camera, so
 
 ## Credits
 
-Room and placeholder character are original procedural assets, free to use.
+Room, chair character and placeholder mannequin are original procedural assets, free to use.
