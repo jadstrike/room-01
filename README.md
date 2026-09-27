@@ -32,6 +32,7 @@ npm run build       # typecheck + production build to dist/
 npm run preview     # serve the production build
 npm run typecheck   # tsc --noEmit
 npm run verify      # check the room models against the spec, offline
+npm run build:chair # rebuild the chair character model
 ```
 
 ## How it is put together

@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "verify": "node scripts/verify-room.mjs"
+    "verify": "node scripts/verify-room.mjs",
+    "build:chair": "node scripts/chair-character/build.mjs"
   },
   "dependencies": {
     "react": "^19.1.1",
