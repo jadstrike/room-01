@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { Store } from "./store";
 import { Room, PROP_INTERACTIONS } from "./Room";
+import { dressChair } from "./ChairDressing";
 import { Character } from "./Character";
 import { Player } from "./Player";
 import { Interact, type FocusInfo, type Interactable } from "./Interact";
@@ -189,6 +190,7 @@ export class Engine {
     if (!room || this.disposed) return next.dispose();
     this.character?.dispose();
     this.character = next;
+    dressChair(next.root, room.root);
     room.spawn.add(next.root);
     next.fit(this.store.get().autoScale);
     const clipIndex = next.defaultClipIndex;
