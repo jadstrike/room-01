@@ -404,6 +404,14 @@ select:focus-visible,
   outline: none;
 }
 
+button.quiet {
+  justify-self: start;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: var(--dim);
+  background: transparent;
+}
+
 button.primary {
   background: var(--blood);
   border-color: var(--blood);

@@ -7,6 +7,7 @@ import { Viewmodel, VIEWMODEL_LAYER } from "./Viewmodel";
 import { Weapon, type WeaponState } from "./Weapon";
 import { Impacts } from "./Impacts";
 import { PISTOL } from "./weapons";
+import { SignPicture } from "./Sign";
 import { Player } from "./Player";
 import { Interact, type FocusInfo, type Interactable } from "./Interact";
 import { Post } from "./Post";
@@ -50,6 +51,8 @@ export type EngineState = {
   specOk: boolean;
   message: string;
   weapon: WeaponState | null;
+  /** The figure's sign: whether it has one, and whether it shows the player's picture. */
+  sign: { available: boolean; custom: boolean };
   stats: { fps: number; triangles: number; roomMeshes: number; characterHeight: number; scaled: boolean };
 };
 
@@ -75,6 +78,7 @@ export const INITIAL_STATE: EngineState = {
   specOk: true,
   message: "",
   weapon: null,
+  sign: { available: false, custom: false },
   stats: { fps: 0, triangles: 0, roomMeshes: 0, characterHeight: 0, scaled: false },
 };
 
@@ -104,6 +108,7 @@ export class Engine {
   private dust = new Dust();
   private viewmodel = new Viewmodel();
   private impacts = new Impacts();
+  private sign = new SignPicture();
   private audio: Audio | null = null;
   private timer = new THREE.Timer();
   private debugGroup = new THREE.Group();
@@ -211,6 +216,7 @@ export class Engine {
     this.character?.dispose();
     this.character = next;
     dressChair(next.root, room.root);
+    this.attachSign(next.root);
     room.spawn.add(next.root);
     next.fit(this.store.get().autoScale);
     const clipIndex = next.defaultClipIndex;
@@ -224,6 +230,37 @@ export class Engine {
       message: `Loaded character · ${next.clips.length} clip(s) · ${next.authoredHeight.toFixed(2)} m as authored`,
     });
     this.registerCharacter();
+  }
+
+  private attachSign(root: THREE.Object3D): void {
+    const available = this.sign.attach(root);
+    this.store.set({ sign: { available, custom: false } });
+    const saved = available ? SignPicture.saved() : null;
+    if (!saved) return;
+    this.sign
+      .set(saved, false)
+      .then((shown) => shown && this.store.set({ sign: { available: true, custom: true } }))
+      .catch(() => this.sign.reset());
+  }
+
+  /** Put the player's picture on the figure's sign. */
+  async setSignPicture(file: Blob): Promise<void> {
+    if (!this.sign.available) {
+      this.store.set({ message: "This figure has no sign to put a picture on." });
+      return;
+    }
+    try {
+      if (await this.sign.set(file)) {
+        this.store.set({ sign: { available: true, custom: true }, message: "Your picture is on the sign now." });
+      }
+    } catch {
+      this.store.set({ message: "Could not read that picture. Try a .jpg, .png or .webp." });
+    }
+  }
+
+  resetSignPicture(): void {
+    this.sign.reset();
+    this.store.set({ sign: { available: this.sign.available, custom: false } });
   }
 
   /** Load a character the user picked or dropped. */
@@ -454,6 +491,7 @@ export class Engine {
     if (!this.player.locked) return;
     if (e.code === "KeyE") this.triggerInteract();
     if (e.code === "KeyR") this.reload();
+    if (e.code === "KeyF") this.weapon?.inspect();
   };
 
   private frame = (now: number): void => {
@@ -535,6 +573,7 @@ export class Engine {
     this.character?.dispose();
     this.room?.dispose();
     this.dust.dispose();
+    this.sign.dispose();
     this.viewmodel.dispose();
     this.impacts.dispose();
     this.post.dispose();

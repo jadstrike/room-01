@@ -20,11 +20,12 @@ Then open http://localhost:5173 and click to play.
 | `Space` | jump |
 | Click | fire |
 | `R` | reload |
+| `F` | inspect the gun |
 | `E` | interact with whatever the crosshair is on |
 | `Esc` | pause, settings and crosshair customisation |
 | `` ` `` | show collision boxes |
 
-Drop a `.glb` anywhere on the page to replace the figure with your own character. A `.gltf` needs its `.bin` and textures selected together.
+Drop a picture anywhere on the page (or pick one in the pause menu) to put it on the figure's sign; it is kept on your device. Drop a `.glb` to replace the figure with your own character. A `.gltf` needs its `.bin` and textures selected together.
 
 ## Scripts
 

@@ -48,7 +48,7 @@ const LOOKS: Record<string, Look> = {
   "Sign | petrol enamel": { from: "M_PaintedWood", scale: 3, tint: 0xffffff, roughness: 1 },
   "Hardware | brass": { from: "M_RustedIron", scale: 12, tint: 0xd0b090, roughness: 0.8, metalness: 0.35 },
   "Sign | ivory backing": { from: "grime", scale: 3, tint: 0x8a8070, roughness: 1 },
-  FaceImageMaterial: { from: "grime", scale: 2.2, tint: 0x9a9080, roughness: 0.95 },
+  FaceImageMaterial: { from: "grime", scale: 2.2, tint: 0xb4ac9c, roughness: 0.95 },
 };
 
 export function dressChair(character: THREE.Object3D, room: THREE.Object3D): boolean {

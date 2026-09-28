@@ -31,7 +31,11 @@ export function App() {
     const onDrop = (e: DragEvent) => {
       e.preventDefault();
       setDragging(false);
-      if (e.dataTransfer?.files.length) void engine.loadCharacterFiles(e.dataTransfer.files);
+      const files = [...(e.dataTransfer?.files ?? [])];
+      if (!files.length) return;
+      // A picture on its own goes on the sign; anything else is a character.
+      if (files.every((f) => f.type.startsWith("image/"))) void engine.setSignPicture(files[0]);
+      else void engine.loadCharacterFiles(files);
     };
     addEventListener("dragover", onDragOver);
     addEventListener("dragleave", onDragLeave);
@@ -71,7 +75,7 @@ export function App() {
         <PauseMenu engine={engine} state={state} crosshair={crosshair} onCrosshair={updateCrosshair} />
       )}
 
-      {dragging && <div className="dropzone">Drop to place your character</div>}
+      {dragging && <div className="dropzone">Drop a picture for the sign, or a .glb character</div>}
     </div>
   );
 }

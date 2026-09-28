@@ -19,6 +19,11 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
   const onFiles = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.length) void engine.loadCharacterFiles(e.target.files);
   };
+  const onPicture = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) void engine.setSignPicture(file);
+    e.target.value = "";
+  };
 
   return (
     <div className="menu-backdrop">
@@ -41,7 +46,7 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
             <kbd>Shift</kbd> sprint · <kbd>Ctrl</kbd> crouch · <kbd>Space</kbd> jump
           </li>
           <li>
-            <kbd>Click</kbd> fire · <kbd>R</kbd> reload · <kbd>E</kbd> interact
+            <kbd>Click</kbd> fire · <kbd>R</kbd> reload · <kbd>F</kbd> inspect · <kbd>E</kbd> interact
           </li>
           <li>
             <kbd>Esc</kbd> pause · <kbd>`</kbd> colliders
@@ -174,6 +179,25 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
           </section>
 
           <section>
+            {state.sign.available && (
+              <>
+                <h2>Sign</h2>
+                <label className="file">
+                  {state.sign.custom ? "Change picture" : "Choose a picture"}
+                  <input type="file" accept="image/*" onChange={onPicture} />
+                </label>
+                {state.sign.custom && (
+                  <button className="quiet" onClick={() => engine.resetSignPicture()}>
+                    Put the old face back
+                  </button>
+                )}
+                <p className="hint">
+                  Shown on the figure's sign, whole and uncropped. Or drop a picture anywhere on the page. It stays on
+                  this device only.
+                </p>
+              </>
+            )}
+
             <h2>Character</h2>
             <label className="file">
               Load .glb / .gltf
