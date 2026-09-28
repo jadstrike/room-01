@@ -185,6 +185,27 @@ const gripFront = (y: number) => -0.016 + (-0.03 - y) * 0.368;
 
 // --- the viewmodel -----------------------------------------------------------------
 
+/** Keyframes as [time 0..1, x, y, z, pitch, yaw, roll] offsets from the ready pose. */
+type Pose = [number, number, number, number, number, number, number];
+const INSPECT_SECONDS = 3.6;
+const INSPECT_POSES: Pose[] = [
+  [0, 0, 0, 0, 0, 0, 0],
+  [0.14, -0.045, 0.035, 0.05, 0.06, -0.5, 0.95],
+  [0.4, -0.05, 0.04, 0.055, 0.04, -0.58, 1.05],
+  [0.56, -0.01, 0.025, 0.03, 0.16, 0.2, -0.42],
+  [0.76, -0.01, 0.027, 0.03, 0.22, 0.24, -0.48],
+  [0.88, -0.01, 0.012, 0.015, -0.12, 0.08, -0.1],
+  [1, 0, 0, 0, 0, 0, 0],
+];
+
+function samplePose(poses: Pose[], t: number): number[] {
+  let i = 0;
+  while (i < poses.length - 2 && poses[i + 1][0] < t) i++;
+  const a = poses[i], b = poses[i + 1];
+  const k = THREE.MathUtils.smoothstep(t, a[0], b[0]);
+  return [1, 2, 3, 4, 5, 6].map((j) => a[j] + (b[j] - a[j]) * k);
+}
+
 type Shell = { mesh: THREE.Mesh; vel: THREE.Vector3; spin: THREE.Vector3; life: number };
 
 export class Viewmodel {
@@ -216,6 +237,7 @@ export class Viewmodel {
   private reloadT = -1;
   private reloadLen = 1;
   private reloadEmpty = false;
+  private inspectT = -1;
   private sway = new THREE.Vector2();
   private lastYaw = 0;
   private lastPitch = 0;
@@ -396,7 +418,12 @@ export class Viewmodel {
     this.reloadT = -1;
   }
 
+  inspect(): void {
+    if (this.reloadT < 0 && this.drawT >= 1) this.inspectT = 0;
+  }
+
   fire(emptyAfter: boolean): void {
+    this.inspectT = -1;
     this.kick = Math.min(1.4, this.kick + 1);
     this.slideBack = 1;
     this.slideLocked = emptyAfter;
@@ -413,6 +440,7 @@ export class Viewmodel {
   }
 
   reload(duration: number, empty: boolean): void {
+    this.inspectT = -1;
     this.reloadT = 0;
     this.reloadLen = duration;
     this.reloadEmpty = empty;
@@ -468,6 +496,22 @@ export class Viewmodel {
     rot.x += this.kick * 0.13 + this.sway.y * 0.6 - (1 - draw) * 0.7;
     rot.y += this.sway.x * 0.6;
     rot.z += -this.sway.x * 0.4 + bobX * 1.5;
+
+    // Inspect: roll the gun in to show its left flank, flip the wrist to show
+    // the ejection-port side, glance down the top, then back to ready.
+    if (this.inspectT >= 0) {
+      this.inspectT += dt / INSPECT_SECONDS;
+      if (this.inspectT >= 1) this.inspectT = -1;
+      else {
+        const p = samplePose(INSPECT_POSES, this.inspectT);
+        pos.x += p[0];
+        pos.y += p[1];
+        pos.z += p[2];
+        rot.x += p[3];
+        rot.y += p[4];
+        rot.z += p[5];
+      }
+    }
 
     // Reload: tilt the gun in, drop the magazine, seat a new one, release the slide.
     this.mag.position.set(0, 0, 0);

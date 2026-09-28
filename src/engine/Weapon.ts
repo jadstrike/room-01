@@ -102,6 +102,12 @@ export class Weapon {
     this.emit();
   }
 
+  /** Turn the gun over to look at it; firing or reloading cuts it short. */
+  inspect(): void {
+    if (this.reloadLeft >= 0) return;
+    this.viewmodel.inspect();
+  }
+
   reload(): void {
     if (this.reloadLeft >= 0 || this.ammo >= this.def.magSize || this.reserve <= 0) return;
     this.reloadEmpty = this.ammo === 0;
