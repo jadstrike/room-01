@@ -29,11 +29,14 @@ interface Look {
   roughness: number;
   metalness?: number;
   normalScale?: number;
+  /** Printed text over the fabric, for stencilled clothing. */
+  stencil?: string;
 }
 
 const LOOKS: Record<string, Look> = {
-  "Jumpsuit | burnt apricot": { from: "cloth", scale: 4, tint: 0x8c5230, roughness: 1 },
-  "Jumpsuit | deep seams": { from: "cloth", scale: 4, tint: 0x4e2c18, roughness: 1 },
+  "Prison | orange cotton": { from: "cloth", scale: 5, tint: 0x9a4a22, roughness: 1 },
+  "Prison | rib trim": { from: "cloth", scale: 9, tint: 0x6e3216, roughness: 1 },
+  "Prison | stencil": { from: "cloth", scale: 5, tint: 0x161412, roughness: 0.9, stencil: "INMATE" },
   "Skin | pallid": { from: "skin", scale: 16, tint: 0x9a7a68, roughness: 1 },
   "Skin | nails": { from: "skin", scale: 16, tint: 0x8c7a70, roughness: 0.6 },
   "Boots | charcoal rubber": { from: "rubber", scale: 6, tint: 0x2a2826, roughness: 1 },
@@ -68,12 +71,65 @@ export function dressChair(character: THREE.Object3D, room: THREE.Object3D): boo
     // The sign keeps its picture, but is now lit by the room like paper would be.
     const map = (src as THREE.MeshBasicMaterial).map;
     if (map) mat.map = map;
+    if (look.stencil) {
+      mat.map = stencilTexture(look.stencil);
+      mat.transparent = true;
+      mat.depthWrite = false;
+      mat.polygonOffset = true;
+      mat.polygonOffsetFactor = -2;
+      mat.polygonOffsetUnits = -2;
+      // Ink sits on the fabric: a shadow from the decal quad would show as a dark box.
+      mesh.castShadow = false;
+    }
     triplanar(mat, set, look.scale, look.normalScale ?? 1);
     src.dispose();
     mesh.material = mat;
     dressed = true;
   });
   return dressed;
+}
+
+/** Worn black stencil lettering on a transparent background, as the ink wears off the weave. */
+function stencilTexture(text: string): THREE.CanvasTexture {
+  const w = 1024, h = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d")!;
+  ctx.fillStyle = "#fff";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `900 ${h * 0.8}px Impact, "Arial Black", "Helvetica Neue", sans-serif`;
+  const fit = Math.min(1, (w * 0.94) / ctx.measureText(text).width);
+  ctx.setTransform(fit, 0, 0, 1, w / 2, h / 2);
+  ctx.fillText(text, 0, 0);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+  // Seeded, so the wear pattern is the same every load.
+  let seed = 7;
+  const rand = () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296);
+  ctx.globalCompositeOperation = "destination-out";
+  for (let i = 0; i < 2200; i++) {
+    ctx.globalAlpha = 0.25 + rand() * 0.6;
+    ctx.beginPath();
+    ctx.arc(rand() * w, rand() * h, 0.6 + rand() * rand() * 7, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // A few long scuffs where it has rubbed against the chair.
+  ctx.lineCap = "round";
+  for (let i = 0; i < 14; i++) {
+    ctx.globalAlpha = 0.3 + rand() * 0.4;
+    ctx.lineWidth = 2 + rand() * 6;
+    const x = rand() * w, y = rand() * h;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + (rand() - 0.5) * 260, y + (rand() - 0.5) * 60);
+    ctx.stroke();
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 8;
+  return tex;
 }
 
 function roomSet(room: THREE.Object3D, name: string): TexSet | null {
@@ -291,7 +347,7 @@ function bake(kind: Kind): TexSet {
         const shade = 0.78 + 0.22 * thread;
         const dirt = 0.55 + 0.45 * smooth(0.25, 0.7, grime);
         t.r = t.g = t.b = shade * dirt;
-        stainTint(t, stain, 0.64, 0.8);
+        stainTint(t, stain, 0.7, 0.8);
         t.rough = 0.92 - (stain > 0.58 ? 0.15 : 0);
         t.ao = 0.75 + 0.25 * thread - (1 - crease) * 0.1;
       } else if (kind === "rope") {

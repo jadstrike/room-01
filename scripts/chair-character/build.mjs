@@ -1,7 +1,8 @@
 /**
  * Builds public/models/chair_character.glb: a human-proportioned figure tied to
- * the chair, to sit in Room 01's realistic style rather than the original
- * pack's toy-like one. The chair, neck stick and sign are carried over
+ * the chair in prison issue - an untucked orange V-neck top and trousers,
+ * stencilled INMATE - to sit in Room 01's realistic style rather than the
+ * original pack's toy-like one. The chair, neck stick and sign are carried over
  * unchanged from chair_source.glb (the pack's export); the body and the ropes
  * are rebuilt here from lofted cross-sections.
  *
@@ -25,8 +26,9 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const TAU = Math.PI * 2;
 
 const M = {
-  suit: "Jumpsuit | burnt apricot",
-  seam: "Jumpsuit | deep seams",
+  orange: "Prison | orange cotton",
+  trim: "Prison | rib trim",
+  stencil: "Prison | stencil",
   skin: "Skin | pallid",
   nails: "Skin | nails",
   sole: "Boots | charcoal rubber",
@@ -34,8 +36,9 @@ const M = {
   rope: "Bindings | golden hemp",
 };
 const NEW_MATERIALS = {
-  [M.suit]: [150, 78, 42, 0.95],
-  [M.seam]: [84, 42, 22, 0.95],
+  [M.orange]: [196, 92, 34, 0.9],
+  [M.trim]: [150, 64, 26, 0.9],
+  [M.stencil]: [20, 20, 20, 0.9],
   [M.skin]: [184, 156, 138, 0.55],
   [M.nails]: [196, 172, 156, 0.4],
   [M.sole]: [30, 30, 28, 0.85],
@@ -320,104 +323,262 @@ function knot(at, out, { r = 0.0075, tail = 0.1, seed = 1 } = {}) {
 
 // --- body ------------------------------------------------------------------------
 
-function torso() {
+const TORSO = [
   // y, centre z, half width, front depth, back depth, squareness
-  const T = [
-    [0.64, -0.15, 0.13, 0.09, 0.11, 2.2],
-    [0.68, -0.15, 0.17, 0.115, 0.135, 2.4],
-    [0.74, -0.155, 0.175, 0.12, 0.13, 2.4],
-    [0.82, -0.165, 0.16, 0.125, 0.11, 2.3],
-    [0.9, -0.17, 0.15, 0.115, 0.105, 2.3],
-    [0.99, -0.175, 0.158, 0.11, 0.105, 2.4],
-    [1.08, -0.178, 0.17, 0.118, 0.105, 2.5],
-    [1.16, -0.18, 0.18, 0.105, 0.1, 2.6],
-    [1.22, -0.182, 0.17, 0.085, 0.09, 2.6],
-    [1.265, -0.18, 0.12, 0.07, 0.075, 2.2],
-    [1.3, -0.178, 0.07, 0.058, 0.06, 2.0],
-  ];
-  const col = (j) => T.map((r) => r[j]);
-  const rows = [];
-  const N = 44;
-  for (let i = 0; i <= N; i++) {
-    const t = i / N;
-    const y = 0.64 + t * 0.66;
-    rows.push({
-      c: V(0, y, keyed(col(1), t)),
-      x: V(1, 0, 0),
-      y: V(0, 0, 1),
-      rx: keyed(col(2), t),
-      ryP: keyed(col(3), t),
-      ryN: keyed(col(4), t),
-      e: keyed(col(5), t),
-      fade: 1 - smoothstep(0.9, 1, t),
-    });
-  }
-  const disp = (p, row, th) => {
-    let d = (n3(p, 20, 2) - 0.5) * 0.004 + (n3(p, 7, 3) - 0.5) * 0.006;
-    const front = Math.max(0, Math.sin(th)) ** 2;
-    // Seated compression across the belly.
-    const belly = smoothstep(0.74, 0.78, p.y) * (1 - smoothstep(0.9, 0.96, p.y));
-    const w1 = Math.sin((p.y / 0.026) * TAU + n3(p, 9, 4) * 4 + Math.cos(th) * 1.5);
-    d += belly * front * (w1 > 0 ? w1 : w1 * 0.35) * 0.005;
-    // Drag lines from the armpits where the arms pull the suit forward.
-    const side = Math.abs(Math.cos(th)) ** 3;
-    const pit = smoothstep(0.98, 1.03, p.y) * (1 - smoothstep(1.12, 1.17, p.y));
-    const w2 = Math.sin(((p.y + Math.abs(p.z - row.c.z) * 0.8) / 0.03) * TAU + n3(p, 11, 5) * 3);
-    d += pit * side * (w2 > 0 ? w2 : w2 * 0.3) * 0.0035;
-    return d;
+  [0.64, -0.15, 0.13, 0.09, 0.11, 2.2],
+  [0.68, -0.15, 0.17, 0.115, 0.135, 2.4],
+  [0.74, -0.155, 0.175, 0.12, 0.13, 2.4],
+  [0.82, -0.165, 0.16, 0.125, 0.11, 2.3],
+  [0.9, -0.17, 0.15, 0.115, 0.105, 2.3],
+  [0.99, -0.175, 0.158, 0.11, 0.105, 2.4],
+  [1.08, -0.178, 0.17, 0.118, 0.105, 2.5],
+  [1.16, -0.18, 0.18, 0.105, 0.1, 2.6],
+  [1.22, -0.182, 0.17, 0.085, 0.09, 2.6],
+  [1.265, -0.18, 0.12, 0.07, 0.075, 2.2],
+  [1.3, -0.178, 0.07, 0.058, 0.06, 2.0],
+];
+/** The top is worn untucked: its hem hangs over the trousers' waistband. */
+const HEM_Y = 0.737;
+const hang = (y) => 0.011 * (1 - smoothstep(HEM_Y + 0.04, HEM_Y + 0.12, y));
+
+/** The torso cross-section at height y, optionally inflated by a garment's thickness. */
+function torsoRow(y, grow = 0) {
+  const t = (y - 0.64) / 0.66;
+  const col = (j) => TORSO.map((r) => r[j]);
+  return {
+    c: V(0, y, keyed(col(1), t)),
+    x: V(1, 0, 0),
+    y: V(0, 0, 1),
+    rx: keyed(col(2), t) + grow,
+    ryP: keyed(col(3), t) + grow,
+    ryN: keyed(col(4), t) + grow,
+    e: keyed(col(5), t),
+    fade: 1 - smoothstep(0.9, 1, t),
   };
-  const res = sweep(rows, 36, { startPole: V(0, 0.632, -0.15), endPole: V(0, 1.284, -0.178), disp });
-  add("Body", M.suit, res.geo);
-  return res.rings;
+}
+
+function rowsBetween(y0, y1, n, grow) {
+  return Array.from({ length: n + 1 }, (_, i) => {
+    const y = y0 + ((y1 - y0) * i) / n;
+    return torsoRow(y, grow(y));
+  });
+}
+
+function torso() {
+  const slack = (p) => (n3(p, 20, 2) - 0.5) * 0.004 + (n3(p, 7, 3) - 0.5) * 0.006;
+
+  // Trousers from the seat up under the top.
+  const trousers = sweep(rowsBetween(0.64, 0.8, 10, () => 0), 36, {
+    startPole: V(0, 0.632, -0.15),
+    disp: (p, row, th) => {
+      const lap = Math.max(0, Math.sin(th)) ** 2 * (1 - smoothstep(0.72, 0.76, p.y));
+      return slack(p) * 0.7 + lap * Math.sin((Math.cos(th) / 0.1) * TAU + n3(p, 10, 6) * 4) * 0.003;
+    },
+  });
+  add("Body", M.orange, trousers.geo);
+
+  // The top, hanging loose over the lap and pulled in by the arms.
+  const top = sweep(rowsBetween(HEM_Y, 1.3, 40, hang), 36, {
+    endPole: V(0, 1.284, -0.178),
+    disp: (p, row, th) => {
+      let d = slack(p);
+      // Drape folds falling to the hem.
+      const drape = 1 - smoothstep(HEM_Y + 0.02, HEM_Y + 0.12, p.y);
+      d += drape * (0.004 + 0.004 * Math.sin(th * 9 + n3(p, 12, 7) * 4));
+      const front = Math.max(0, Math.sin(th)) ** 2;
+      const belly = smoothstep(0.8, 0.84, p.y) * (1 - smoothstep(0.92, 0.97, p.y));
+      const w1 = Math.sin((p.y / 0.026) * TAU + n3(p, 9, 4) * 4 + Math.cos(th) * 1.5);
+      d += belly * front * (w1 > 0 ? w1 : w1 * 0.35) * 0.004;
+      // Drag lines from the armpits where the arms pull the top forward.
+      const side = Math.abs(Math.cos(th)) ** 3;
+      const pit = smoothstep(0.98, 1.03, p.y) * (1 - smoothstep(1.12, 1.17, p.y));
+      const w2 = Math.sin(((p.y + Math.abs(p.z - row.c.z) * 0.8) / 0.03) * TAU + n3(p, 11, 5) * 3);
+      d += pit * side * (w2 > 0 ? w2 : w2 * 0.3) * 0.0035;
+      return d;
+    },
+  });
+  add("Body", M.orange, top.geo);
+
+  // Double-stitched hem round the bottom of the top.
+  const r = torsoRow(HEM_Y + 0.004, hang(HEM_Y) + 0.004);
+  const hem = Array.from({ length: 48 }, (_, i) => {
+    const a = (i / 48) * TAU;
+    const cs = Math.cos(a), sn = Math.sin(a);
+    const C = Math.sign(cs) * Math.abs(cs) ** (2 / r.e);
+    const S = Math.sign(sn) * Math.abs(sn) ** (2 / r.e);
+    return V(r.rx * C, r.c.y, r.c.z + (sn >= 0 ? r.ryP : r.ryN) * S);
+  });
+  band(hem, V(0, 1, 0), 0.004, 0.018, M.orange);
+  return { top: top.rings, all: trousers.rings.concat(top.rings) };
+}
+
+function surfacePoint(ring, j, lift = 0) {
+  const centre = ring.reduce((a, q) => a.add(q), V(0, 0, 0)).multiplyScalar(1 / ring.length);
+  const n = ring[j].clone().sub(centre).setY(0).normalize();
+  return { p: ring[j].clone().addScaledVector(n, lift), n };
 }
 
 function surfaceLine(rings, j, from, to, lift) {
-  return rings.slice(from, to).map((ring) => {
-    const p = ring[j];
-    const centre = ring.reduce((a, q) => a.add(q), V(0, 0, 0)).multiplyScalar(1 / ring.length);
-    return p.clone().add(p.clone().sub(centre).normalize().multiplyScalar(lift));
-  });
+  return rings.slice(from, to).map((ring) => surfacePoint(ring, j, lift).p);
 }
 
-function suitDetails(torsoRings) {
-  // Placket down the front, with snaps.
-  const segs = torsoRings[0].length;
-  const front = surfaceLine(torsoRings, segs / 4, 7, 42, 0.0015);
-  const placket = new THREE.CatmullRomCurve3(front).getSpacedPoints(60);
-  add("Body", M.seam, rope(placket, { r: 0.0042, closed: false, ref: V(0, 0, 1), segs: 6, pitch: 1e9 }));
-  for (let i = 1; i <= 5; i++) {
-    const p = placket[Math.round((i / 6) * 60)];
-    add("Body", M.seam, ellipsoid(p.clone().add(V(0, 0, 0.003)), V(0.0065, 0.0065, 0.0025), { w: 8, h: 5 }));
-  }
-  // Rolled collar round the neck opening, and the dark opening itself.
-  const collar = Array.from({ length: 40 }, (_, i) => {
-    const a = (i / 40) * TAU;
-    return V(Math.cos(a) * 0.078, 1.293 + (Math.sin(a) > 0 ? -0.006 * Math.sin(a) : 0), -0.178 + Math.sin(a) * 0.066);
+/** A solid band round a closed loop: neckbands, hems, sleeve ends. */
+function band(loop, axis, thick, width, mat) {
+  const centre = loop.reduce((a, p) => a.add(p), V(0, 0, 0)).multiplyScalar(1 / loop.length);
+  const rows = loop.map((c) => {
+    const d = c.clone().sub(centre);
+    const out = d.addScaledVector(axis, -d.dot(axis)).normalize();
+    return { c, x: out, y: axis, rx: thick, ryP: width / 2, ryN: width / 2, e: 3 };
   });
-  add("Body", M.suit, rope(collar, { r: 0.014, ref: V(0, 1, 0), segs: 10, pitch: 1e9 }));
-  add("Body", M.seam, ellipsoid(V(0, 1.289, -0.178), V(0.058, 0.008, 0.05)));
+  add("Body", mat, sweep(rows, 8, { closed: true }).geo);
+}
+
+/** One side of a ring (front, side = 1, or back, side = -1) sampled at a given x. */
+function sideAt(ring, x, side) {
+  const centreZ = ring.reduce((a, p) => a + p.z, 0) / ring.length;
+  let best = null;
+  for (let j = 0; j < ring.length; j++) {
+    const a = ring[j], b = ring[(j + 1) % ring.length];
+    if ((a.x - x) * (b.x - x) > 0 || (a.z - centreZ) * side < 0 || (b.z - centreZ) * side < 0) continue;
+    const t = a.x === b.x ? 0 : (x - a.x) / (b.x - a.x);
+    const p = a.clone().lerp(b, t);
+    if (!best || p.z * side > best.z * side) best = p;
+  }
+  return best;
+}
+
+/** A surface grid lifted along its own normals, as a mesh: panels, trims and printed stencils. */
+function liftedGrid(grid, lift, facing, mat, { edge = true, uv = false } = {}) {
+  const NV = grid.length - 1, NU = grid[0].length - 1;
+  const lifted = grid.map((row, iv) => row.map((p, iu) => {
+    const du = row[Math.min(NU, iu + 1)].clone().sub(row[Math.max(0, iu - 1)]);
+    const dv = grid[Math.min(NV, iv + 1)][iu].clone().sub(grid[Math.max(0, iv - 1)][iu]);
+    const n = du.cross(dv).normalize();
+    if (n.dot(facing(p)) < 0) n.negate();
+    return p.clone().addScaledVector(n, lift);
+  }));
+  const pos = [], uvs = [], idx = [];
+  lifted.forEach((row, iv) => row.forEach((p, iu) => {
+    pos.push(p.x, p.y, p.z);
+    uvs.push(iu / NU, iv / NV);
+  }));
+  for (let iv = 0; iv < NV; iv++) {
+    for (let iu = 0; iu < NU; iu++) {
+      const a = iv * (NU + 1) + iu, b = a + 1, c = a + NU + 1, d = c + 1;
+      idx.push(a, b, c, b, d, c);
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  if (uv) geo.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+  const c = NU / 2 | 0, m = NV / 2 | 0;
+  const probe = new THREE.Vector3().fromBufferAttribute(geo.attributes.normal, m * (NU + 1) + c);
+  if (probe.dot(facing(lifted[m][c])) < 0) {
+    for (let t = 0; t < idx.length; t += 3) [idx[t + 1], idx[t + 2]] = [idx[t + 2], idx[t + 1]];
+    geo.setIndex(idx);
+    geo.computeVertexNormals();
+  }
+  add("Body", mat, geo);
+  if (edge) {
+    const ring = [
+      ...lifted[0],
+      ...lifted.slice(1).map((r) => r[NU]),
+      ...lifted[NV].slice(0, NU).reverse(),
+      ...lifted.slice(1, NV).reverse().map((r) => r[0]),
+    ];
+    add("Body", mat, rope(ring, { r: lift * 0.6, ref: facing(ring[0]), segs: 5, pitch: 1e9 }));
+  }
+}
+
+/**
+ * A panel lying on the torso between two heights, with `span(v)` giving its
+ * x range at each height (v = 0 at the bottom). Sampled from the rings so it
+ * follows every curve. On the back, pass the span right to left so the u
+ * direction still reads left to right from behind.
+ */
+function torsoPanel(rings, y0, y1, span, lift, mat, { side = 1, edge = true, uv = false, nu = 8, nv = 8 } = {}) {
+  const ringAt = (y) => {
+    const i = rings.findIndex((r) => r[0].y >= y);
+    const a = rings[Math.max(0, i - 1)], b = rings[Math.max(0, i)];
+    const t = b[0].y === a[0].y ? 0 : (y - a[0].y) / (b[0].y - a[0].y);
+    return a.map((p, j) => p.clone().lerp(b[j], t));
+  };
+  const grid = [];
+  for (let iv = 0; iv <= nv; iv++) {
+    const v = iv / nv;
+    const ring = ringAt(y0 + (y1 - y0) * v);
+    const [xa, xb] = span(v);
+    grid.push(Array.from({ length: nu + 1 }, (_, iu) => sideAt(ring, xa + ((xb - xa) * iu) / nu, side)));
+  }
+  liftedGrid(grid, lift, () => V(0, 0, side), mat, { edge, uv });
+}
+
+function topDetails(rings) {
+  // Chest pocket, stitched on.
+  torsoPanel(rings, 1.02, 1.12, () => [0.04, 0.128], 0.0028, M.orange);
+
+  // V-neck: bare skin inside the V, ribbed trim along its edges and round the back.
+  const vy = 1.17;
+  const half = (v) => 0.058 * v;
+  torsoPanel(rings, vy, 1.29, (v) => [-half(v), half(v)], 0.0022, M.skin, { edge: false, nv: 10 });
+  for (const k of [-1, 1]) {
+    torsoPanel(rings, vy - 0.006, 1.29, (v) => {
+      const a = half(v) - 0.003, b = half(v) + 0.011;
+      return k > 0 ? [a, b] : [-b, -a];
+    }, 0.0035, M.trim, { edge: false, nu: 3, nv: 10 });
+  }
+  const neck = Array.from({ length: 36 }, (_, i) => {
+    const a = (i / 36) * TAU;
+    return V(Math.cos(a) * 0.072, 1.294, -0.178 + Math.sin(a) * 0.061);
+  });
+  band(neck, V(0, 1, 0), 0.0045, 0.016, M.trim);
+  add("Body", M.trim, ellipsoid(V(0, 1.289, -0.178), V(0.058, 0.008, 0.05)));
+
+  // Printed across the back.
+  torsoPanel(rings, 1.085, 1.155, () => [0.13, -0.13], 0.0012, M.stencil, { side: -1, edge: false, uv: true, nu: 16, nv: 4 });
 }
 
 function arm(s) {
-  const upper = limb({
-    pts: [V(s * 0.155, 1.215, -0.18), V(s * 0.205, 1.19, -0.178), V(s * 0.27, 1.09, -0.15), V(s * 0.325, 0.99, -0.115)],
-    radii: [0.058, 0.062, 0.054, 0.048],
+  // Short sleeve.
+  const sleeve = limb({
+    pts: [V(s * 0.155, 1.215, -0.18), V(s * 0.205, 1.19, -0.178), V(s * 0.25, 1.125, -0.16)],
+    radii: [0.06, 0.063, 0.058],
     up: V(0, 0, 1),
     segs: 18,
-    rows: 22,
-    disp: clothDisp({ seed: 10 + s, folds: [{ at: "end", span: 0.09 }] }),
+    rows: 12,
+    cap: [1, 0.25],
+    disp: clothDisp({ seed: 10 + s, folds: [{ at: "end", span: 0.04, k: 0.5 }] }),
   });
-  add("Body", M.suit, upper.geo);
-  const fore = limb({
-    pts: [V(s * 0.33, 0.982, -0.13), V(s * 0.35, 0.978, 0.0), V(s * 0.36, 0.974, 0.14)],
-    radii: [0.048, 0.046, 0.041, 0.038],
-    flat: 0.92,
-    segs: 18,
-    rows: 22,
-    cap: [1, 0.35],
-    disp: clothDisp({ seed: 20 + s, folds: [{ at: "start", span: 0.08 }, { at: "end", span: 0.04, k: 0.6 }] }),
+  add("Body", M.orange, sleeve.geo);
+  const end = sleeve.curve.getPointAt(1);
+  const axis = sleeve.curve.getTangentAt(1);
+  const u = new THREE.Vector3().crossVectors(axis, V(0, 0, 1)).normalize();
+  const w = new THREE.Vector3().crossVectors(axis, u).normalize();
+  const cuff = Array.from({ length: 30 }, (_, i) => {
+    const a = (i / 30) * TAU;
+    return end.clone().addScaledVector(u, Math.cos(a) * 0.058).addScaledVector(w, Math.sin(a) * 0.058).addScaledVector(axis, -0.006);
   });
-  add("Body", M.suit, fore.geo);
+  band(cuff, axis, 0.005, 0.018, M.orange);
+
+  // Bare arm from inside the sleeve to the wrist.
+  add("Body", M.skin, limb({
+    pts: [V(s * 0.215, 1.17, -0.172), V(s * 0.27, 1.09, -0.15), V(s * 0.325, 0.99, -0.115)],
+    radii: [0.045, 0.042, 0.038],
+    up: V(0, 0, 1),
+    segs: 16,
+    rows: 12,
+    disp: (p) => (n3(p, 25, 32 + s) - 0.5) * 0.0015,
+  }).geo);
+  add("Body", M.skin, limb({
+    pts: [V(s * 0.328, 0.984, -0.125), V(s * 0.34, 0.976, -0.06), V(s * 0.354, 0.968, 0.05), V(s * 0.36, 0.962, 0.14)],
+    radii: [0.038, 0.037, 0.035, 0.031, 0.028],
+    flat: 0.9,
+    segs: 16,
+    rows: 16,
+    disp: (p) => (n3(p, 25, 30 + s) - 0.5) * 0.0015,
+  }).geo);
 }
 
 function hand(s) {
@@ -483,7 +644,13 @@ function leg(s) {
     rows: 24,
     disp: clothDisp({ seed: 30 + s, folds: [{ at: "start", span: 0.08, k: 0.6 }, { at: "end", span: 0.1, k: 0.8 }] }),
   });
-  add("Body", M.suit, thigh.geo);
+  add("Body", M.orange, thigh.geo);
+  // INMATE printed down the right leg.
+  if (s < 0) {
+    const j0 = thigh.bodyRings[0].length / 4;
+    const grid = [-1, 0, 1].map((k) => thigh.bodyRings.slice(5, 18).map((ring) => ring[j0 + k].clone()));
+    liftedGrid(grid, 0.0012, () => V(0, 1, 0), M.stencil, { edge: false, uv: true });
+  }
   const shin = limb({
     pts: [V(s * 0.14, 0.7, 0.325), V(s * 0.16, 0.55, 0.33), V(s * 0.19, 0.36, 0.315), V(s * 0.215, 0.16, 0.295)],
     radii: [0.058, 0.062, 0.059, 0.056],
@@ -493,13 +660,13 @@ function leg(s) {
     cap: [0.7, 0.5],
     disp: clothDisp({ seed: 40 + s, folds: [{ at: "start", span: 0.12 }, { at: "end", span: 0.07, k: 0.8 }] }),
   });
-  add("Body", M.suit, shin.geo);
+  add("Body", M.orange, shin.geo);
 
   // Outer trouser seam.
   const j = s > 0 ? 0 : 10;
   for (const part of [thigh, shin]) {
     const line = surfaceLine(part.bodyRings, j, 2, part.bodyRings.length - 2, 0.0012);
-    add("Body", M.seam, rope(line, { r: 0.0022, closed: false, ref: V(0, 1, 0), segs: 5, pitch: 1e9 }));
+    add("Body", M.trim, rope(line, { r: 0.0022, closed: false, ref: V(0, 1, 0), segs: 5, pitch: 1e9 }));
   }
   return shin;
 }
@@ -570,7 +737,7 @@ function bindings(torsoRings) {
   for (const s of [-1, 1]) {
     // Wrists: round the sleeve and the armrest together.
     for (const [i, z] of [0.088, 0.108, 0.128].entries()) {
-      const shapes = [ellipsePts(s * 0.36, 0.975, 0.041 + R, 0.038 + R), rectPts(s * 0.361, 0.894, 0.0425, 0.0375, R + 0.001)];
+      const shapes = [ellipsePts(s * 0.358, 0.965, 0.031 + R, 0.028 + R), rectPts(s * 0.361, 0.894, 0.0425, 0.0375, R + 0.001)];
       const path = wrapPath(shapes, (a, b, w) => V(a, b, z + w), 1 / 95, 3 * i + (s > 0 ? 1 : 2));
       add("Bindings", M.rope, rope(path, { r: R, ref: V(0, 0, 1) }));
     }
@@ -589,7 +756,7 @@ function bindings(torsoRings) {
   }
 
   // Waist: tight round the belly, then straight back to the rear posts.
-  for (const [i, y] of [0.84, 0.866, 0.892].entries()) {
+  for (const [i, y] of [0.862, 0.888, 0.914].entries()) {
     const ring = torsoRings.reduce((best, r) => (Math.abs(r[0].y - y) < Math.abs(best[0].y - y) ? r : best));
     const body = ring.map((p) => {
       const c = V(0, 0, p.z > -0.17 ? -0.17 : p.z);
@@ -602,20 +769,20 @@ function bindings(torsoRings) {
     const path = wrapPath(shapes, (a, b, w) => V(a, y + w, b), 1 / 90, 11 * i + 9);
     add("Bindings", M.rope, rope(path, { r: 0.0085, ref: V(0, 1, 0) }));
   }
-  knot(V(0.01, 0.866, -0.352), V(0, 0, -1), { r: 0.0085, tail: 0.16, seed: 9 });
+  knot(V(0.01, 0.888, -0.352), V(0, 0, -1), { r: 0.0085, tail: 0.16, seed: 9 });
 }
 
 // --- assemble --------------------------------------------------------------------
 
 const torsoRings = torso();
-suitDetails(torsoRings);
+topDetails(torsoRings.top);
 for (const s of [-1, 1]) {
   arm(s);
   hand(s);
   leg(s);
   boot(s);
 }
-bindings(torsoRings);
+bindings(torsoRings.all);
 
 // --- carry over the chair and sign, then write the GLB ---------------------------
 
