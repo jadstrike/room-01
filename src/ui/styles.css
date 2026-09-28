@@ -187,6 +187,44 @@ kbd {
   pointer-events: none;
 }
 
+/* CS-style ammo counter, bottom right. */
+.ammo {
+  position: fixed;
+  right: 22px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  z-index: 3;
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: baseline;
+  column-gap: 8px;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+
+.ammo .weapon-name {
+  grid-column: 1 / -1;
+  justify-self: end;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.ammo .mag {
+  font: 600 34px/1 var(--mono);
+  color: var(--ink);
+}
+
+.ammo .mag.low {
+  color: #e0827d;
+}
+
+.ammo .reserve {
+  font-size: 15px;
+  color: var(--dim);
+}
+
 .stats {
   position: fixed;
   right: 16px;

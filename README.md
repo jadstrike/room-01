@@ -18,7 +18,9 @@ Then open http://localhost:5173 and click to play.
 | `W` `A` `S` `D` | move |
 | `Shift` / `Ctrl` | sprint / crouch |
 | `Space` | jump |
-| `E` or click | interact with whatever the crosshair is on |
+| Click | fire |
+| `R` | reload |
+| `E` | interact with whatever the crosshair is on |
 | `Esc` | pause, settings and crosshair customisation |
 | `` ` `` | show collision boxes |
 

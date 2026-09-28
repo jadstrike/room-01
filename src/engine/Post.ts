@@ -5,11 +5,14 @@ import { GTAOPass } from "three/addons/postprocessing/GTAOPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
 import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+import { ViewmodelPass } from "./Viewmodel";
 
 /**
- * Render -> GTAO -> bloom -> film -> output. Order matters and OutputPass must
- * stay last (it does the tone-map / colour-space conversion). The "quality"
- * toggle disables GTAO + film only, so keep expensive passes behind it.
+ * Render -> GTAO -> viewmodel -> bloom -> film -> output. Order matters:
+ * OutputPass must stay last (it does the tone-map / colour-space conversion),
+ * and the viewmodel goes after GTAO so the world's ambient occlusion is not
+ * smeared onto the gun. The "quality" toggle disables GTAO + film only, so
+ * keep expensive passes behind it.
  */
 export class Post {
   readonly composer: EffectComposer;
@@ -43,6 +46,11 @@ export class Post {
     });
     this.composer.addPass(this.film);
     this.composer.addPass(new OutputPass());
+  }
+
+  /** Draws the first-person gun over the world, before bloom and grain. */
+  addViewmodel(scene: THREE.Scene, camera: THREE.Camera): void {
+    this.composer.insertPass(new ViewmodelPass(scene, camera), 2);
   }
 
   setSize(w: number, h: number): void {

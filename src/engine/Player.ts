@@ -61,6 +61,8 @@ export class Player {
   private reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   private wish = new THREE.Vector3();
   private expanded = new THREE.Box3();
+  /** Recoil view punch (pitch, yaw), decaying back to zero on its own. */
+  private punchView = new THREE.Vector2();
 
   constructor(
     private camera: THREE.PerspectiveCamera,
@@ -105,8 +107,19 @@ export class Player {
     this.applyToCamera(0);
   }
 
+  /** Kick the view, as a weapon's recoil does; it recovers by itself. */
+  punch(pitch: number, yaw: number): void {
+    this.punchView.x += pitch;
+    this.punchView.y += yaw;
+  }
+
+  get onGround(): boolean {
+    return this.grounded;
+  }
+
   requestLock(): void {
-    this.dom.requestPointerLock();
+    // Browsers refuse a re-lock for about a second after Esc; that is not an error worth surfacing.
+    Promise.resolve(this.dom.requestPointerLock()).catch(() => {});
   }
 
   releaseLock(): void {
@@ -250,7 +263,8 @@ export class Player {
     }
 
     this.camera.position.set(this.position.x, this.position.y + this.eye + bobY, this.position.z);
-    this.camera.rotation.set(this.pitch, this.yaw, lean);
+    this.punchView.multiplyScalar(Math.exp(-dt * 7));
+    this.camera.rotation.set(this.pitch + this.punchView.x, this.yaw + this.punchView.y, lean);
   }
 
   // --- input -------------------------------------------------------------

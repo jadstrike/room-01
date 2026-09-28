@@ -3,6 +3,10 @@ import { Store } from "./store";
 import { Room, PROP_INTERACTIONS } from "./Room";
 import { dressChair } from "./ChairDressing";
 import { Character } from "./Character";
+import { Viewmodel, VIEWMODEL_LAYER } from "./Viewmodel";
+import { Weapon, type WeaponState } from "./Weapon";
+import { Impacts } from "./Impacts";
+import { PISTOL } from "./weapons";
 import { Player } from "./Player";
 import { Interact, type FocusInfo, type Interactable } from "./Interact";
 import { Post } from "./Post";
@@ -45,6 +49,7 @@ export type EngineState = {
   confineToRoom: boolean;
   specOk: boolean;
   message: string;
+  weapon: WeaponState | null;
   stats: { fps: number; triangles: number; roomMeshes: number; characterHeight: number; scaled: boolean };
 };
 
@@ -56,7 +61,8 @@ export const INITIAL_STATE: EngineState = {
   clips: [],
   clipIndex: -1,
   flicker: true,
-  sound: false,
+  // On, but the AudioContext only starts with the click that begins play.
+  sound: true,
   quality: true,
   autoScale: true,
   headBob: true,
@@ -68,6 +74,7 @@ export const INITIAL_STATE: EngineState = {
   confineToRoom: true,
   specOk: true,
   message: "",
+  weapon: null,
   stats: { fps: 0, triangles: 0, roomMeshes: 0, characterHeight: 0, scaled: false },
 };
 
@@ -80,7 +87,7 @@ export const INITIAL_STATE: EngineState = {
 export class Engine {
   readonly store = new Store<EngineState>(INITIAL_STATE);
   /** Mutable per-frame values. Read these imperatively, never via setState. */
-  readonly live = { speed01: 0, bulb: 1, fps: 0 };
+  readonly live = { speed01: 0, bulb: 1, fps: 0, bloom01: 0 };
 
   readonly scene = new THREE.Scene();
   readonly camera: THREE.PerspectiveCamera;
@@ -89,11 +96,14 @@ export class Engine {
 
   room: Room | null = null;
   character: Character | null = null;
+  weapon: Weapon | null = null;
 
   private renderer: THREE.WebGLRenderer;
   private post: Post;
   private flicker = new Flicker(true);
   private dust = new Dust();
+  private viewmodel = new Viewmodel();
+  private impacts = new Impacts();
   private audio: Audio | null = null;
   private timer = new THREE.Timer();
   private debugGroup = new THREE.Group();
@@ -117,13 +127,18 @@ export class Engine {
 
     this.scene.background = new THREE.Color(0x030304);
     this.scene.fog = new THREE.FogExp2(0x040406, 0.075);
-    this.scene.add(new THREE.HemisphereLight(0x3a4866, 0x1a110a, 1.3));
+    const ambient = new THREE.HemisphereLight(0x3a4866, 0x1a110a, 1.3);
+    ambient.layers.enable(VIEWMODEL_LAYER);
+    this.scene.add(ambient);
+    this.scene.add(this.viewmodel.camera);
+    this.scene.add(this.impacts.group);
     this.scene.add(this.dust.points);
     this.debugGroup.visible = false;
     this.scene.add(this.debugGroup);
 
     this.camera = new THREE.PerspectiveCamera(INITIAL_STATE.fov, 1, 0.02, 60);
     this.post = new Post(this.renderer, this.scene, this.camera);
+    this.post.addViewmodel(this.scene, this.viewmodel.camera);
 
     this.player = new Player(this.camera, canvas, {
       sensitivity: INITIAL_STATE.sensitivity,
@@ -152,6 +167,10 @@ export class Engine {
       if (this.disposed) return room.dispose();
       this.room = room;
       this.scene.add(room.root);
+      // Lights only reach cameras that share a layer with them.
+      room.root.traverse((o) => {
+        if ((o as THREE.Light).isLight) o.layers.enable(VIEWMODEL_LAYER);
+      });
       this.dust.setBulbPosition(room.bulbWorldPosition);
       this.player.setBounds(room.bounds);
       this.player.setColliders(room.colliders);
@@ -176,7 +195,8 @@ export class Engine {
       await this.setCharacter(await Character.fromURL(ASSETS.character));
       if (this.disposed) return;
 
-      this.store.set({ phase: "ready", message: "Click to look around. WASD to move, E to interact." });
+      this.equip();
+      this.store.set({ phase: "ready", message: "Click to look around. WASD to move, click to fire, R to reload, E to interact." });
       this.renderer.setAnimationLoop(this.frame);
     } catch (error) {
       console.error(error);
@@ -235,6 +255,38 @@ export class Engine {
     }
     this.player.setColliders(boxes);
     this.buildDebug();
+  }
+
+  // --- weapon ----------------------------------------------------------------
+  private equip(): void {
+    const weapon = new Weapon(PISTOL, this.viewmodel, (pitch, yaw) => this.player.punch(pitch, yaw));
+    weapon.onChange = (state) => this.store.set({ weapon: state });
+    weapon.onShot = (hit) => {
+      this.audio?.gunshot();
+      if (!hit) return;
+      this.impacts.add(hit);
+      if (this.character && isDescendant(hit.object, this.character.root)) {
+        this.store.set({ message: "The round goes in. It does not react." });
+      }
+    };
+    weapon.onDryFire = () => this.audio?.dryFire();
+    weapon.onReload = (empty) => this.audio?.reload(empty, empty ? PISTOL.reloadEmptyTime : PISTOL.reloadTime);
+    this.weapon = weapon;
+    this.store.set({ weapon: weapon.state });
+  }
+
+  fire(): void {
+    if (!this.player.locked || !this.weapon || !this.room) return;
+    this.weapon.trigger({
+      camera: this.camera,
+      speed01: this.player.speed01,
+      onGround: this.player.onGround,
+      roots: [this.room.root],
+    });
+  }
+
+  reload(): void {
+    if (this.player.locked) this.weapon?.reload();
   }
 
   // --- interaction -------------------------------------------------------
@@ -330,14 +382,20 @@ export class Engine {
   }
 
   toggleSound(): void {
-    if (this.audio) {
-      this.audio.close();
+    const on = !this.store.get().sound;
+    this.store.set({ sound: on });
+    if (on) this.startAudio();
+    else {
+      this.audio?.close();
       this.audio = null;
-      this.store.set({ sound: false });
-      return;
     }
-    this.audio = new Audio();
-    this.store.set({ sound: true });
+  }
+
+  /** Browsers only allow audio after a user gesture, so this runs from clicks. */
+  private startAudio(): void {
+    if (!this.store.get().sound) return;
+    if (this.audio) this.audio.resume();
+    else this.audio = new Audio();
   }
 
   setDebug(on: boolean): void {
@@ -352,6 +410,7 @@ export class Engine {
   }
 
   requestLock(): void {
+    this.startAudio();
     this.player.requestLock();
   }
 
@@ -375,14 +434,16 @@ export class Engine {
     this.renderer.setSize(w, h, false);
     this.post.setSize(w, h);
     this.camera.aspect = w / h;
+    this.viewmodel.setAspect(w / h);
     // Portrait screens need a wider vertical FOV to keep the room readable.
     this.camera.fov = w < h ? this.store.get().fov * 1.18 : this.store.get().fov;
     this.camera.updateProjectionMatrix();
   }
 
   private onMouseDown = (e: MouseEvent): void => {
-    // The first click only grabs the pointer; once locked, clicking interacts.
-    if (this.player.locked && e.button === 0) this.triggerInteract();
+    this.startAudio();
+    // The first click only grabs the pointer; once locked, clicking fires.
+    if (this.player.locked && e.button === 0) this.fire();
   };
 
   private onKeyDown = (e: KeyboardEvent): void => {
@@ -392,6 +453,7 @@ export class Engine {
     }
     if (!this.player.locked) return;
     if (e.code === "KeyE") this.triggerInteract();
+    if (e.code === "KeyR") this.reload();
   };
 
   private frame = (now: number): void => {
@@ -411,6 +473,10 @@ export class Engine {
     this.room?.setBulbLevel(level);
     this.room?.update(dt);
     this.character?.update(dt);
+    this.viewmodel.update(dt, this.camera, this.player, this.player.speed01);
+    this.weapon?.update(dt);
+    this.impacts.update(dt);
+    this.live.bloom01 = this.weapon?.bloom01 ?? 0;
     this.dust.update(this.reduceMotion ? 0 : t, level);
     this.audio?.setBulbLevel(level);
 
@@ -469,7 +535,14 @@ export class Engine {
     this.character?.dispose();
     this.room?.dispose();
     this.dust.dispose();
+    this.viewmodel.dispose();
+    this.impacts.dispose();
     this.post.dispose();
     this.renderer.dispose();
   }
+}
+
+function isDescendant(o: THREE.Object3D, ancestor: THREE.Object3D): boolean {
+  for (let n: THREE.Object3D | null = o; n; n = n.parent) if (n === ancestor) return true;
+  return false;
 }

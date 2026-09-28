@@ -5,7 +5,8 @@ import type { CrosshairSettings } from "./crosshairSettings";
 /**
  * The bars are plain divs driven by CSS custom properties, and the dynamic
  * spread is written straight onto the element from an rAF - it reads
- * engine.live.speed01 every frame, so it never goes through React state.
+ * engine.live.speed01 and the weapon's bloom every frame, so it never goes
+ * through React state.
  */
 export function Crosshair({
   engine,
@@ -30,7 +31,7 @@ export function Crosshair({
     let raf = 0;
     const tick = () => {
       const s = engine.live.speed01;
-      el.style.setProperty("--ch-spread", `${(s * s * 10).toFixed(2)}px`);
+      el.style.setProperty("--ch-spread", `${(s * s * 10 + engine.live.bloom01 * 9).toFixed(2)}px`);
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
