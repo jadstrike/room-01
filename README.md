@@ -21,6 +21,7 @@ Then open http://localhost:5173 and click to play.
 | Click | fire |
 | `R` | reload |
 | `F` | inspect the gun |
+| `1` / `2` | draw the pistol / put it away (`Q` or scroll swaps) |
 | `E` | interact with whatever the crosshair is on |
 | `Esc` | pause, settings and crosshair customisation |
 | `` ` `` | show collision boxes |
@@ -49,3 +50,5 @@ Movement uses ground acceleration and friction rather than a smoothed camera, so
 ## Credits
 
 Room, chair character and placeholder mannequin are original procedural assets, free to use.
+
+This work is based on "Beretta Pistol FPS ANIMATION" (https://sketchfab.com/3d-models/beretta-pistol-fps-animation-0313ab1888994c14abeaf444d7af3217) by BURNER (https://sketchfab.com/Alexander_Ovelar), licensed under CC BY 4.0 (http://creativecommons.org/licenses/by/4.0/). Textures resized and recompressed, and its animation cut into separate clips.

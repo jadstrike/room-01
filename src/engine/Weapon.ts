@@ -8,6 +8,8 @@ export type WeaponState = {
   reserve: number;
   magSize: number;
   reloading: boolean;
+  /** Put away: the hands are empty and nothing fires. */
+  holstered: boolean;
 };
 
 export type ShotContext = {
@@ -35,6 +37,7 @@ export class Weapon {
   onReload: ((empty: boolean) => void) | null = null;
 
   private cooldown = 0;
+  private holstered = false;
   private reloadLeft = -1;
   private reloadEmpty = false;
   private heat = 0;
@@ -61,6 +64,7 @@ export class Weapon {
       reserve: this.reserve,
       magSize: this.def.magSize,
       reloading: this.reloadLeft >= 0,
+      holstered: this.holstered,
     };
   }
 
@@ -71,7 +75,7 @@ export class Weapon {
   }
 
   trigger(ctx: ShotContext): void {
-    if (this.reloadLeft >= 0 || this.cooldown > 0) return;
+    if (this.holstered || this.reloadLeft >= 0 || this.cooldown > 0) return;
     if (this.ammo <= 0) {
       this.cooldown = 0.25;
       this.viewmodel.dryFire();
@@ -104,17 +108,30 @@ export class Weapon {
 
   /** Turn the gun over to look at it; firing or reloading cuts it short. */
   inspect(): void {
-    if (this.reloadLeft >= 0) return;
+    if (this.holstered || this.reloadLeft >= 0) return;
     this.viewmodel.inspect();
   }
 
   reload(): void {
-    if (this.reloadLeft >= 0 || this.ammo >= this.def.magSize || this.reserve <= 0) return;
+    if (this.holstered || this.reloadLeft >= 0 || this.ammo >= this.def.magSize || this.reserve <= 0) return;
     this.reloadEmpty = this.ammo === 0;
     this.reloadLeft = this.reloadEmpty ? this.def.reloadEmptyTime : this.def.reloadTime;
     this.viewmodel.reload(this.reloadLeft, this.reloadEmpty);
     this.onReload?.(this.reloadEmpty);
     this.emit();
+  }
+
+  /** Put the gun away, or draw it. A holster cancels a reload in progress, as in CS. */
+  setHolstered(on: boolean): boolean {
+    if (on === this.holstered) return false;
+    this.holstered = on;
+    this.reloadLeft = -1;
+    // Drawing takes a moment before the first shot, like CS's deploy time.
+    this.cooldown = on ? 0 : 0.6;
+    if (on) this.viewmodel.holster();
+    else this.viewmodel.equip();
+    this.emit();
+    return true;
   }
 
   update(dt: number): void {

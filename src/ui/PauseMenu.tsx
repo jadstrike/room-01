@@ -49,6 +49,9 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
             <kbd>Click</kbd> fire · <kbd>R</kbd> reload · <kbd>F</kbd> inspect · <kbd>E</kbd> interact
           </li>
           <li>
+            <kbd>1</kbd> pistol · <kbd>2</kbd> put away · <kbd>Q</kbd> / scroll swap
+          </li>
+          <li>
             <kbd>Esc</kbd> pause · <kbd>`</kbd> colliders
           </li>
         </ul>
@@ -233,6 +236,17 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
             </p>
           </section>
         </div>
+
+        <p className="credits">
+          Pistol:{" "}
+          <a href="https://sketchfab.com/3d-models/beretta-pistol-fps-animation-0313ab1888994c14abeaf444d7af3217" target="_blank" rel="noreferrer">
+            “Beretta Pistol FPS ANIMATION”
+          </a>{" "}
+          by BURNER,{" "}
+          <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">
+            CC BY 4.0
+          </a>
+        </p>
       </div>
     </div>
   );

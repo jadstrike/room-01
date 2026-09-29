@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { Pass } from "three/addons/postprocessing/Pass.js";
+import type { WeaponModel } from "./WeaponModel";
 
 /**
  * The first-person gun and hands, Counter-Strike style: drawn by their own
@@ -222,6 +223,11 @@ export class Viewmodel {
   private mats = makeMaterials();
   private muzzle = V(0, 0.028, -0.165);
   private port = V(0.01, 0.043, -0.02);
+  /** Where the flash and brass come from; the procedural gun's, or a loaded model's. */
+  private muzzleAnchor = new THREE.Object3D();
+  private portAnchor = new THREE.Object3D();
+  private model: WeaponModel | null = null;
+  private tmp = new THREE.Vector3();
 
   private restPos = V(0.104, -0.098, -0.255);
   private restRot = new THREE.Euler(0.025, 0.2, 0.12);
@@ -238,6 +244,8 @@ export class Viewmodel {
   private reloadLen = 1;
   private reloadEmpty = false;
   private inspectT = -1;
+  /** 0..1 through putting the gun away; -1 when not holstering. */
+  private holsterT = -1;
   private sway = new THREE.Vector2();
   private lastYaw = 0;
   private lastPitch = 0;
@@ -248,7 +256,6 @@ export class Viewmodel {
     this.camera.layers.set(VIEWMODEL_LAYER);
     this.flashLight.layers.enableAll();
     this.flashLight.castShadow = false;
-    this.flashLight.position.copy(this.muzzle).add(this.restPos).add(V(0, 0, -0.1));
     this.camera.add(this.flashLight);
 
     this.buildGun();
@@ -404,11 +411,33 @@ export class Viewmodel {
     tex.colorSpace = THREE.SRGBColorSpace;
     const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
     const flash = new THREE.Mesh(new THREE.PlaneGeometry(0.055, 0.055), mat);
-    flash.position.copy(this.muzzle).add(V(0, 0, -0.01));
     // Always drawn, scaled to nothing between shots, so its shader compiles at load, not on the first shot.
     flash.scale.setScalar(1e-4);
-    this.slide.parent!.add(flash);
+    this.camera.add(flash);
+    this.muzzleAnchor.position.copy(this.muzzle).add(V(0, 0, -0.01));
+    this.portAnchor.position.copy(this.port);
+    this.slide.parent!.add(this.muzzleAnchor, this.portAnchor);
     return flash;
+  }
+
+  /**
+   * Swap the procedural gun and hands for an animated model. Sway, bob and
+   * recoil still ride on top; draw, fire, reloads and inspect come from its clips.
+   */
+  useModel(model: WeaponModel): void {
+    for (const child of this.rig.children) child.visible = false;
+    this.rig.add(model.object);
+    model.object.traverse((o) => o.layers.set(VIEWMODEL_LAYER));
+    this.muzzleAnchor = model.muzzle;
+    this.portAnchor = model.port;
+    this.model = model;
+    this.restPos.set(0, 0, 0);
+    this.restRot.set(0, 0, 0);
+    model.play("draw", 0);
+  }
+
+  get hasModel(): boolean {
+    return this.model !== null;
   }
 
   // --- actions --------------------------------------------------------------------
@@ -416,10 +445,24 @@ export class Viewmodel {
   equip(): void {
     this.drawT = 0;
     this.reloadT = -1;
+    this.inspectT = -1;
+    this.holsterT = -1;
+    this.rig.visible = true;
+    this.model?.play("draw", 0);
+  }
+
+  holster(): void {
+    this.reloadT = -1;
+    this.inspectT = -1;
+    this.holsterT = 0;
+    this.model?.play("holster", 0.08);
   }
 
   inspect(): void {
-    if (this.reloadT < 0 && this.drawT >= 1) this.inspectT = 0;
+    if (this.reloadT >= 0 || this.drawT < 1) return;
+    if (this.model) {
+      if (this.model.playing === "idle") this.model.play("inspect");
+    } else this.inspectT = 0;
   }
 
   fire(emptyAfter: boolean): void {
@@ -431,6 +474,7 @@ export class Viewmodel {
     this.triggerT = 0.08;
     this.flash.rotation.z = Math.random() * Math.PI * 2;
     this.flashScale = 0.8 + Math.random() * 0.5;
+    this.model?.play("fire", 0.03);
     this.ejectShell();
   }
 
@@ -444,6 +488,7 @@ export class Viewmodel {
     this.reloadT = 0;
     this.reloadLen = duration;
     this.reloadEmpty = empty;
+    this.model?.play(empty ? "reloadEmpty" : "reload", 0.1, duration);
   }
 
   get reloading(): boolean {
@@ -452,7 +497,7 @@ export class Viewmodel {
 
   private ejectShell(): void {
     const s = this.shells.find((x) => x.life <= 0) ?? this.shells[0];
-    s.mesh.position.copy(this.port).applyEuler(this.rig.rotation).add(this.rig.position);
+    this.camera.worldToLocal(this.portAnchor.getWorldPosition(s.mesh.position));
     s.mesh.rotation.set(Math.random(), Math.random(), Math.random());
     s.vel.set(0.9 + Math.random() * 0.4, 0.9 + Math.random() * 0.5, 0.15 + Math.random() * 0.2);
     s.spin.set(Math.random() * 30, Math.random() * 30, Math.random() * 30);
@@ -485,21 +530,29 @@ export class Viewmodel {
     const bobY = -Math.abs(Math.cos(this.bobPhase)) * 0.005 * speed01 + Math.sin(this.time * 1.6) * 0.0009;
 
     this.kick *= Math.exp(-dt * 13);
-    this.drawT = Math.min(1, this.drawT + dt / 0.55);
-    const draw = 1 - (1 - this.drawT) ** 3;
+    // A model's own clips carry the draw and most of the recoil.
+    const model = this.model;
+    this.drawT = Math.min(1, this.drawT + dt / (model ? 1.2 : 0.55));
+    let draw = model ? 1 : 1 - (1 - this.drawT) ** 3;
+    if (this.holsterT >= 0) {
+      this.holsterT = Math.min(1, this.holsterT + dt / (model ? 0.5 : 0.35));
+      if (!model) draw = 1 - this.holsterT ** 2;
+      if (this.holsterT >= 1) this.rig.visible = false;
+    }
+    const kick = model ? this.kick * 0.45 : this.kick;
 
     const pos = this.rig.position.copy(this.restPos);
     const rot = this.rig.rotation.copy(this.restRot);
     pos.x += bobX - this.sway.x * 0.06;
     pos.y += bobY + this.sway.y * 0.05 - (1 - draw) * 0.16;
-    pos.z += this.kick * 0.032;
-    rot.x += this.kick * 0.13 + this.sway.y * 0.6 - (1 - draw) * 0.7;
+    pos.z += kick * 0.032;
+    rot.x += kick * 0.13 + this.sway.y * 0.6 - (1 - draw) * 0.7;
     rot.y += this.sway.x * 0.6;
     rot.z += -this.sway.x * 0.4 + bobX * 1.5;
 
     // Inspect: roll the gun in to show its left flank, flip the wrist to show
     // the ejection-port side, glance down the top, then back to ready.
-    if (this.inspectT >= 0) {
+    if (this.inspectT >= 0 && !model) {
       this.inspectT += dt / INSPECT_SECONDS;
       if (this.inspectT >= 1) this.inspectT = -1;
       else {
@@ -516,7 +569,10 @@ export class Viewmodel {
     // Reload: tilt the gun in, drop the magazine, seat a new one, release the slide.
     this.mag.position.set(0, 0, 0);
     this.mag.visible = true;
-    if (this.reloadT >= 0) {
+    if (this.reloadT >= 0 && model) {
+      this.reloadT += dt;
+      if (this.reloadT >= this.reloadLen) this.reloadT = -1;
+    } else if (this.reloadT >= 0) {
       this.reloadT += dt;
       const t = this.reloadT / this.reloadLen;
       const e = (a: number, b: number) => THREE.MathUtils.smoothstep(t, a, b);
@@ -547,6 +603,12 @@ export class Viewmodel {
     this.triggerT = Math.max(0, this.triggerT - dt);
     this.trigger.position.z = this.triggerT > 0 ? 0.0035 : 0;
 
+    model?.update(dt);
+    this.rig.updateMatrixWorld(true);
+    this.camera.worldToLocal(this.muzzleAnchor.getWorldPosition(this.tmp));
+    this.flash.position.copy(this.tmp);
+    this.flashLight.position.copy(this.tmp).add(V(0, 0, -0.1));
+
     this.flashT = Math.max(0, this.flashT - dt);
     this.flash.scale.setScalar(this.flashT > 0 ? this.flashScale : 1e-4);
     this.flashLight.intensity = this.flashT > 0 ? 4 * (this.flashT / 0.05) : 0;
@@ -569,6 +631,7 @@ export class Viewmodel {
   }
 
   dispose(): void {
+    this.model?.dispose();
     this.camera.traverse((o) => {
       const mesh = o as THREE.Mesh;
       if (mesh.isMesh) {

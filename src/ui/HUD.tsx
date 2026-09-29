@@ -18,7 +18,7 @@ export function HUD({ state }: { state: EngineState }) {
 
       {state.message && <p className="message">{state.message}</p>}
 
-      {state.weapon && (
+      {state.weapon && !state.weapon.holstered && (
         <div className="ammo" aria-label={`${state.weapon.name}: ${state.weapon.ammo} in the magazine, ${state.weapon.reserve} in reserve`}>
           <span className="weapon-name">{state.weapon.reloading ? "Reloading…" : state.weapon.name}</span>
           <span className={state.weapon.ammo <= Math.ceil(state.weapon.magSize * 0.25) ? "mag low" : "mag"}>{state.weapon.ammo}</span>

@@ -4,6 +4,7 @@ import { Room, PROP_INTERACTIONS } from "./Room";
 import { dressChair } from "./ChairDressing";
 import { Character } from "./Character";
 import { Viewmodel, VIEWMODEL_LAYER } from "./Viewmodel";
+import { WeaponModel } from "./WeaponModel";
 import { Weapon, type WeaponState } from "./Weapon";
 import { Impacts } from "./Impacts";
 import { PISTOL } from "./weapons";
@@ -118,6 +119,7 @@ export class Engine {
   private fpsAccum = 0;
   private statAccum = 0;
   private interactAccum = 0;
+  private wheelCooldown = 0;
   private reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   private disposed = false;
 
@@ -163,10 +165,18 @@ export class Engine {
     this.resizeObserver.observe(canvas.parentElement ?? canvas);
     window.addEventListener("keydown", this.onKeyDown);
     canvas.addEventListener("mousedown", this.onMouseDown);
+    window.addEventListener("wheel", this.onWheel, { passive: true });
     this.resize();
   }
 
   async init(): Promise<void> {
+    // Loads alongside the room; if it fails, the procedural pistol stands in.
+    const gunModel = PISTOL.viewmodel
+      ? WeaponModel.load(PISTOL.viewmodel).catch((error) => {
+          console.warn("[weapon] could not load the pistol model, using the built-in one", error);
+          return null;
+        })
+      : Promise.resolve(null);
     try {
       const room = await Room.load(ASSETS.room);
       if (this.disposed) return room.dispose();
@@ -200,8 +210,11 @@ export class Engine {
       await this.setCharacter(await Character.fromURL(ASSETS.character));
       if (this.disposed) return;
 
+      const model = await gunModel;
+      if (this.disposed) return model?.dispose();
+      if (model) this.viewmodel.useModel(model);
       this.equip();
-      this.store.set({ phase: "ready", message: "Click to look around. WASD to move, click to fire, R to reload, E to interact." });
+      this.store.set({ phase: "ready", message: "Click to look around. WASD to move, click to fire, R to reload, F to inspect, E to interact." });
       this.renderer.setAnimationLoop(this.frame);
     } catch (error) {
       console.error(error);
@@ -325,6 +338,18 @@ export class Engine {
   reload(): void {
     if (this.player.locked) this.weapon?.reload();
   }
+
+  /** Put the gun away (true) or draw it (false). */
+  setHolstered(on: boolean): void {
+    if (this.weapon?.setHolstered(on)) this.audio?.holster(!on);
+  }
+
+  private onWheel = (e: WheelEvent): void => {
+    // One slot for now, so any scroll swaps between the gun and empty hands.
+    if (!this.player.locked || Math.abs(e.deltaY) < 1 || this.wheelCooldown > 0) return;
+    this.wheelCooldown = 0.25;
+    this.setHolstered(!this.weapon?.state.holstered);
+  };
 
   // --- interaction -------------------------------------------------------
   /** The game layer can register its own targets on top of these. */
@@ -492,6 +517,9 @@ export class Engine {
     if (e.code === "KeyE") this.triggerInteract();
     if (e.code === "KeyR") this.reload();
     if (e.code === "KeyF") this.weapon?.inspect();
+    if (e.code === "Digit1") this.setHolstered(false);
+    if (e.code === "Digit2") this.setHolstered(true);
+    if (e.code === "KeyQ") this.setHolstered(!this.weapon?.state.holstered);
   };
 
   private frame = (now: number): void => {
@@ -513,6 +541,7 @@ export class Engine {
     this.character?.update(dt);
     this.viewmodel.update(dt, this.camera, this.player, this.player.speed01);
     this.weapon?.update(dt);
+    this.wheelCooldown = Math.max(0, this.wheelCooldown - dt);
     this.impacts.update(dt);
     this.live.bloom01 = this.weapon?.bloom01 ?? 0;
     this.dust.update(this.reduceMotion ? 0 : t, level);
@@ -564,6 +593,7 @@ export class Engine {
     this.renderer.setAnimationLoop(null);
     window.removeEventListener("keydown", this.onKeyDown);
     this.canvas.removeEventListener("mousedown", this.onMouseDown);
+    window.removeEventListener("wheel", this.onWheel);
     this.resizeObserver.disconnect();
     for (const off of this.unregister) off();
     this.unregister = [];

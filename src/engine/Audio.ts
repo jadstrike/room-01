@@ -179,6 +179,21 @@ export class Audio {
     }
   }
 
+  /** Leather and steel: the gun coming out of, or going into, the holster. */
+  holster(drawing: boolean): void {
+    const now = this.ctx.currentTime;
+    const rub = this.noise(0.18, 2);
+    const bp = this.ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = 900;
+    bp.Q.value = 0.8;
+    const g = this.ctx.createGain();
+    g.gain.value = 0.12;
+    rub.connect(bp).connect(g).connect(this.out);
+    rub.start(now);
+    if (drawing) this.click(now + 0.3, 2800, 0.2, 0.03);
+  }
+
   dryFire(): void {
     this.click(this.ctx.currentTime, 2600, 0.35, 0.02);
   }

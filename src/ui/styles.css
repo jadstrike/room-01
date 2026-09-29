@@ -549,3 +549,13 @@ input[type="range"] {
     display: none;
   }
 }
+
+.credits {
+  margin: 18px 0 0;
+  font-size: 10px;
+  color: var(--dim);
+}
+
+.credits a {
+  color: inherit;
+}
