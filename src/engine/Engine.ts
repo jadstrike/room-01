@@ -9,6 +9,7 @@ import { Weapon, type WeaponState } from "./Weapon";
 import { Impacts } from "./Impacts";
 import { PISTOL } from "./weapons";
 import { SignPicture } from "./Sign";
+import { Entity, type EntityContext } from "./Entity";
 import { SEATS, type SeatDef } from "./cast";
 import { Player } from "./Player";
 import { Interact, type FocusInfo, type Interactable } from "./Interact";
@@ -109,6 +110,7 @@ export class Engine {
     sign: new SignPicture(`room01.sign.${def.id}`),
     off: null,
   }));
+  entity: Entity | null = null;
   weapon: Weapon | null = null;
 
   private renderer: THREE.WebGLRenderer;
@@ -117,6 +119,8 @@ export class Engine {
   private dust = new Dust();
   private viewmodel = new Viewmodel();
   private impacts = new Impacts();
+  /** Room colliders plus the chairs: what the entity steers around. */
+  private obstacles: THREE.Box3[] = [];
   private audio: Audio | null = null;
   private timer = new THREE.Timer();
   private debugGroup = new THREE.Group();
@@ -177,6 +181,11 @@ export class Engine {
   }
 
   async init(): Promise<void> {
+    // The game carries on without it if it fails to load.
+    const entityModel = Entity.load().catch((error) => {
+      console.warn("[entity] could not load the entity", error);
+      return null;
+    });
     // Loads alongside the room; if it fails, the procedural pistol stands in.
     const gunModel = PISTOL.viewmodel
       ? WeaponModel.load(PISTOL.viewmodel).catch((error) => {
@@ -216,6 +225,10 @@ export class Engine {
 
       await this.setCharacters(() => Character.fromURL(ASSETS.character));
       if (this.disposed) return;
+
+      const entity = await entityModel;
+      if (this.disposed) return entity?.dispose();
+      if (entity) this.addEntity(entity);
 
       const model = await gunModel;
       if (this.disposed) return model?.dispose();
@@ -351,19 +364,46 @@ export class Engine {
 
   private refreshColliders(): void {
     if (!this.room) return;
-    const boxes = [...this.room.colliders];
+    this.obstacles = [...this.room.colliders];
     for (const seat of this.seats) {
       if (!seat.character) continue;
       seat.character.refreshCollider();
-      boxes.push(seat.character.collider);
+      this.obstacles.push(seat.character.collider);
     }
-    this.player.setColliders(boxes);
+    // The entity's box is moved in place every frame, so the player always collides with where it is now.
+    this.player.setColliders(this.entity ? [...this.obstacles, this.entity.collider] : this.obstacles);
     this.buildDebug();
+  }
+
+  // --- the entity -------------------------------------------------------------
+  private addEntity(entity: Entity): void {
+    this.entity = entity;
+    this.scene.add(entity.root);
+    // It starts behind the accused, facing the player, where the bulb barely reaches.
+    entity.place(new THREE.Vector3(-0.9, 0, -2.05), ROOM01.markers.cameraStart);
+    this.refreshColliders();
+    this.interact.setRoots(this.interactRoots());
+    this.register({
+      id: "entity",
+      object: entity.root,
+      verb: "Look at",
+      label: "The entity",
+      range: 6,
+      onInteract: () => {
+        this.audio?.blip(140, 0.25);
+        this.store.set({ message: "It tilts its head. It has been waiting for you to choose." });
+      },
+    });
+  }
+
+  private entityContext(light: number): EntityContext {
+    return { player: this.player.position, obstacles: this.obstacles, area: ROOM01.walkable.room, light };
   }
 
   private interactRoots(): THREE.Object3D[] {
     const roots: THREE.Object3D[] = [];
     if (this.room) roots.push(this.room.root);
+    if (this.entity) roots.push(this.entity.root);
     return roots;
   }
 
@@ -374,6 +414,13 @@ export class Engine {
     weapon.onShot = (hit) => {
       this.audio?.gunshot();
       if (!hit) return;
+      const entity = this.entity;
+      if (entity && isDescendant(hit.object, entity.root)) {
+        // A hole in something that moves in four dimensions would not stay put; it just is not there any more.
+        entity.blink(this.entityContext(this.live.bulb));
+        this.store.set({ message: "It is somewhere else now. It did not seem to mind." });
+        return;
+      }
       this.impacts.add(hit);
       const seat = this.seats.find((s) => s.character && isDescendant(hit.object, s.character.root));
       if (seat) this.store.set({ message: "The round goes in. It does not react." });
@@ -534,6 +581,7 @@ export class Engine {
     for (const seat of this.seats) {
       if (seat.character) this.debugGroup.add(new THREE.Box3Helper(seat.character.collider, new THREE.Color(0xd8d2c4)));
     }
+    if (this.entity) this.debugGroup.add(new THREE.Box3Helper(this.entity.collider, new THREE.Color(0x9fb4d8)));
   }
 
   private resize(): void {
@@ -585,6 +633,7 @@ export class Engine {
     this.room?.setBulbLevel(level);
     this.room?.update(dt);
     for (const seat of this.seats) seat.character?.update(dt);
+    this.entity?.update(dt, this.entityContext(level));
     this.viewmodel.update(dt, this.camera, this.player, this.player.speed01);
     this.weapon?.update(dt);
     this.wheelCooldown = Math.max(0, this.wheelCooldown - dt);
@@ -650,6 +699,7 @@ export class Engine {
       seat.character?.dispose();
       seat.sign.dispose();
     }
+    this.entity?.dispose();
     this.room?.dispose();
     this.dust.dispose();
     this.viewmodel.dispose();

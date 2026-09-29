@@ -246,7 +246,11 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
           <a href="https://sketchfab.com/3d-models/beretta-pistol-fps-animation-0313ab1888994c14abeaf444d7af3217" target="_blank" rel="noreferrer">
             “Beretta Pistol FPS ANIMATION”
           </a>{" "}
-          by BURNER,{" "}
+          by BURNER; entity:{" "}
+          <a href="https://sketchfab.com/3d-models/scary-creature-b996bf84da3d49edb52202cb4fab457c" target="_blank" rel="noreferrer">
+            “Scary Creature”
+          </a>{" "}
+          by shedmon; both{" "}
           <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">
             CC BY 4.0
           </a>

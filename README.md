@@ -1,6 +1,6 @@
 # Room 01
 
-A first-person horror room on the web. You wake up in a boarded-up bedroom with two people tied to chairs in the middle of it, under a bulb that will not stay lit.
+A first-person horror room on the web. You wake up in a boarded-up bedroom with two people tied to chairs in the middle of it, under a bulb that will not stay lit, and something tall moving around them in the dark.
 
 Built with React 19, TypeScript, Vite and three.js 0.186. No game engine, no physics library.
 
@@ -52,5 +52,7 @@ Movement uses ground acceleration and friction rather than a smoothed camera, so
 Room, chair character and placeholder mannequin are original procedural assets, free to use.
 
 This work is based on "Beretta Pistol FPS ANIMATION" (https://sketchfab.com/3d-models/beretta-pistol-fps-animation-0313ab1888994c14abeaf444d7af3217) by BURNER (https://sketchfab.com/Alexander_Ovelar), licensed under CC BY 4.0 (http://creativecommons.org/licenses/by/4.0/). Textures resized and recompressed, and its animation cut into separate clips.
+
+The entity is based on "Scary Creature" (https://sketchfab.com/3d-models/scary-creature-b996bf84da3d49edb52202cb4fab457c) by shedmon (https://sketchfab.com/shedmon), licensed under CC BY 4.0. Textures resized and recompressed.
 
 Gun sounds from Freesound: "Gun (Pistol) Shot" by synth2 and "pistol reload sound" by GFL7 (both CC0); "DryFire_01" by fastson (https://freesound.org/s/399116/, CC BY 3.0); "Bullet Shell Falling on Concrete Surface 024" by Debsound (https://freesound.org/s/730748/, CC BY-NC 4.0). The dry fire and shell sounds were trimmed, mixed to mono and resampled. The shell sound's licence is non-commercial: replace it before any commercial release.
