@@ -55,6 +55,8 @@ export class Character {
     this.root.position.set(0, 0, 0);
     this.root.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(this.root, true);
+    // Centre it in its parent's space, so a parent placed off the spawn point (a second chair) keeps its offset.
+    if (this.root.parent) box.applyMatrix4(this.root.parent.matrixWorld.clone().invert());
     const size = box.getSize(new THREE.Vector3());
     this.authoredHeight = size.y;
 

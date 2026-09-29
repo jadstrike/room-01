@@ -9,6 +9,7 @@ import { Weapon, type WeaponState } from "./Weapon";
 import { Impacts } from "./Impacts";
 import { PISTOL } from "./weapons";
 import { SignPicture } from "./Sign";
+import { SEATS, type SeatDef } from "./cast";
 import { Player } from "./Player";
 import { Interact, type FocusInfo, type Interactable } from "./Interact";
 import { Post } from "./Post";
@@ -52,8 +53,8 @@ export type EngineState = {
   specOk: boolean;
   message: string;
   weapon: WeaponState | null;
-  /** The figure's sign: whether it has one, and whether it shows the player's picture. */
-  sign: { available: boolean; custom: boolean };
+  /** Each accused's sign, and whether it shows the player's picture. */
+  signs: { id: string; label: string; custom: boolean }[];
   stats: { fps: number; triangles: number; roomMeshes: number; characterHeight: number; scaled: boolean };
 };
 
@@ -79,7 +80,7 @@ export const INITIAL_STATE: EngineState = {
   specOk: true,
   message: "",
   weapon: null,
-  sign: { available: false, custom: false },
+  signs: [],
   stats: { fps: 0, triangles: 0, roomMeshes: 0, characterHeight: 0, scaled: false },
 };
 
@@ -100,7 +101,14 @@ export class Engine {
   readonly interact = new Interact();
 
   room: Room | null = null;
-  character: Character | null = null;
+  /** The two accused, each tied to a chair, in the order of `SEATS`. */
+  readonly seats: Seat[] = SEATS.map((def) => ({
+    def,
+    holder: new THREE.Group(),
+    character: null,
+    sign: new SignPicture(`room01.sign.${def.id}`),
+    off: null,
+  }));
   weapon: Weapon | null = null;
 
   private renderer: THREE.WebGLRenderer;
@@ -109,7 +117,6 @@ export class Engine {
   private dust = new Dust();
   private viewmodel = new Viewmodel();
   private impacts = new Impacts();
-  private sign = new SignPicture();
   private audio: Audio | null = null;
   private timer = new THREE.Timer();
   private debugGroup = new THREE.Group();
@@ -207,7 +214,7 @@ export class Engine {
         console.warn("[room] does NOT match ROOM01_SPEC", check.report);
       }
 
-      await this.setCharacter(await Character.fromURL(ASSETS.character));
+      await this.setCharacters(() => Character.fromURL(ASSETS.character));
       if (this.disposed) return;
 
       const model = await gunModel;
@@ -222,64 +229,110 @@ export class Engine {
     }
   }
 
-  // --- character ---------------------------------------------------------
-  async setCharacter(next: Character): Promise<void> {
+  // --- the accused ----------------------------------------------------------
+  /** Seat a fresh figure in every chair, from whatever `make` loads. */
+  async setCharacters(make: () => Promise<Character>): Promise<void> {
+    const loaded = await Promise.all(this.seats.map(() => make()));
     const room = this.room;
-    if (!room || this.disposed) return next.dispose();
-    this.character?.dispose();
-    this.character = next;
+    if (!room || this.disposed) {
+      for (const c of loaded) c.dispose();
+      return;
+    }
+    this.seats.forEach((seat, i) => this.seatCharacter(seat, loaded[i], room));
+    this.refreshColliders();
+    this.interact.setRoots(this.interactRoots());
+    const first = loaded[0];
+    this.store.set({
+      clips: first.clipNames,
+      clipIndex: first.defaultClipIndex,
+      message: `Loaded character · ${first.clips.length} clip(s) · ${first.authoredHeight.toFixed(2)} m as authored`,
+    });
+    this.publishSigns();
+  }
+
+  private seatCharacter(seat: Seat, next: Character, room: Room): void {
+    seat.off?.();
+    seat.character?.dispose();
+    seat.character = next;
+    if (!seat.holder.parent) {
+      // The holder places the chair; the room's CharacterSpawn places the holder.
+      seat.holder.position.set(seat.def.x, 0, seat.def.z);
+      seat.holder.rotation.y = seat.def.yaw;
+      room.spawn.add(seat.holder);
+    }
+    // fit() measures in world space, so the holder's placement has to be in the matrices first.
+    seat.holder.updateWorldMatrix(true, false);
     dressChair(next.root, room.root);
-    this.attachSign(next.root);
-    room.spawn.add(next.root);
+    seat.holder.add(next.root);
     next.fit(this.store.get().autoScale);
     const clipIndex = next.defaultClipIndex;
     if (clipIndex >= 0) next.playClip(clipIndex);
-
-    this.refreshColliders();
-    this.interact.setRoots([room.root]); // the character hangs off the room graph
-    this.store.set({
-      clips: next.clipNames,
-      clipIndex,
-      message: `Loaded character · ${next.clips.length} clip(s) · ${next.authoredHeight.toFixed(2)} m as authored`,
+    this.attachSign(seat);
+    seat.off = this.register({
+      id: seat.def.id,
+      object: next.root,
+      verb: "Examine",
+      label: seat.def.label,
+      // Seated back against the chair, each figure is about 2.6 m from the spawn point.
+      range: 2.8,
+      onInteract: () => {
+        this.audio?.blip(220, 0.12);
+        this.store.set({ message: seat.def.examine });
+      },
     });
-    this.registerCharacter();
   }
 
-  private attachSign(root: THREE.Object3D): void {
-    const available = this.sign.attach(root);
-    this.store.set({ sign: { available, custom: false } });
-    const saved = available ? SignPicture.saved() : null;
+  private attachSign(seat: Seat): void {
+    if (!seat.character || !seat.sign.attach(seat.character.root)) return;
+    const saved = seat.sign.saved();
     if (!saved) return;
-    this.sign
+    seat.sign
       .set(saved, false)
-      .then((shown) => shown && this.store.set({ sign: { available: true, custom: true } }))
-      .catch(() => this.sign.reset());
+      .then(() => this.publishSigns())
+      .catch(() => seat.sign.reset());
   }
 
-  /** Put the player's picture on the figure's sign. */
-  async setSignPicture(file: Blob): Promise<void> {
-    if (!this.sign.available) {
-      this.store.set({ message: "This figure has no sign to put a picture on." });
+  private publishSigns(): void {
+    this.store.set({
+      signs: this.seats
+        .filter((seat) => seat.sign.available)
+        .map((seat) => ({ id: seat.def.id, label: seat.def.label, custom: seat.sign.custom })),
+    });
+  }
+
+  /** Put the player's picture on one accused's sign. */
+  async setSignPicture(id: string, file: Blob): Promise<void> {
+    const seat = this.seats.find((s) => s.def.id === id);
+    if (!seat?.sign.available) {
+      this.store.set({ message: "That figure has no sign to put a picture on." });
       return;
     }
     try {
-      if (await this.sign.set(file)) {
-        this.store.set({ sign: { available: true, custom: true }, message: "Your picture is on the sign now." });
+      if (await seat.sign.set(file)) {
+        this.publishSigns();
+        this.store.set({ message: `Your picture is on the sign of ${seat.def.label.toLowerCase()} now.` });
       }
     } catch {
       this.store.set({ message: "Could not read that picture. Try a .jpg, .png or .webp." });
     }
   }
 
-  resetSignPicture(): void {
-    this.sign.reset();
-    this.store.set({ sign: { available: this.sign.available, custom: false } });
+  resetSignPicture(id: string): void {
+    this.seats.find((s) => s.def.id === id)?.sign.reset();
+    this.publishSigns();
   }
 
-  /** Load a character the user picked or dropped. */
+  /** Where a dropped picture goes: the accused under the crosshair, else the first still showing the old face. */
+  signDropTarget(): string | null {
+    const { signs, focus } = this.store.get();
+    return (signs.find((s) => s.id === focus?.id) ?? signs.find((s) => !s.custom) ?? signs[0])?.id ?? null;
+  }
+
+  /** Load a character the user picked or dropped, into every chair. */
   async loadCharacterFiles(files: FileList | File[]): Promise<void> {
+    const list = [...files];
     try {
-      await this.setCharacter(await Character.fromFiles([...files]));
+      await this.setCharacters(() => Character.fromFiles(list));
     } catch (error) {
       this.store.set({ message: `Could not load that file: ${error instanceof Error ? error.message : error}` });
     }
@@ -287,24 +340,31 @@ export class Engine {
 
   setAutoScale(on: boolean): void {
     this.store.set({ autoScale: on });
-    this.character?.fit(on);
+    for (const seat of this.seats) seat.character?.fit(on);
     this.refreshColliders();
   }
 
   selectClip(index: number): void {
-    this.character?.playClip(index);
+    for (const seat of this.seats) seat.character?.playClip(index);
     this.store.set({ clipIndex: index });
   }
 
   private refreshColliders(): void {
     if (!this.room) return;
     const boxes = [...this.room.colliders];
-    if (this.character) {
-      this.character.refreshCollider();
-      boxes.push(this.character.collider);
+    for (const seat of this.seats) {
+      if (!seat.character) continue;
+      seat.character.refreshCollider();
+      boxes.push(seat.character.collider);
     }
     this.player.setColliders(boxes);
     this.buildDebug();
+  }
+
+  private interactRoots(): THREE.Object3D[] {
+    const roots: THREE.Object3D[] = [];
+    if (this.room) roots.push(this.room.root);
+    return roots;
   }
 
   // --- weapon ----------------------------------------------------------------
@@ -315,9 +375,8 @@ export class Engine {
       this.audio?.gunshot();
       if (!hit) return;
       this.impacts.add(hit);
-      if (this.character && isDescendant(hit.object, this.character.root)) {
-        this.store.set({ message: "The round goes in. It does not react." });
-      }
+      const seat = this.seats.find((s) => s.character && isDescendant(hit.object, s.character.root));
+      if (seat) this.store.set({ message: "The round goes in. It does not react." });
     };
     weapon.onDryFire = () => this.audio?.dryFire();
     weapon.onReload = (empty) => this.audio?.reload(empty, empty ? PISTOL.reloadEmptyTime : PISTOL.reloadTime);
@@ -331,7 +390,7 @@ export class Engine {
       camera: this.camera,
       speed01: this.player.speed01,
       onGround: this.player.onGround,
-      roots: [this.room.root],
+      roots: this.interactRoots(),
     });
   }
 
@@ -357,22 +416,6 @@ export class Engine {
     const off = this.interact.register(item);
     this.unregister.push(off);
     return off;
-  }
-
-  private registerCharacter(): void {
-    if (!this.character) return;
-    this.register({
-      id: "character",
-      object: this.character.root,
-      verb: "Examine",
-      label: "The figure",
-      // Seated back against the chair, the figure is 2.62 m from the spawn point.
-      range: 2.8,
-      onInteract: () => {
-        this.audio?.blip(220, 0.12);
-        this.store.set({ message: "It is tied to the chair. Where its face should be, there is only a sign." });
-      },
-    });
   }
 
   private registerProps(): void {
@@ -488,8 +531,8 @@ export class Engine {
     for (const box of this.room.colliders) {
       this.debugGroup.add(new THREE.Box3Helper(box, new THREE.Color(0x8e1b17)));
     }
-    if (this.character) {
-      this.debugGroup.add(new THREE.Box3Helper(this.character.collider, new THREE.Color(0xd8d2c4)));
+    for (const seat of this.seats) {
+      if (seat.character) this.debugGroup.add(new THREE.Box3Helper(seat.character.collider, new THREE.Color(0xd8d2c4)));
     }
   }
 
@@ -541,7 +584,7 @@ export class Engine {
     const level = this.flicker.level(t);
     this.room?.setBulbLevel(level);
     this.room?.update(dt);
-    this.character?.update(dt);
+    for (const seat of this.seats) seat.character?.update(dt);
     this.viewmodel.update(dt, this.camera, this.player, this.player.speed01);
     this.weapon?.update(dt);
     this.wheelCooldown = Math.max(0, this.wheelCooldown - dt);
@@ -585,8 +628,8 @@ export class Engine {
         fps: this.live.fps,
         triangles: Math.round(triangles),
         roomMeshes,
-        characterHeight: this.character?.height ?? 0,
-        scaled: this.character?.scaled ?? false,
+        characterHeight: this.seats[0].character?.height ?? 0,
+        scaled: this.seats[0].character?.scaled ?? false,
       },
     });
   }
@@ -603,16 +646,28 @@ export class Engine {
     this.interact.clear();
     this.player.dispose();
     this.audio?.close();
-    this.character?.dispose();
+    for (const seat of this.seats) {
+      seat.character?.dispose();
+      seat.sign.dispose();
+    }
     this.room?.dispose();
     this.dust.dispose();
-    this.sign.dispose();
     this.viewmodel.dispose();
     this.impacts.dispose();
     this.post.dispose();
     this.renderer.dispose();
   }
 }
+
+type Seat = {
+  def: SeatDef;
+  /** Places the chair around CharacterSpawn. */
+  holder: THREE.Group;
+  character: Character | null;
+  sign: SignPicture;
+  /** Unregisters this seat's interaction. */
+  off: (() => void) | null;
+};
 
 function isDescendant(o: THREE.Object3D, ancestor: THREE.Object3D): boolean {
   for (let n: THREE.Object3D | null = o; n; n = n.parent) if (n === ancestor) return true;

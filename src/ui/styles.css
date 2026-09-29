@@ -559,3 +559,10 @@ input[type="range"] {
 .credits a {
   color: inherit;
 }
+
+.sign-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}

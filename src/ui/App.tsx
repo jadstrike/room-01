@@ -33,9 +33,11 @@ export function App() {
       setDragging(false);
       const files = [...(e.dataTransfer?.files ?? [])];
       if (!files.length) return;
-      // A picture on its own goes on the sign; anything else is a character.
-      if (files.every((f) => f.type.startsWith("image/"))) void engine.setSignPicture(files[0]);
-      else void engine.loadCharacterFiles(files);
+      // A picture on its own goes on a sign; anything else is a character.
+      if (files.every((f) => f.type.startsWith("image/"))) {
+        const target = engine.signDropTarget();
+        if (target) void engine.setSignPicture(target, files[0]);
+      } else void engine.loadCharacterFiles(files);
     };
     addEventListener("dragover", onDragOver);
     addEventListener("dragleave", onDragLeave);

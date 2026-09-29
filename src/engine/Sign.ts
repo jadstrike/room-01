@@ -1,6 +1,5 @@
 import * as THREE from "three";
 
-const STORAGE_KEY = "room01.signPicture";
 const MAX_SIDE = 1024;
 
 /**
@@ -16,6 +15,9 @@ export class SignPicture {
   private placeholder: THREE.Texture | null = null;
   private owned: THREE.Texture | null = null;
   private version = 0;
+
+  /** Each sign keeps its own picture on this device, under its own key. */
+  constructor(private storageKey: string) {}
 
   attach(root: THREE.Object3D): boolean {
     this.release();
@@ -73,7 +75,7 @@ export class SignPicture {
 
     const aspect = bitmap.width / bitmap.height;
     this.mesh.scale.set(this.baseScale.x * Math.min(1, aspect), this.baseScale.y * Math.min(1, 1 / aspect), this.baseScale.z);
-    if (remember) save(bitmap);
+    if (remember) save(this.storageKey, bitmap);
     return true;
   }
 
@@ -88,16 +90,16 @@ export class SignPicture {
     this.owned?.dispose();
     this.owned = null;
     try {
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(this.storageKey);
     } catch {
       // Storage can be unavailable (private mode); the reset still applies.
     }
   }
 
   /** The picture saved on this device, if any. */
-  static saved(): string | null {
+  saved(): string | null {
     try {
-      return localStorage.getItem(STORAGE_KEY);
+      return localStorage.getItem(this.storageKey);
     } catch {
       return null;
     }
@@ -116,14 +118,14 @@ export class SignPicture {
 }
 
 /** Keep a small JPEG so the picture survives a reload; too big or no storage just means it is not kept. */
-function save(bitmap: ImageBitmap): void {
+function save(key: string, bitmap: ImageBitmap): void {
   try {
     const fit = Math.min(1, 512 / Math.max(bitmap.width, bitmap.height));
     const canvas = document.createElement("canvas");
     canvas.width = Math.max(1, Math.round(bitmap.width * fit));
     canvas.height = Math.max(1, Math.round(bitmap.height * fit));
     canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    localStorage.setItem(STORAGE_KEY, canvas.toDataURL("image/jpeg", 0.85));
+    localStorage.setItem(key, canvas.toDataURL("image/jpeg", 0.85));
   } catch {
     // Quota exceeded or storage blocked.
   }

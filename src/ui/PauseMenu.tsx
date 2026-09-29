@@ -19,9 +19,9 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
   const onFiles = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.length) void engine.loadCharacterFiles(e.target.files);
   };
-  const onPicture = (e: ChangeEvent<HTMLInputElement>) => {
+  const onPicture = (id: string) => (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) void engine.setSignPicture(file);
+    if (file) void engine.setSignPicture(id, file);
     e.target.value = "";
   };
 
@@ -182,21 +182,25 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
           </section>
 
           <section>
-            {state.sign.available && (
+            {state.signs.length > 0 && (
               <>
-                <h2>Sign</h2>
-                <label className="file">
-                  {state.sign.custom ? "Change picture" : "Choose a picture"}
-                  <input type="file" accept="image/*" onChange={onPicture} />
-                </label>
-                {state.sign.custom && (
-                  <button className="quiet" onClick={() => engine.resetSignPicture()}>
-                    Put the old face back
-                  </button>
-                )}
+                <h2>Signs</h2>
+                {state.signs.map((sign) => (
+                  <div className="sign-row" key={sign.id}>
+                    <label className="file">
+                      {sign.custom ? `Change ${sign.label.toLowerCase()}` : `Picture for ${sign.label.toLowerCase()}`}
+                      <input type="file" accept="image/*" onChange={onPicture(sign.id)} />
+                    </label>
+                    {sign.custom && (
+                      <button className="quiet" onClick={() => engine.resetSignPicture(sign.id)}>
+                        Old face back
+                      </button>
+                    )}
+                  </div>
+                ))}
                 <p className="hint">
-                  Shown on the figure's sign, whole and uncropped. Or drop a picture anywhere on the page. It stays on
-                  this device only.
+                  Shown on each figure's sign, whole and uncropped. A picture dropped on the page goes on whoever you were
+                  looking at. It stays on this device only.
                 </p>
               </>
             )}

@@ -1,6 +1,6 @@
 # Room 01
 
-A first-person horror room on the web. You wake up in a boarded-up bedroom with a figure tied to a chair in the middle of it, under a bulb that will not stay lit.
+A first-person horror room on the web. You wake up in a boarded-up bedroom with two people tied to chairs in the middle of it, under a bulb that will not stay lit.
 
 Built with React 19, TypeScript, Vite and three.js 0.186. No game engine, no physics library.
 
