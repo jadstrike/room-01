@@ -28,6 +28,25 @@ export type ViewmodelDef = {
 };
 
 /**
+ * A piece of a recording: play from `from` to `to` (seconds), where `hit` is
+ * the transient that has to land on the animation's cue.
+ */
+export type SoundSlice = { from: number; to: number; hit: number };
+
+/** When, in seconds from the start of a reload, each part of it happens on screen. */
+export type ReloadCues = { magOut: number; magIn: number; slide?: number };
+
+export type WeaponSounds = {
+  shot: string;
+  dryFire: string;
+  shell: string;
+  /** One recording of a full reload, cut into its parts. */
+  reload: string;
+  reloadSlices: { magOut: SoundSlice; magIn: SoundSlice; slide: SoundSlice };
+  cues: { reload: ReloadCues; reloadEmpty: ReloadCues };
+};
+
+/**
  * Weapon tuning, in the terms Counter-Strike players already know: a magazine
  * and reserve, a minimum time between shots, and inaccuracy (the radius of the
  * spread cone, in radians) that grows while moving, airborne or firing fast.
@@ -53,6 +72,7 @@ export type WeaponDef = {
   kickYaw: number;
   range: number;
   viewmodel?: ViewmodelDef;
+  sounds?: WeaponSounds;
 };
 
 export const PISTOL: WeaponDef = {
@@ -90,5 +110,22 @@ export const PISTOL: WeaponDef = {
     },
     gunBone: "ARMA_043",
     credit: '"Beretta Pistol FPS ANIMATION" by BURNER (sketchfab.com/Alexander_Ovelar), CC BY 4.0',
+  },
+  sounds: {
+    shot: "sounds/pistol_shot.mp3",
+    dryFire: "sounds/pistol_dryfire.wav",
+    shell: "sounds/shell_drop.wav",
+    reload: "sounds/pistol_reload.mp3",
+    // The reload recording: magazine out at 0.13 s, seated at 0.82 s, slide pulled at 1.50 s and released at 1.69 s.
+    reloadSlices: {
+      magOut: { from: 0.1, to: 0.62, hit: 0.13 },
+      magIn: { from: 0.78, to: 1.4, hit: 0.82 },
+      slide: { from: 1.45, to: 2.3, hit: 1.69 },
+    },
+    // Read off the Beretta's clips at their gameplay speed (the empty reload plays 1.25x).
+    cues: {
+      reload: { magOut: 0.6, magIn: 1.72 },
+      reloadEmpty: { magOut: 0.42, magIn: 1.36, slide: 2.26 },
+    },
   },
 };

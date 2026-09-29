@@ -1,9 +1,16 @@
+import type { ReloadCues, WeaponSounds } from "./weapons";
+
+type GunSample = "shot" | "dryFire" | "shell" | "reload";
+
 /**
- * Everything is synthesised - there are no audio assets - so this must start
- * from a user gesture. Ambient bed ported from the Room 01 viewer; footsteps
- * and the interaction blip are new and driven by the player/interaction code.
+ * The ambience, footsteps and blips are synthesised; the gun uses recorded
+ * samples once they have loaded, with synthesised stand-ins until then (or if
+ * they fail). Audio must start from a user gesture. Ambient bed ported from
+ * the Room 01 viewer.
  */
 export class Audio {
+  private samples = new Map<GunSample, AudioBuffer>();
+  private gunSounds: WeaponSounds | null = null;
   private ctx: AudioContext;
   private out: GainNode;
   private master: WaveShaperNode;
@@ -85,6 +92,55 @@ export class Audio {
     this.drive.connect(this.gun);
   }
 
+  /** Fetch and decode a weapon's recordings; until each lands, its synthesised version plays. */
+  async loadGunSounds(sounds: WeaponSounds, base: string): Promise<void> {
+    this.gunSounds = sounds;
+    const names: GunSample[] = ["shot", "dryFire", "shell", "reload"];
+    await Promise.all(
+      names.map(async (name) => {
+        try {
+          const res = await fetch(base + sounds[name]);
+          if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+          this.samples.set(name, await this.ctx.decodeAudioData(await res.arrayBuffer()));
+        } catch (error) {
+          console.warn(`[audio] could not load ${sounds[name]}, using the synthesised sound`, error);
+        }
+      }),
+    );
+  }
+
+  private play(
+    name: GunSample,
+    at: number,
+    { gain = 1, rate = 1, from = 0, to, lowpass, dest = this.gun }: { gain?: number; rate?: number; from?: number; to?: number; lowpass?: number; dest?: AudioNode } = {},
+  ): boolean {
+    const buffer = this.samples.get(name);
+    if (!buffer) return false;
+    const src = this.ctx.createBufferSource();
+    src.buffer = buffer;
+    src.playbackRate.value = rate;
+    const g = this.ctx.createGain();
+    g.gain.value = gain;
+    let node: AudioNode = src;
+    if (lowpass) {
+      const lp = this.ctx.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.value = lowpass;
+      node = node.connect(lp);
+    }
+    node.connect(g).connect(dest);
+    const start = Math.max(this.ctx.currentTime, at);
+    if (to === undefined) src.start(start, from);
+    else {
+      src.start(start, from, to - from);
+      // Fade the end of a slice so the cut never clicks.
+      const end = start + (to - from) / rate;
+      g.gain.setValueAtTime(gain, Math.max(start, end - 0.03));
+      g.gain.linearRampToValueAtTime(0, end);
+    }
+    return true;
+  }
+
   private noise(seconds: number, shape: number): AudioBufferSourceNode {
     const len = Math.floor(this.ctx.sampleRate * seconds);
     const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
@@ -115,6 +171,11 @@ export class Audio {
    */
   gunshot(): void {
     const now = this.ctx.currentTime;
+    // A touch of pitch drift, so rapid shots do not sound like one sample repeated.
+    if (this.play("shot", now, { gain: 2.4, rate: 0.96 + Math.random() * 0.08 })) {
+      this.casing(now + 0.5 + Math.random() * 0.15);
+      return;
+    }
 
     const snap = this.noise(0.005, 1);
     const sg = this.ctx.createGain();
@@ -156,9 +217,14 @@ export class Audio {
     this.click(now + 0.035, 3400, 0.22);
     this.click(now + 0.07, 2100, 0.16);
 
-    const land = now + 0.5 + Math.random() * 0.15;
-    this.brass(land, 1);
-    this.brass(land + 0.13 + Math.random() * 0.08, 0.45);
+    this.casing(now + 0.5 + Math.random() * 0.15);
+  }
+
+  /** The spent case landing. The recording is on concrete, so it is pitched and dulled for floorboards. */
+  private casing(at: number): void {
+    if (this.play("shell", at, { gain: 0.55, rate: 0.82 + Math.random() * 0.1, lowpass: 4200, dest: this.out })) return;
+    this.brass(at, 1);
+    this.brass(at + 0.13 + Math.random() * 0.08, 0.45);
   }
 
   /** A brass case striking wood: a tick and a few short, inharmonic rings. */
@@ -195,12 +261,27 @@ export class Audio {
   }
 
   dryFire(): void {
+    if (this.play("dryFire", this.ctx.currentTime, { gain: 0.9, dest: this.out })) return;
     this.click(this.ctx.currentTime, 2600, 0.35, 0.02);
   }
 
-  /** Magazine out, magazine in, and the slide going home if it was locked back. */
+  /**
+   * Magazine out, magazine in, and the slide going home after an empty
+   * reload, each slice of the recording landing on its cue in the animation.
+   */
   reload(empty: boolean, duration: number): void {
     const now = this.ctx.currentTime;
+    const sounds = this.gunSounds;
+    if (sounds && this.samples.has("reload")) {
+      const cues: ReloadCues = empty ? sounds.cues.reloadEmpty : sounds.cues.reload;
+      const parts: [keyof ReloadCues, number | undefined][] = [["magOut", cues.magOut], ["magIn", cues.magIn], ["slide", cues.slide]];
+      for (const [part, cue] of parts) {
+        if (cue === undefined) continue;
+        const slice = sounds.reloadSlices[part];
+        this.play("reload", now + cue - (slice.hit - slice.from), { gain: 1.1, from: slice.from, to: slice.to, dest: this.out });
+      }
+      return;
+    }
     this.click(now + duration * 0.2, 1500, 0.3, 0.05);
     this.click(now + duration * 0.62, 900, 0.45, 0.06);
     this.click(now + duration * 0.66, 2400, 0.3, 0.03);

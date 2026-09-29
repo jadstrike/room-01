@@ -246,6 +246,15 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
           <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">
             CC BY 4.0
           </a>
+          . Sounds:{" "}
+          <a href="https://freesound.org/s/399116/" target="_blank" rel="noreferrer">
+            dry fire
+          </a>{" "}
+          by fastson (CC BY 3.0),{" "}
+          <a href="https://freesound.org/s/730748/" target="_blank" rel="noreferrer">
+            shell drop
+          </a>{" "}
+          by Debsound (CC BY-NC 4.0), shot by synth2 and reload by GFL7 (CC0).
         </p>
       </div>
     </div>

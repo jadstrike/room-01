@@ -457,7 +457,10 @@ export class Engine {
   private startAudio(): void {
     if (!this.store.get().sound) return;
     if (this.audio) this.audio.resume();
-    else this.audio = new Audio();
+    else {
+      this.audio = new Audio();
+      if (PISTOL.sounds) void this.audio.loadGunSounds(PISTOL.sounds, import.meta.env.BASE_URL);
+    }
   }
 
   setDebug(on: boolean): void {
