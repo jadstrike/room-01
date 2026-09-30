@@ -29,12 +29,16 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
     <div className="menu-backdrop">
       <div className="menu" role="dialog" aria-label="Paused">
         <header>
-          <h1>ROOM 01</h1>
+          <h1>{engine.location === "kitchen" ? "HOUSE / KITCHEN" : "ROOM 01"}</h1>
           <button className="primary" onClick={() => engine.requestLock()} autoFocus>
             {state.locked ? "Resume" : "Click to play"}
           </button>
         </header>
 
+        <nav className="section-nav" aria-label="Explore locations">
+          <a href="?" aria-current={engine.location === "room01" ? "page" : undefined}>Room 01</a>
+          <a href="?section=kitchen" aria-current={engine.location === "kitchen" ? "page" : undefined}>House / Kitchen</a>
+        </nav>
         <ul className="keys">
           <li>
             <kbd>W</kbd>
@@ -87,7 +91,7 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
               step={0.05}
               onChange={(v) => engine.setExposure(v)}
             />
-            <Toggle label="Bulb flicker" on={state.flicker} onChange={(v) => engine.setFlicker(v)} />
+            {engine.location === "room01" && <Toggle label="Bulb flicker" on={state.flicker} onChange={(v) => engine.setFlicker(v)} />}
             <Toggle label="AO + grain" on={state.quality} onChange={(v) => engine.setQuality(v)} />
             <Toggle label="Sound" on={state.sound} onChange={() => engine.toggleSound()} />
             <Toggle
@@ -205,6 +209,7 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
               </>
             )}
 
+            {engine.location === "room01" && <>
             <h2>Character</h2>
             <label className="file">
               Load .glb / .gltf
@@ -238,6 +243,7 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
               Drop a .glb anywhere on the page to replace the figure. A .gltf needs its .bin and textures selected
               together.
             </p>
+            </>}
           </section>
         </div>
 

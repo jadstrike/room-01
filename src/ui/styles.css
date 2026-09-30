@@ -566,3 +566,7 @@ input[type="range"] {
   align-items: center;
   flex-wrap: wrap;
 }
+
+.section-nav { display: flex; gap: 1.25rem; margin: 1rem 0; font-size: .85rem; }
+.section-nav a { color: #b9b2a0; text-decoration: none; padding-bottom: .35rem; border-bottom: 1px solid transparent; }
+.section-nav a:hover, .section-nav a[aria-current="page"] { color: #eee5d1; border-color: #a68b59; }

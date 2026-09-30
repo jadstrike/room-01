@@ -1,5 +1,5 @@
 import type { EngineState } from "../engine/Engine";
-import { ROOM01 } from "../engine/room01";
+
 
 /** Everything drawn over the viewport while the player has the pointer. */
 export function HUD({ state }: { state: EngineState }) {
@@ -47,14 +47,14 @@ export function HUD({ state }: { state: EngineState }) {
           </dd>
         </div>
         <div className={state.specOk ? "spec ok" : "spec bad"}>
-          <dt>Spec</dt>
-          <dd>{state.specOk ? "match" : "see console"}</dd>
+          <dt>{state.location === "kitchen" ? "Section" : "Spec"}</dt>
+          <dd>{state.location === "kitchen" ? "kitchen" : state.specOk ? "match" : "see console"}</dd>
         </div>
       </dl>
 
       {state.debug && (
         <p className="debug-note">
-          Collider view · room {ROOM01.shell.xMin}…{ROOM01.shell.xMax} m · green = confinement, red = spec colliders
+          Collider view · green = room boundary, red = obstacles
         </p>
       )}
     </>

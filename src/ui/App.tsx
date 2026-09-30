@@ -20,7 +20,7 @@ export function App() {
 
   // Drop a character anywhere on the page, as the Room 01 viewer does.
   useEffect(() => {
-    if (!engine) return;
+    if (!engine || engine.location === "kitchen") return;
     const onDragOver = (e: DragEvent) => {
       e.preventDefault();
       setDragging(true);
