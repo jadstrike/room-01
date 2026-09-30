@@ -1,3 +1,4 @@
+import { LOCATIONS, locationLabel } from "../engine/house/locations";
 import type { ChangeEvent } from "react";
 import type { Engine, EngineState } from "../engine/Engine";
 import { CROSSHAIR_PRESETS, type CrosshairSettings } from "./crosshairSettings";
@@ -29,15 +30,16 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
     <div className="menu-backdrop">
       <div className="menu" role="dialog" aria-label="Paused">
         <header>
-          <h1>{engine.location === "kitchen" ? "HOUSE / KITCHEN" : "ROOM 01"}</h1>
+          <h1>{locationLabel(engine.location).toUpperCase()}</h1>
           <button className="primary" onClick={() => engine.requestLock()} autoFocus>
             {state.locked ? "Resume" : "Click to play"}
           </button>
         </header>
 
         <nav className="section-nav" aria-label="Explore locations">
-          <a href="?" aria-current={engine.location === "room01" ? "page" : undefined}>Room 01</a>
-          <a href="?section=kitchen" aria-current={engine.location === "kitchen" ? "page" : undefined}>House / Kitchen</a>
+          {LOCATIONS.map(location => (
+            <a key={location.id} href={location.href} aria-current={engine.location === location.id ? "page" : undefined}>{location.label}</a>
+          ))}
         </nav>
         <ul className="keys">
           <li>

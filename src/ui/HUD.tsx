@@ -1,3 +1,4 @@
+import { locationLabel } from "../engine/house/locations";
 import type { EngineState } from "../engine/Engine";
 
 
@@ -47,8 +48,8 @@ export function HUD({ state }: { state: EngineState }) {
           </dd>
         </div>
         <div className={state.specOk ? "spec ok" : "spec bad"}>
-          <dt>{state.location === "kitchen" ? "Section" : "Spec"}</dt>
-          <dd>{state.location === "kitchen" ? "kitchen" : state.specOk ? "match" : "see console"}</dd>
+          <dt>{state.location !== "room01" ? "Section" : "Spec"}</dt>
+          <dd>{state.location !== "room01" ? locationLabel(state.location).replace("House / ", "") : state.specOk ? "match" : "see console"}</dd>
         </div>
       </dl>
 

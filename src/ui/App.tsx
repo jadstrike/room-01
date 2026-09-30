@@ -1,3 +1,4 @@
+import { locationLabel } from "../engine/house/locations";
 import { useCallback, useEffect, useState } from "react";
 import { useEngine } from "./useEngine";
 import { HUD } from "./HUD";
@@ -21,7 +22,7 @@ export function App() {
 
   // Drop a character anywhere on the page, as the Room 01 viewer does.
   useEffect(() => {
-    if (!engine || engine.location === "kitchen") return;
+    if (!engine || engine.location !== "room01") return;
     const onDragOver = (e: DragEvent) => {
       e.preventDefault();
       setDragging(true);
@@ -60,7 +61,7 @@ export function App() {
 
       {state.phase === "loading" && (
         <div className="overlay">
-          <p className="loading">Loading Room 01…</p>
+          <p className="loading">Loading {locationLabel(state.location)}…</p>
         </div>
       )}
 
@@ -69,7 +70,7 @@ export function App() {
           <div className="error">
             <h2>Could not load the room</h2>
             <p>{state.error}</p>
-            <p className="hint">Check that /models/horror_room.web.glb is being served.</p>
+            <p className="hint">Reload the page and check that the game assets are being served.</p>
           </div>
         </div>
       )}

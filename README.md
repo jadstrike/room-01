@@ -28,6 +28,10 @@ Then open http://localhost:5173 and click to play.
 
 Drop a picture anywhere on the page (or pick one in the pause menu) to put it on the figure's sign; it is kept on your device. Drop a `.glb` to replace the figure with your own character. A `.gltf` needs its `.bin` and textures selected together.
 
+## House previews
+
+Use the pause-menu location links, or open `?section=kitchen` and `?section=living-room`. These are authored standalone sections for the house base; Moth engine integration comes after room construction. See [the house plan](docs/HOUSE_PLAN.md).
+
 ## Scripts
 
 ```bash
@@ -35,6 +39,7 @@ npm run dev         # dev server
 npm run build       # typecheck + production build to dist/
 npm run preview     # serve the production build
 npm run typecheck   # tsc --noEmit
+npm run verify:house # check house navigation, inspection access and cleanup
 npm run verify      # check the room models against the spec, offline
 npm run build:chair # rebuild the chair character model
 ```

@@ -21,6 +21,9 @@ import { Dust } from "./Dust";
 import { Audio } from "./Audio";
 import { ROOM01 } from "./room01";
 import { Kitchen } from "./house/Kitchen";
+import { LivingRoom } from "./house/LivingRoom";
+import type { HouseSection } from "./house/HouseSection";
+import { locationFromSearch, locationLabel, type LocationId } from "./house/locations";
 
 /**
  * Asset paths go through BASE_URL so a sub-path deploy (GitHub Pages) works.
@@ -37,7 +40,7 @@ export const ASSETS = {
 
 export type EngineState = {
   phase: "loading" | "ready" | "error";
-  location: "room01" | "kitchen";
+  location: LocationId;
   error: string | null;
   locked: boolean;
   focus: FocusInfo | null;
@@ -112,8 +115,8 @@ export class Engine {
   readonly player: Player;
   readonly interact = new Interact();
 
-  readonly location = new URLSearchParams(window.location.search).get("section") === "kitchen" ? "kitchen" : "room01";
-  kitchen: Kitchen | null = null;
+  readonly location = locationFromSearch(window.location.search);
+  houseSection: HouseSection | null = null;
   room: Room | null = null;
   /** The two accused, each tied to a chair, in the order of `SEATS`. */
   readonly seats: Seat[] = SEATS.map((def) => ({
@@ -180,7 +183,7 @@ export class Engine {
     this.player.onLockChange = (locked) => this.store.set({ locked });
     this.player.onStep = (hard) => this.audio?.footstep(hard);
     this.flicker.enabled = !this.reduceMotion;
-    this.store.set({ flicker: this.flicker.enabled });
+    this.store.set({ location: this.location, flicker: this.flicker.enabled });
 
     this.interact.onFocusChange = (focus) => {
       this.store.set({ focus });
@@ -196,25 +199,26 @@ export class Engine {
   }
 
   async init(): Promise<void> {
-    if (this.location === "kitchen") {
+    if (this.location !== "room01") {
       try {
-        const kitchen = new Kitchen(message => this.store.set({ message }));
-        this.kitchen = kitchen;
-        this.scene.add(kitchen.root);
-        kitchen.root.traverse(o => { if (o instanceof THREE.Light) o.layers.enable(VIEWMODEL_LAYER); });
-        this.player.setBounds(kitchen.bounds);
-        this.player.setColliders(kitchen.colliders);
+        const publish = (message: string) => this.store.set({ message });
+        const section = this.location === "kitchen" ? new Kitchen(publish) : new LivingRoom(publish);
+        this.houseSection = section;
+        this.scene.add(section.root);
+        section.root.traverse(o => { if (o instanceof THREE.Light) o.layers.enable(VIEWMODEL_LAYER); });
+        this.player.setBounds(section.bounds);
+        this.player.setColliders(section.colliders);
         this.setConfineToRoom(true);
-        this.player.spawnAt(kitchen.spawn, kitchen.lookAt);
-        this.interact.setRoots([kitchen.root]);
-        for (const item of kitchen.interactions) this.register(item);
-        this.dust.setBulbPosition(new THREE.Vector3(0, 2.35, -0.4));
+        this.player.spawnAt(section.spawn, section.lookAt);
+        this.interact.setRoots([section.root]);
+        for (const item of section.interactions) this.register(item);
+        this.dust.setBulbPosition(section.dustOrigin);
         this.buildDebug();
         const model = PISTOL.viewmodel ? await WeaponModel.load(PISTOL.viewmodel).catch(() => null) : null;
         if (this.disposed) { model?.dispose(); return; }
         if (model) this.viewmodel.useModel(model);
         this.equip();
-        this.store.set({ location: "kitchen", phase: "ready", message: "House / Kitchen. WASD to explore, E to examine. Esc returns to the menu." });
+        this.store.set({ location: this.location, phase: "ready", message: `${locationLabel(this.location)}. WASD to explore, E to examine. Esc returns to the menu.` });
         this.renderer.setAnimationLoop(this.frame);
       } catch (error) {
         this.store.set({ phase: "error", error: error instanceof Error ? error.message : String(error) });
@@ -482,7 +486,7 @@ export class Engine {
   private interactRoots(): THREE.Object3D[] {
     const roots: THREE.Object3D[] = [];
     if (this.room) roots.push(this.room.root);
-    if (this.kitchen) roots.push(this.kitchen.root);
+    if (this.houseSection) roots.push(this.houseSection.root);
     if (this.entity) roots.push(this.entity.root);
     return roots;
   }
@@ -512,7 +516,7 @@ export class Engine {
   }
 
   fire(): void {
-    if (!this.player.locked || !this.weapon || (!this.room && !this.kitchen)) return;
+    if (!this.player.locked || !this.weapon || (!this.room && !this.houseSection)) return;
     this.weapon.trigger({
       camera: this.camera,
       speed01: this.player.speed01,
@@ -640,7 +644,7 @@ export class Engine {
 
   /** Off lets the player walk through the doorway into the hallway. */
   setConfineToRoom(on: boolean): void {
-    const b = this.kitchen?.bounds;
+    const b = this.houseSection?.bounds;
     this.player.setConfinement(on ? (b ? { xMin: b.min.x, xMax: b.max.x, zMin: b.min.z, zMax: b.max.z } : ROOM01.walkable.room) : null);
     this.store.set({ confineToRoom: on });
   }
@@ -656,8 +660,9 @@ export class Engine {
       if (child instanceof THREE.Box3Helper) { child.geometry.dispose(); for (const material of ([] as THREE.Material[]).concat(child.material)) material.dispose(); }
     }
     this.debugGroup.clear();
-    if (this.kitchen) {
-      for (const box of this.kitchen.colliders) this.debugGroup.add(new THREE.Box3Helper(box, new THREE.Color(0x8e1b17)));
+    if (this.houseSection) {
+      this.debugGroup.add(new THREE.Box3Helper(this.houseSection.bounds, new THREE.Color(0x4ad3a1)));
+      for (const box of this.houseSection.colliders) this.debugGroup.add(new THREE.Box3Helper(box, new THREE.Color(0x8e1b17)));
     }
     if (!this.room) return;
     const bounds = new THREE.Box3().copy(this.room.bounds);
@@ -756,7 +761,7 @@ export class Engine {
       const g = mesh.geometry;
       triangles += (g.index ? g.index.count : g.attributes.position.count) / 3;
     });
-    (this.kitchen?.root ?? this.room?.root)?.traverse((o) => {
+    (this.houseSection?.root ?? this.room?.root)?.traverse((o) => {
       if ((o as THREE.Mesh).isMesh) roomMeshes++;
     });
     this.store.set({
@@ -788,7 +793,7 @@ export class Engine {
     }
     this.entity?.dispose();
     this.room?.dispose();
-    this.kitchen?.dispose();
+    this.houseSection?.dispose();
     for (const child of this.debugGroup.children) {
       if (child instanceof THREE.Box3Helper) { child.geometry.dispose(); for (const material of ([] as THREE.Material[]).concat(child.material)) material.dispose(); }
     }
