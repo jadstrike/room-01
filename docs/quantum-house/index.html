@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>House · Quantum connection test</title>
+<style>
+body{margin:0;background:#101714;color:#e6ebe1;font:16px system-ui}main{max-width:1000px;margin:auto;padding:40px 24px}h1{font-size:36px;margin:12px 0}p{line-height:1.6;color:#bbc8bf}.tag{color:#d0b884;letter-spacing:2px;font-size:12px}select,button{padding:12px;background:#26382e;color:white;border:1px solid #668674;border-radius:5px;font:inherit}label{display:block;margin:24px 0 8px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:24px 0}.room{padding:24px;border:1px solid #536758;border-radius:8px;background:#1a2921}.room.dim{opacity:.5}.room h2{margin:4px 0 12px}a{color:#d6bc85}table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:12px;border-bottom:1px solid #39463e}.open{color:#91d4a6}.closed{color:#ecab93}#status{padding:16px;border-left:3px solid #d6bc85;background:#263028}small{color:#bbc8bf}@media(max-width:550px){.grid{grid-template-columns:1fr}h1{font-size:28px}}
+</style>
+<main><span class="tag">MOTH LABYRINTH · HOUSE TEST</span><h1>One house. Sixteen possible outcomes.</h1>
+<p>A saved live simulator run: four rooms, 4,096 measurements. Selecting an outcome costs no credits. This tests connection data; the 3D room doors are not wired to it yet.</p>
+<label for="outcome">Measured outcome</label><select id="outcome"></select> <button id="draw">Draw from saved distribution</button>
+<p id="status" role="status">Loading saved result…</p><div class="grid" id="rooms"></div>
+<table><thead><tr><th>Room connection</th><th>Measured state</th></tr></thead><tbody id="edges"></tbody></table>
+<p>The grid is a logical map: the basement remains downstairs in the story. “Reachable” starts from the kitchen. Preview links open the existing rooms independently of the maze.</p>
+<small>Simulator (Aer), not IBM hardware. Room 01 is excluded. The kitchen’s “lit” flag is preserved as metadata.</small></main>
+<script type="module">
+import { HOUSE_ROOMS, decodeHouse, readHouseResult } from '../../scripts/house-labyrinth.mjs';
+const select = document.querySelector('#outcome'), status = document.querySelector('#status');
+try {
+  const response = await fetch('./result.json'); if (!response.ok) throw new Error('Saved result unavailable.');
+  const { samples, states } = readHouseResult(await response.json());
+  for (const s of samples) select.add(new Option(`${s.bitstring} · ${(100*s.probability).toFixed(2)}%`, s.bitstring));
+  function render() {
+    const maze = decodeHouse(select.value);
+    status.textContent = `${maze.reachable.length}/4 rooms reachable from the kitchen. ${maze.connected ? 'All rooms connected.' : 'This outcome would block part of the house; gameplay needs a recovery route.'}`;
+    document.querySelector('#rooms').replaceChildren(...HOUSE_ROOMS.map((room, i) => {
+      const card = document.createElement('section'); card.className = 'room' + (maze.reachable.includes(i) ? '' : ' dim');
+      const h = document.createElement('h2'); h.textContent = room.label;
+      const p = document.createElement('p'); p.textContent = `Room ${i} · bit ${maze.bits[i]}${states[i].radiating ? ' · lit' : ''}`;
+      const a = document.createElement('a'); a.href = `../../?section=${room.id}`; a.textContent = 'Preview room';
+      card.append(h,p,a); return card;
+    }));
+    document.querySelector('#edges').replaceChildren(...maze.edges.map(e => {
+      const tr=document.createElement('tr'), name=document.createElement('td'), state=document.createElement('td');
+      name.textContent=`${HOUSE_ROOMS[e.a].label} ↔ ${HOUSE_ROOMS[e.b].label}`;
+      state.textContent=e.open?'Corridor':'Wall';state.className=e.open?'open':'closed';tr.append(name,state);return tr;
+    }));
+  }
+  select.addEventListener('change',render);
+  document.querySelector('#draw').addEventListener('click',()=>{let r=Math.random(); let chosen=samples.at(-1);for(const s of samples){r-=s.probability;if(r<0){chosen=s;break;}}select.value=chosen.bitstring;render();});
+  render();
+} catch(error) { status.textContent = `Cannot load test: ${error.message}`; select.disabled=true;document.querySelector('#draw').disabled=true; }
+</script></html>

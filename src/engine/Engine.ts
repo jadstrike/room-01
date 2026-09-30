@@ -23,6 +23,8 @@ import { ROOM01 } from "./room01";
 import { Kitchen } from "./house/Kitchen";
 import { Bedroom } from "./house/Bedroom";
 import { Basement } from "./house/Basement";
+import { UtilityRoom } from "./house/UtilityRoom";
+import { Study } from "./house/Study";
 import { LivingRoom } from "./house/LivingRoom";
 import type { HouseSection } from "./house/HouseSection";
 import { locationFromSearch, locationLabel, type LocationId } from "./house/locations";
@@ -204,7 +206,7 @@ export class Engine {
     if (this.location !== "room01") {
       try {
         const publish = (message: string) => this.store.set({ message });
-        const sections = { kitchen: Kitchen, "living-room": LivingRoom, bedroom: Bedroom, basement: Basement };
+        const sections = { kitchen: Kitchen, "living-room": LivingRoom, bedroom: Bedroom, basement: Basement, "utility-room": UtilityRoom, study: Study };
         const section = new sections[this.location](publish);
         this.houseSection = section;
         this.scene.add(section.root);

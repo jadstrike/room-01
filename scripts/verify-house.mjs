@@ -12,13 +12,17 @@ try {
   const { LivingRoom } = await server.ssrLoadModule("/src/engine/house/LivingRoom.ts");
   const { Bedroom } = await server.ssrLoadModule("/src/engine/house/Bedroom.ts");
   const { Basement } = await server.ssrLoadModule("/src/engine/house/Basement.ts");
+  const { UtilityRoom } = await server.ssrLoadModule("/src/engine/house/UtilityRoom.ts");
+  const { Study } = await server.ssrLoadModule("/src/engine/house/Study.ts");
   const { Interact } = await server.ssrLoadModule("/src/engine/Interact.ts");
   const { locationFromSearch } = await server.ssrLoadModule("/src/engine/house/locations.ts");
   assert.equal(locationFromSearch("?section=living-room"), "living-room");
   assert.equal(locationFromSearch("?section=kitchen"), "kitchen");
   assert.equal(locationFromSearch("?section=basement"), "basement");
+  assert.equal(locationFromSearch("?section=utility-room"), "utility-room");
+  assert.equal(locationFromSearch("?section=study"), "study");
   assert.equal(locationFromSearch("?section=unknown"), "room01");
-  for (const Section of [Kitchen, LivingRoom, Bedroom, Basement]) {
+  for (const Section of [Kitchen, LivingRoom, Bedroom, Basement, UtilityRoom, Study]) {
     let message = "";
     const section = new Section(text => { message = text; });
     section.root.updateMatrixWorld(true);

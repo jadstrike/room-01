@@ -42,3 +42,11 @@ Open `?section=bedroom` from the pause-menu location list. This 6 x 6 m section 
 ## Basement
 
 Basement follows ProceduralSection with the standard hall port for later maze connections. A hunting rifle, torn note, stained coat, tools, boots and storage supplies create suspicion of the boyfriend while inspection details preserve innocent explanations. The rifle is an inspectable room prop. Shared resources are owned and disposed by the section; no per-frame room logic is added.
+
+## Utility room
+
+A compact laundry and maintenance room using ProceduralSection, with washer, dryer, deep sink, storage, laundry basket and fuse panel. Uses the standard hall port, shared resource cleanup and inspectable groups. The saved four-qubit Labyrinth experiment remains a four-room fixture; expanding that experiment requires a new grid design and run.
+
+## Study
+
+A domestic study connects the basement repair clues to receipts and household correspondence. An unsigned letter and empty photograph frame preserve the uncertainty in Rowan's memories. Seven inspection points, shared ProceduralSection resource ownership and a standard hall port. The existing four-room quantum test remains a saved experiment, separate from room authoring.
