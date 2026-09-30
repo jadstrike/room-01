@@ -11,6 +11,8 @@ import { PISTOL } from "./weapons";
 import { SignPicture } from "./Sign";
 import { Entity, type EntityContext } from "./Entity";
 import { SEATS, type SeatDef } from "./cast";
+import { Conversation, type DialogueView } from "../story/dialogue";
+import { ENTITY_SCRIPT, entityStart, newStoryState, type Place, type StoryState } from "../story/entityScript";
 import { Player } from "./Player";
 import { Interact, type FocusInfo, type Interactable } from "./Interact";
 import { Post } from "./Post";
@@ -58,6 +60,10 @@ export type EngineState = {
   weapon: WeaponState | null;
   /** Each accused's sign, and whether it shows the player's picture. */
   signs: { id: string; label: string; custom: boolean }[];
+  /** The conversation on screen, if any. */
+  dialogue: DialogueView | null;
+  /** Where the coin sent Rowan, once it has been tossed. */
+  destination: Place | null;
   stats: { fps: number; triangles: number; roomMeshes: number; characterHeight: number; scaled: boolean };
 };
 
@@ -85,6 +91,8 @@ export const INITIAL_STATE: EngineState = {
   message: "",
   weapon: null,
   signs: [],
+  dialogue: null,
+  destination: null,
   stats: { fps: 0, triangles: 0, roomMeshes: 0, characterHeight: 0, scaled: false },
 };
 
@@ -116,6 +124,8 @@ export class Engine {
     off: null,
   }));
   entity: Entity | null = null;
+  private story: StoryState = newStoryState();
+  private conversation: Conversation<StoryState> | null = null;
   weapon: Weapon | null = null;
 
   private renderer: THREE.WebGLRenderer;
@@ -416,14 +426,53 @@ export class Engine {
     this.register({
       id: "entity",
       object: entity.root,
-      verb: "Look at",
+      verb: "Talk to",
       label: "The entity",
       range: 6,
-      onInteract: () => {
-        this.audio?.blip(140, 0.25);
-        this.store.set({ message: "It tilts its head. It has been waiting for you to choose." });
-      },
+      onInteract: () => this.talkToEntity(),
     });
+  }
+
+  // --- dialogue ------------------------------------------------------------------
+  /** Open a conversation with the entity. The pointer is released so choices can be clicked. */
+  talkToEntity(): void {
+    if (!this.entity || this.conversation) return;
+    this.conversation = new Conversation(ENTITY_SCRIPT, this.story, entityStart(this.story));
+    this.entity.hold(true);
+    this.player.releaseLock();
+    this.showLine();
+  }
+
+  chooseDialogue(index: number): void {
+    if (this.conversation?.choose(index)) this.showLine();
+  }
+
+  /** Continue past a line with no choices; closes the conversation after its last line. */
+  advanceDialogue(): void {
+    const conversation = this.conversation;
+    if (!conversation) return;
+    if (conversation.advance()) this.showLine();
+    else this.endDialogue();
+  }
+
+  endDialogue(): void {
+    if (!this.conversation) return;
+    this.conversation = null;
+    this.entity?.hold(false);
+    const destination = this.story.destination;
+    this.store.set({
+      dialogue: null,
+      destination,
+      message: destination
+        ? `The coin said ${destination === "house" ? "the boyfriend's house" : "the lab"}. That place is not built yet.`
+        : "",
+    });
+  }
+
+  private showLine(): void {
+    const view = this.conversation?.view ?? null;
+    this.store.set({ dialogue: view });
+    if (view) this.audio?.voice(view.text.length);
   }
 
   private entityContext(light: number): EntityContext {
@@ -446,7 +495,7 @@ export class Engine {
       this.audio?.gunshot();
       if (!hit) return;
       const entity = this.entity;
-      if (entity && isDescendant(hit.object, entity.root)) {
+      if (entity && isDescendant(hit.object, entity.root) && !this.conversation) {
         // A hole in something that moves in four dimensions would not stay put; it just is not there any more.
         entity.blink(this.entityContext(this.live.bulb));
         this.store.set({ message: "It is somewhere else now. It did not seem to mind." });

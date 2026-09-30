@@ -26,6 +26,8 @@ export function useEngine(): {
     container.appendChild(canvas);
 
     const next = new Engine(canvas);
+    // A console handle for debugging in dev; stripped from production builds.
+    if (import.meta.env.DEV) (window as unknown as { __engine?: Engine }).__engine = next;
     setEngine(next);
     void next.init();
 

@@ -567,6 +567,83 @@ input[type="range"] {
   flex-wrap: wrap;
 }
 
+/* ---------------- dialogue ---------------- */
+.dialogue-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 20px 16px calc(env(safe-area-inset-bottom, 0px) + 28px);
+  background: linear-gradient(to top, rgba(3, 3, 4, 0.85), rgba(3, 3, 4, 0.15) 55%, transparent);
+}
+
+.dialogue {
+  width: min(760px, 100%);
+  background: rgba(8, 8, 10, 0.9);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--blood);
+  border-radius: 10px;
+  padding: 18px 20px 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+.dialogue .speaker {
+  margin: 0 0 8px;
+  font: 400 13px/1 var(--type);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #e0827d;
+}
+
+.dialogue .line {
+  margin: 0 0 16px;
+  min-height: 3em;
+  font: 400 17px/1.55 var(--type);
+  color: var(--ink);
+}
+
+.dialogue .choices {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  transition: opacity 0.2s;
+}
+
+.dialogue .choices[data-hidden] {
+  opacity: 0;
+}
+
+.dialogue .choices button,
+.dialogue .continue {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  font: 400 14px/1.3 var(--mono);
+  padding: 9px 12px;
+}
+
+.dialogue .choices button.seen span {
+  color: var(--dim);
+}
+
+.dialogue .continue {
+  width: auto;
+  margin-left: auto;
+  justify-content: flex-end;
+}
+
+@media (max-width: 560px) {
+  .dialogue .line {
+    font-size: 15px;
+  }
+}
+
 .section-nav { display: flex; gap: 1.25rem; margin: 1rem 0; font-size: .85rem; }
 .section-nav a { color: #b9b2a0; text-decoration: none; padding-bottom: .35rem; border-bottom: 1px solid transparent; }
 .section-nav a:hover, .section-nav a[aria-current="page"] { color: #eee5d1; border-color: #a68b59; }

@@ -50,7 +50,7 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
             <kbd>Shift</kbd> sprint · <kbd>Ctrl</kbd> crouch · <kbd>Space</kbd> jump
           </li>
           <li>
-            <kbd>Click</kbd> fire · <kbd>R</kbd> reload · <kbd>F</kbd> inspect · <kbd>E</kbd> interact
+            <kbd>Click</kbd> fire · <kbd>R</kbd> reload · <kbd>F</kbd> inspect · <kbd>E</kbd> interact / talk
           </li>
           <li>
             <kbd>1</kbd> pistol · <kbd>2</kbd> put away · <kbd>Q</kbd> / scroll swap

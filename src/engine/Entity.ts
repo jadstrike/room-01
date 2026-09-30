@@ -34,6 +34,8 @@ export class Entity {
   private wait = 2;
   private yaw = 0;
   private darkFor = 0;
+  /** In conversation: it stays put and keeps its eyes on the player. */
+  private held = false;
   private tmp = new THREE.Vector3();
   private toPlayer = new THREE.Vector3();
 
@@ -82,14 +84,28 @@ export class Entity {
 
   /** Vanish and reappear elsewhere, facing the player. */
   blink(ctx: EntityContext): boolean {
+    if (this.held) return false;
     const spot = this.pickSpot(ctx, false);
     if (!spot) return false;
     this.place(spot, ctx.player);
     return true;
   }
 
+  /** Stop and face the player (a conversation), or let it roam again. */
+  hold(on: boolean): void {
+    this.held = on;
+    this.state = "stare";
+    this.wait = on ? Infinity : 2 + Math.random() * 2;
+  }
+
   update(dt: number, ctx: EntityContext): void {
     this.mixer.update(dt);
+    if (this.held) {
+      this.toPlayer.subVectors(ctx.player, this.root.position).setY(0);
+      this.turnTowards(Math.atan2(this.toPlayer.x, this.toPlayer.z), dt, 3);
+      this.root.rotation.y = this.yaw;
+      return;
+    }
 
     // The dark is when it moves in four dimensions: once per blackout, not
     // on every blink of a stutter, and not every time.
