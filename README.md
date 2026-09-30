@@ -22,7 +22,7 @@ Then open http://localhost:5173 and click to play.
 | `R` | reload |
 | `F` | inspect the gun |
 | `1` / `2` | draw the pistol / put it away (`Q` or scroll swaps) |
-| `E` | interact with whatever the crosshair is on |
+| `E` | interact with whatever the crosshair is on, or talk to the entity |
 | `Esc` | pause, settings and crosshair customisation |
 | `` ` `` | show collision boxes |
 

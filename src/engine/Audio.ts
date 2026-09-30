@@ -245,6 +245,41 @@ export class Audio {
     }
   }
 
+  /**
+   * The entity's voice: no words, a low, wet murmur under the text, longer for
+   * longer lines, with a formant that wanders as if something is trying on a
+   * throat it does not have.
+   */
+  voice(chars: number): void {
+    const now = this.ctx.currentTime;
+    const len = Math.min(2.4, 0.35 + chars * 0.018);
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(0.16, now + 0.08);
+    g.gain.setValueAtTime(0.16, now + len - 0.25);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + len);
+    const formant = this.ctx.createBiquadFilter();
+    formant.type = "bandpass";
+    formant.Q.value = 7;
+    formant.frequency.setValueAtTime(420, now);
+    for (let t = 0.1; t < len; t += 0.11) formant.frequency.linearRampToValueAtTime(260 + Math.random() * 520, now + t);
+    formant.connect(g).connect(this.out);
+    for (const f of [58, 58 * 1.505, 87.7]) {
+      const o = this.ctx.createOscillator();
+      o.type = "sawtooth";
+      o.frequency.setValueAtTime(f, now);
+      o.frequency.linearRampToValueAtTime(f * (0.9 + Math.random() * 0.2), now + len);
+      o.connect(formant);
+      o.start(now);
+      o.stop(now + len + 0.05);
+    }
+    const breath = this.noise(len, 1.5);
+    const bg = this.ctx.createGain();
+    bg.gain.value = 0.35;
+    breath.connect(bg).connect(formant);
+    breath.start(now);
+  }
+
   /** Leather and steel: the gun coming out of, or going into, the holster. */
   holster(drawing: boolean): void {
     const now = this.ctx.currentTime;

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useEngine } from "./useEngine";
 import { HUD } from "./HUD";
 import { PauseMenu } from "./PauseMenu";
+import { DialogueBox } from "./DialogueBox";
 import { Crosshair } from "./Crosshair";
 import { loadCrosshair, saveCrosshair, type CrosshairSettings } from "./crosshairSettings";
 
@@ -73,7 +74,9 @@ export function App() {
         </div>
       )}
 
-      {state.phase === "ready" && !state.locked && (
+      {state.phase === "ready" && engine && state.dialogue && <DialogueBox engine={engine} view={state.dialogue} />}
+
+      {state.phase === "ready" && !state.locked && !state.dialogue && (
         <PauseMenu engine={engine} state={state} crosshair={crosshair} onCrosshair={updateCrosshair} />
       )}
 
