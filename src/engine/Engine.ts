@@ -21,6 +21,8 @@ import { Dust } from "./Dust";
 import { Audio } from "./Audio";
 import { ROOM01 } from "./room01";
 import { Kitchen } from "./house/Kitchen";
+import { Bedroom } from "./house/Bedroom";
+import { Basement } from "./house/Basement";
 import { LivingRoom } from "./house/LivingRoom";
 import type { HouseSection } from "./house/HouseSection";
 import { locationFromSearch, locationLabel, type LocationId } from "./house/locations";
@@ -202,7 +204,8 @@ export class Engine {
     if (this.location !== "room01") {
       try {
         const publish = (message: string) => this.store.set({ message });
-        const section = this.location === "kitchen" ? new Kitchen(publish) : new LivingRoom(publish);
+        const sections = { kitchen: Kitchen, "living-room": LivingRoom, bedroom: Bedroom, basement: Basement };
+        const section = new sections[this.location](publish);
         this.houseSection = section;
         this.scene.add(section.root);
         section.root.traverse(o => { if (o instanceof THREE.Light) o.layers.enable(VIEWMODEL_LAYER); });

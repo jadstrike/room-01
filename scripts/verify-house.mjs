@@ -10,12 +10,15 @@ const server = await createServer({ server: { middlewareMode: true }, appType: "
 try {
   const { Kitchen } = await server.ssrLoadModule("/src/engine/house/Kitchen.ts");
   const { LivingRoom } = await server.ssrLoadModule("/src/engine/house/LivingRoom.ts");
+  const { Bedroom } = await server.ssrLoadModule("/src/engine/house/Bedroom.ts");
+  const { Basement } = await server.ssrLoadModule("/src/engine/house/Basement.ts");
   const { Interact } = await server.ssrLoadModule("/src/engine/Interact.ts");
   const { locationFromSearch } = await server.ssrLoadModule("/src/engine/house/locations.ts");
   assert.equal(locationFromSearch("?section=living-room"), "living-room");
   assert.equal(locationFromSearch("?section=kitchen"), "kitchen");
+  assert.equal(locationFromSearch("?section=basement"), "basement");
   assert.equal(locationFromSearch("?section=unknown"), "room01");
-  for (const Section of [Kitchen, LivingRoom]) {
+  for (const Section of [Kitchen, LivingRoom, Bedroom, Basement]) {
     let message = "";
     const section = new Section(text => { message = text; });
     section.root.updateMatrixWorld(true);

@@ -34,3 +34,11 @@ Keep the future graph adapter outside room constructors. It should map graph nod
 Run `npm run build`, `npm run verify`, and `npm run verify:house`. The house check samples connected walkable space using the player radius, raycasts every inspection target from reachable positions, checks port approach clearance and verifies resource disposal for both rooms. It uses a stub drawing context for geometry checks; it does not verify textures visually. In the kitchen, walk around the table and cabinets, inspect the cup/cooker/fridge/door, toggle collision view, pause/resume, and follow the Room 01 link to check the original scene. Review the kitchen before authoring the next section.
 
 For visual checks without the pointer-lock pause overlay, open `/scripts/house-preview.html?section=living-room` on the Vite development server. This harness runs the actual Engine, is not a production entry point, and changes no story state.
+
+## Bedroom
+
+Open `?section=bedroom` from the pause-menu location list. This 6 x 6 m section uses the same 3 m ceiling and 1.2 x 2.2 m hall port at (0, 0, 3). A disordered bed, fallen pillow, overturned chair and floor scrapes, pulled-out drawer, scattered clothes, broken frame and damaged latch suggest a struggle. Six inspection points describe the scene without establishing a murderer or a cause of death. The room uses the shared procedural resources and has no per-frame construction. The house verification includes bedroom spawn, inspection access, port approach and cleanup.
+
+## Basement
+
+Basement follows ProceduralSection with the standard hall port for later maze connections. A hunting rifle, torn note, stained coat, tools, boots and storage supplies create suspicion of the boyfriend while inspection details preserve innocent explanations. The rifle is an inspectable room prop. Shared resources are owned and disposed by the section; no per-frame room logic is added.
