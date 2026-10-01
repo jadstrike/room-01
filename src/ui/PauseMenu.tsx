@@ -37,6 +37,7 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
         </header>
 
         <nav className="section-nav" aria-label="Explore locations">
+          <a href="?house=1">Play the house investigation</a>
           {LOCATIONS.map(location => (
             <a key={location.id} href={location.href} aria-current={engine.location === location.id ? "page" : undefined}>{location.label}</a>
           ))}

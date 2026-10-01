@@ -12,6 +12,30 @@
   --type: "Special Elite", "Courier New", monospace;
 }
 
+.house-status { position: fixed; top: 20px; left: 24px; width: min(410px, calc(100vw - 48px)); z-index: 5; padding: 14px 18px; background: rgba(8,13,11,.86); border-left: 2px solid #a38b5b; pointer-events: none; }
+.house-status span,.house-status small { display: block; color: #a8b5ac; font-size: 11px; }
+.house-status strong { display: block; margin-top: 5px; }
+.house-status p { margin: 8px 0; }
+.house-backdrop { position: fixed; inset: 0; z-index: 15; background: rgba(3,7,5,.78); display: grid; place-items: center; padding: 24px; }
+.house-panel { width: min(880px,100%); max-height: calc(100vh - 48px); overflow: auto; background: #111b16; border: 1px solid #596353; box-shadow: 0 20px 90px #000; padding: 30px; }
+.house-panel header { display: flex; align-items: center; justify-content: space-between; gap: 16px; color: #b9a97e; font-size: 11px; letter-spacing: 1px; }
+.house-panel h1 { font: 30px var(--type); margin: 30px 0 20px; text-transform: capitalize; }
+.house-panel h2 { font-size: 15px; margin-top: 24px; }
+.house-panel p { line-height: 1.8; }
+.house-panel button { padding: 11px 16px; border: 1px solid #7f8869; background: #28392d; color: #eee3cc; cursor: pointer; font: inherit; }
+.house-panel button:disabled { opacity: .45; cursor: default; }
+.house-panel button:focus-visible { outline: 2px solid #e3c98c; outline-offset: 3px; }
+.house-actions { display: flex; gap: 12px; flex-wrap: wrap; margin: 24px 0; }
+.house-memory { padding: 14px 20px; border-left: 2px solid #a38b5b; background: #1e2b23; margin: 20px 0; }
+.house-eyebrow { display: block; color: #b9a97e; margin-top: 25px; }
+.journal-entry { border-top: 1px solid #3c4a3e; margin-top: 20px; padding: 20px 0; }
+.house-configurations { display: grid; grid-template-columns: repeat(auto-fit,minmax(210px,1fr)); gap: 16px; }
+.house-configurations article { padding: 14px; border: 1px solid #3c4a3e; }
+.house-configurations li { margin-bottom: 8px; }
+.house-routes { display: grid; gap: 10px; margin: 24px 0; }
+.house-panel details { margin-top: 24px; }
+@media(max-width:600px) { .house-panel { padding: 20px; } .house-status { top: 8px; left: 8px; width: calc(100vw - 16px); } }
+
 * {
   box-sizing: border-box;
 }

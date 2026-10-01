@@ -27,7 +27,7 @@ export function HUD({ state }: { state: EngineState }) {
         </div>
       )}
 
-      <dl className="stats" aria-label="Scene statistics">
+      {!state.house && <dl className="stats" aria-label="Scene statistics">
         <div>
           <dt>FPS</dt>
           <dd>{stats.fps || "–"}</dd>
@@ -51,7 +51,7 @@ export function HUD({ state }: { state: EngineState }) {
           <dt>{state.location !== "room01" ? "Section" : "Spec"}</dt>
           <dd>{state.location !== "room01" ? locationLabel(state.location).replace("House / ", "") : state.specOk ? "match" : "see console"}</dd>
         </div>
-      </dl>
+      </dl>}
 
       {state.debug && (
         <p className="debug-note">

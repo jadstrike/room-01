@@ -28,6 +28,8 @@ import { Study } from "./house/Study";
 import { LivingRoom } from "./house/LivingRoom";
 import type { HouseSection } from "./house/HouseSection";
 import { locationFromSearch, locationLabel, type LocationId } from "./house/locations";
+import { HouseRun, SAVE_KEY, parseHouseSave, memoryFor, ROOM_NAMES, type HouseRoom, type Inspection, type HouseSave } from "./house/HouseRun";
+import { HouseDevice } from "./house/HouseDevice";
 
 /**
  * Asset paths go through BASE_URL so a sub-path deploy (GitHub Pages) works.
@@ -43,6 +45,11 @@ export const ASSETS = {
 };
 
 export type EngineState = {
+  house: HouseSave | null;
+  housePanel: "inspection" | "journal" | "device" | "passage" | null;
+  inspection: Inspection | null;
+  recalled: boolean;
+  saveWarning: string;
   phase: "loading" | "ready" | "error";
   location: LocationId;
   error: string | null;
@@ -75,6 +82,7 @@ export type EngineState = {
 };
 
 export const INITIAL_STATE: EngineState = {
+  house: null, housePanel: null, inspection: null, recalled: false, saveWarning: "",
   phase: "loading",
   location: "room01",
   error: null,
@@ -119,7 +127,10 @@ export class Engine {
   readonly player: Player;
   readonly interact = new Interact();
 
-  readonly location = locationFromSearch(window.location.search);
+  location = locationFromSearch(window.location.search);
+  readonly houseMode = new URLSearchParams(window.location.search).get("house") === "1";
+  houseRun: HouseRun | null = null;
+  private houseDevice: HouseDevice | null = null;
   houseSection: HouseSection | null = null;
   room: Room | null = null;
   /** The two accused, each tied to a chair, in the order of `SEATS`. */
@@ -203,6 +214,17 @@ export class Engine {
   }
 
   async init(): Promise<void> {
+    if (this.houseMode) {
+      try {
+        let raw: string | null = null;
+        try { raw = localStorage.getItem(SAVE_KEY); } catch { this.store.set({ saveWarning: "Saving is unavailable. Progress lasts for this visit only." }); }
+        this.houseRun = new HouseRun(parseHouseSave(raw));
+        this.enterHouseRoom();
+        this.store.set({ phase: "ready", message: "The coin brought you here. Find the brass device beside the hall door. J opens your journal." });
+        this.renderer.setAnimationLoop(this.frame);
+      } catch (error) { this.store.set({ phase: "error", error: error instanceof Error ? error.message : String(error) }); }
+      return;
+    }
     if (this.location !== "room01") {
       try {
         const publish = (message: string) => this.store.set({ message });
@@ -469,11 +491,15 @@ export class Engine {
     this.conversation = null;
     this.entity?.hold(false);
     const destination = this.story.destination;
+    if (destination === "house") {
+      window.location.assign(`${BASE}?house=1`);
+      return;
+    }
     this.store.set({
       dialogue: null,
       destination,
       message: destination
-        ? `The coin said ${destination === "house" ? "the boyfriend's house" : "the lab"}. That place is not built yet.`
+        ? "The coin said the lab. That place is not built yet."
         : "",
     });
   }
@@ -591,6 +617,89 @@ export class Engine {
     this.interact.trigger();
   }
 
+  /** Room swaps are synchronous: only the current authored room owns GPU resources. */
+  private enterHouseRoom(): void {
+    const run = this.houseRun!;
+    for (const off of this.unregister) off();
+    this.unregister = []; this.interact.clear();
+    this.houseDevice?.dispose(); this.houseDevice = null;
+    this.houseSection?.dispose();
+    this.location = run.state.room;
+    const sections = { kitchen: Kitchen, "living-room": LivingRoom, bedroom: Bedroom, basement: Basement, "utility-room": UtilityRoom, study: Study };
+    let observed = "";
+    const section = new sections[run.state.room](text => { observed = text; });
+    this.houseSection = section; this.scene.add(section.root);
+    this.player.setBounds(section.bounds); this.player.setColliders(section.colliders); this.setConfineToRoom(true);
+    this.player.spawnAt(section.spawn, section.lookAt);
+    for (const item of section.interactions) {
+      const port = section.ports[0];
+      const isDoor = /door/i.test(item.object.name);
+      if (isDoor) {
+        this.register({ ...item, verb: "Open", label: "the shifting passage", onInteract: () => this.openHousePanel("passage") });
+      } else {
+        this.register({ ...item, onInteract: () => {
+          observed = ""; item.onInteract?.(item);
+          this.store.set({ inspection: { id: item.id, room: run.state.room, title: item.label.replace(/^the /, ""), observation: observed, memory: null, recall: memoryFor(run.state.room, item.id) }, recalled: false });
+          this.openHousePanel("inspection");
+        } });
+      }
+      // Keep the port contract meaningful even though this MVP folds space at its door.
+      if (!port) throw new Error("House room has no passage port.");
+    }
+    this.houseDevice = new HouseDevice(section.ports[0].position.z, () => {
+      this.acquireHouseDevice();
+    });
+    this.scene.add(this.houseDevice.root);
+    for (const item of this.houseDevice.interactions) this.register(item);
+    this.interact.setRoots([section.root, this.houseDevice.root]);
+    this.dust.setBulbPosition(section.dustOrigin); this.buildDebug();
+    this.store.set({ location: this.location, housePanel: null, inspection: null, focus: null, message: `${ROOM_NAMES[run.state.room]}. The passage follows ${run.config.name}.` });
+    this.publishHouse();
+  }
+
+  private publishHouse(): void {
+    const run = this.houseRun; if (!run) return;
+    this.store.set({ house: run.state });
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(run.state)); }
+    catch { this.store.set({ saveWarning: "Could not save progress. Keep this page open to continue." }); }
+  }
+  acquireHouseDevice(): void {
+    if (!this.houseRun || !this.houseSection || Math.hypot(this.player.position.x - 0.92, this.player.position.z - (this.houseSection.ports[0].position.z - 0.19)) > 2.4) return;
+    this.houseRun.acquireDevice(); this.publishHouse(); this.openHousePanel("device");
+  }
+  openHousePanel(panel: "journal" | "device" | "passage" | "inspection"): void {
+    if (!this.houseRun || (panel === "device" && !this.houseRun.state.device) || (panel === "passage" && !this.atHouseDoor())) return;
+    this.store.set({ housePanel: panel }); this.player.releaseLock();
+  }
+  closeHousePanel(): void { this.store.set({ housePanel: null }); }
+  recallEvidence(): void { if (this.store.get().inspection) this.store.set({ recalled: true }); }
+  collectEvidence(): void {
+    const { inspection, recalled } = this.store.get();
+    if (!this.houseRun || !inspection || this.store.get().housePanel !== "inspection") return;
+    this.houseRun.collect(inspection, recalled); this.publishHouse();
+    this.store.set({ message: "Recorded in your journal. Objects stay in the house." });
+  }
+  shiftHouse(): void {
+    if (this.store.get().housePanel !== "device" || !this.houseRun?.shift()) return;
+    this.publishHouse(); this.store.set({ message: `The house settles into ${this.houseRun.config.name}.` });
+  }
+  restoreHouse(index: number): void {
+    if (this.store.get().housePanel !== "device" || !this.houseRun?.restore(index)) return;
+    this.publishHouse(); this.store.set({ message: `Restored ${this.houseRun.config.name}.` });
+  }
+  private atHouseDoor(): boolean {
+    const port = this.houseSection?.ports[0];
+    return !!port && Math.hypot(this.player.position.x - port.position.x, this.player.position.z - port.position.z) <= 2.4;
+  }
+  travelHouse(room: HouseRoom): void {
+    if (this.store.get().housePanel !== "passage" || !this.atHouseDoor() || !this.houseRun?.travel(room)) return;
+    this.enterHouseRoom();
+  }
+  restartHouse(): void {
+    if (!this.houseRun) return;
+    this.houseRun = new HouseRun(); this.enterHouseRoom();
+  }
+
   // --- settings ----------------------------------------------------------
   setFlicker(on: boolean): void {
     this.flicker.enabled = on;
@@ -700,6 +809,12 @@ export class Engine {
   };
 
   private onKeyDown = (e: KeyboardEvent): void => {
+    if (this.houseRun) {
+      if (e.repeat) return;
+      if (e.code === "Escape") { this.closeHousePanel(); return; }
+      if (e.code === "KeyJ") { e.preventDefault(); this.openHousePanel("journal"); return; }
+      if (e.code === "KeyP") { e.preventDefault(); this.openHousePanel("device"); return; }
+    }
     if (e.code === "Backquote") {
       this.setDebug(!this.store.get().debug);
       return;
@@ -799,6 +914,7 @@ export class Engine {
     this.entity?.dispose();
     this.room?.dispose();
     this.houseSection?.dispose();
+    this.houseDevice?.dispose();
     for (const child of this.debugGroup.children) {
       if (child instanceof THREE.Box3Helper) { child.geometry.dispose(); for (const material of ([] as THREE.Material[]).concat(child.material)) material.dispose(); }
     }

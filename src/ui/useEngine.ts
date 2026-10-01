@@ -26,6 +26,7 @@ export function useEngine(): {
     container.appendChild(canvas);
 
     const next = new Engine(canvas);
+    if (next.houseMode) { canvas.setAttribute("aria-label", "The house, first person"); document.title = "The House · Investigation"; }
     // A console handle for debugging in dev; stripped from production builds.
     if (import.meta.env.DEV) (window as unknown as { __engine?: Engine }).__engine = next;
     setEngine(next);
