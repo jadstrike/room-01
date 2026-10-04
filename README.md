@@ -13,7 +13,7 @@ npm install
 npm run dev
 ```
 
-Then open http://localhost:5173 and click to play.
+Then open http://localhost:5173. The title screen has Continue (once there is a story to continue), New game, Options, Controls and Credits; arrow keys and Enter work as well as the mouse.
 
 | | |
 |---|---|
@@ -33,7 +33,7 @@ Then open http://localhost:5173 and click to play.
 
 Drop a picture anywhere on the page (or pick one in the pause menu) to put it on the figure's sign; it is kept on your device. Drop a `.glb` to replace the figure with your own character. A `.gltf` needs its `.bin` and textures selected together.
 
-Progress is saved in the browser as you play; **New game** in the pause menu starts over. In a dev build the pause menu also has chapter jumps (straight into the house, the lab, or the trial) for testing.
+Progress is saved in the browser as you play, so **Quit to title** in the pause menu loses nothing. The endings you have reached are remembered on the title screen. In a dev build the pause menu also has chapter jumps (straight into the house, the lab, or the trial) for testing.
 
 ## The sites
 
