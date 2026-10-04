@@ -106,6 +106,8 @@ export class Game {
   private deviceOff: (() => void) | null = null;
   private entityOff: (() => void) | null = null;
   private travelling = false;
+  /** The act when the last line was shown, to catch the line that changes it. */
+  private shownAct: Act = "intro";
   private wakeTimer: ReturnType<typeof setTimeout> | undefined;
   /** The ending card waiting for its moment to land; cancelled by leaving to the title or starting over. */
   private endingTimer: ReturnType<typeof setTimeout> | undefined;
@@ -237,6 +239,7 @@ export class Game {
     );
     this.travelling = false;
     if (ok) this.engine.store.set({ message: arriving ? site.arrival : `${inv.roomName}.` });
+    if (ok && arriving) this.engine.audio?.sting("arrive");
     this.publish();
   }
 
@@ -335,6 +338,7 @@ export class Game {
   talkToEntity(): void {
     const entity = this.room01?.entity;
     if (!entity || this.conversation) return;
+    if (!this.story.met) this.engine.audio?.sting("wake");
     entity.hold(true);
     this.converse(ENTITY_SCRIPT, entityStart(this.story));
   }
@@ -376,6 +380,9 @@ export class Game {
   }
 
   private showLine(): void {
+    const before = this.shownAct;
+    this.shownAct = this.story.act;
+    if (before === "trial" && this.story.act === "revealed") this.engine.audio?.sting("reveal");
     const view = this.conversation?.view ?? null;
     this.engine.store.set({ dialogue: view });
     if (view) this.engine.audio?.voice(view.text.length);
@@ -401,6 +408,14 @@ export class Game {
     }
   }
 
+  /** How close the entity is, 0..1, for the heartbeat; an execution keeps it going regardless. */
+  private dread(): number {
+    const entity = this.room01?.entity;
+    if (!entity || this.engine.level !== this.room01 || this.engine.store.get().screen !== "game") return 0;
+    const near = Math.min(1, Math.max(0, (4 - entity.position.distanceTo(this.engine.player.position)) / 3));
+    return this.story.act === "execution" ? Math.max(near, 0.5) : near;
+  }
+
   // --- the end --------------------------------------------------------------------
   /** The entity lets all three of them go: it vanishes, the chairs are empty, the door opens. */
   private release(): void {
@@ -422,6 +437,7 @@ export class Game {
   /** Show ending `id`, after `delay` ms so the moment that caused it can land. */
   private finish(id: EndingId, delay: number): void {
     if (this.story.act === "ended") return;
+    this.engine.audio?.sting(id === "walk-away" ? "arrive" : "death");
     this.story.ending = id;
     this.story.act = "ended";
     this.save();
@@ -442,6 +458,7 @@ export class Game {
 
   /** Per frame: only the walk out of Room 01 is a place rather than an action. */
   update(): void {
+    this.engine.audio?.setDread(this.dread());
     if (this.story.act !== "released" || !this.room01 || this.engine.level !== this.room01) return;
     // The far end of the spec's hallway runs to x = 7.
     if (this.engine.player.position.x > 6.2) this.finish("walk-away", 0);

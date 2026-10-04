@@ -1,4 +1,5 @@
 import type { ReloadCues, WeaponSounds } from "./weapons";
+import { Score, type Sting } from "./Score";
 
 type GunSample = "shot" | "dryFire" | "shell" | "reload";
 
@@ -19,6 +20,10 @@ export class Audio {
   /** Gun bus: loud, so it goes through a limiter before the master. */
   private gun: GainNode;
   private drive: WaveShaperNode;
+  /** Everything passes through this before the limiter: the volume option. */
+  private volume: GainNode;
+  /** Drones, distant noises, the heartbeat, the stings. */
+  readonly score: Score;
 
   constructor(ctx: AudioContext = new AudioContext()) {
     this.ctx = ctx;
@@ -29,7 +34,8 @@ export class Audio {
     const soft = new Float32Array(2048);
     for (let i = 0; i < soft.length; i++) soft[i] = (Math.tanh(((i / (soft.length - 1)) * 2 - 1) * 1.2) / Math.tanh(1.2)) * 0.97;
     this.master.curve = soft;
-    this.master.connect(this.ctx.destination);
+    this.volume = this.ctx.createGain();
+    this.master.connect(this.volume).connect(this.ctx.destination);
     this.out = this.ctx.createGain();
     this.out.gain.value = 0.36;
     this.out.connect(this.master);
@@ -90,6 +96,91 @@ export class Audio {
     for (let i = 0; i < curve.length; i++) curve[i] = Math.tanh(3.2 * ((i / (curve.length - 1)) * 2 - 1));
     this.drive.curve = curve;
     this.drive.connect(this.gun);
+
+    this.score = new Score(this.ctx, this.out, this.room);
+  }
+
+  /** 0..1, applied after the limiter so the mix keeps its shape at any level. */
+  setVolume(v: number): void {
+    this.volume.gain.setTargetAtTime(v * v, this.ctx.currentTime, 0.05);
+  }
+
+  setAmbience(on: boolean): void {
+    this.score.setEnabled(on);
+  }
+
+  setDread(level: number): void {
+    this.score.setDread(level);
+  }
+
+  sting(kind: Sting): void {
+    this.score.sting(kind);
+  }
+
+  /** A door on old hinges: a resonant, slowing creak and the latch giving. */
+  door(): void {
+    const now = this.ctx.currentTime;
+    this.click(now, 1800, 0.25, 0.03);
+    const src = this.noise(0.9, 0.6);
+    const bp = this.ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.Q.value = 18;
+    bp.frequency.setValueAtTime(520, now + 0.05);
+    bp.frequency.exponentialRampToValueAtTime(240, now + 0.9);
+    const g = this.ctx.createGain();
+    g.gain.value = 0.55;
+    src.connect(bp).connect(g).connect(this.out);
+    src.start(now + 0.05);
+  }
+
+  /** Space folding open: a rising rush, a pitch dropping away under it, and a soft thud at the end. */
+  portal(): void {
+    const now = this.ctx.currentTime;
+    const rush = this.noise(1.1, 0.4);
+    const lp = this.ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.Q.value = 6;
+    lp.frequency.setValueAtTime(180, now);
+    lp.frequency.exponentialRampToValueAtTime(4200, now + 0.9);
+    const rg = this.ctx.createGain();
+    rg.gain.setValueAtTime(0.0001, now);
+    rg.gain.exponentialRampToValueAtTime(0.5, now + 0.8);
+    rg.gain.exponentialRampToValueAtTime(0.0001, now + 1.1);
+    rush.connect(lp).connect(rg).connect(this.out);
+    rush.start(now);
+    const o = this.ctx.createOscillator();
+    o.type = "sawtooth";
+    o.frequency.setValueAtTime(220, now);
+    o.frequency.exponentialRampToValueAtTime(30, now + 1.1);
+    const og = this.ctx.createGain();
+    og.gain.setValueAtTime(0.0001, now);
+    og.gain.exponentialRampToValueAtTime(0.08, now + 0.3);
+    og.gain.exponentialRampToValueAtTime(0.0001, now + 1.1);
+    o.connect(og).connect(this.room);
+    o.start(now);
+    o.stop(now + 1.2);
+  }
+
+  /** A fridge door: the seal letting go, and the compressor hum spilling out. */
+  fridge(): void {
+    const now = this.ctx.currentTime;
+    this.click(now, 400, 0.4, 0.06);
+    const hum = this.ctx.createOscillator();
+    hum.type = "triangle";
+    hum.frequency.value = 50;
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(0.08, now + 0.3);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 2.2);
+    hum.connect(g).connect(this.out);
+    hum.start(now);
+    hum.stop(now + 2.3);
+  }
+
+  /** Writing something down. */
+  scribble(): void {
+    const now = this.ctx.currentTime;
+    for (let i = 0; i < 5; i++) this.click(now + i * 0.07 + Math.random() * 0.03, 3000 + Math.random() * 2000, 0.06, 0.05);
   }
 
   /** Fetch and decode a weapon's recordings; until each lands, its synthesised version plays. */
@@ -369,7 +460,13 @@ export class Audio {
     if (this.ctx.state === "suspended") void this.ctx.resume();
   }
 
+  /** A hidden tab has nothing to listen to. */
+  suspend(): void {
+    if (this.ctx.state === "running") void this.ctx.suspend();
+  }
+
   close(): void {
+    this.score.dispose();
     void this.ctx.close();
   }
 }

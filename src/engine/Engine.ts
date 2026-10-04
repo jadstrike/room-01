@@ -38,6 +38,10 @@ export type EngineState = GameState & {
   frameCap: FrameCap;
   /** Lower the render resolution when the frame rate cannot hold. */
   autoResolution: boolean;
+  /** The horror score: drones, distant noises, heartbeat, stings. */
+  ambience: boolean;
+  /** Master volume, 0..1. */
+  volume: number;
   autoScale: boolean;
   headBob: boolean;
   exposure: number;
@@ -72,6 +76,8 @@ export const INITIAL_STATE: EngineState = {
   quality: true,
   frameCap: 60,
   autoResolution: true,
+  ambience: true,
+  volume: 0.8,
   autoScale: true,
   headBob: true,
   exposure: 1.5,
@@ -142,6 +148,8 @@ export class Engine {
   private wheelCooldown = 0;
   private reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   private disposed = false;
+  /** Applying saved settings, which should not save them again one by one. */
+  private loading = false;
 
   constructor(private canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
@@ -193,7 +201,7 @@ export class Engine {
     canvas.addEventListener("mousedown", this.onMouseDown);
     window.addEventListener("wheel", this.onWheel, { passive: true });
     document.addEventListener("visibilitychange", this.onVisibility);
-    this.loadPerformance();
+    this.loadSettings();
     this.resize();
   }
 
@@ -429,41 +437,84 @@ export class Engine {
   setFlicker(on: boolean): void {
     this.flicker.enabled = on;
     this.store.set({ flicker: on });
+    this.saveSettings();
   }
 
   setQuality(on: boolean): void {
     this.post.setQuality(on);
     this.store.set({ quality: on });
+    this.saveSettings();
   }
 
   setFrameCap(cap: FrameCap): void {
     this.pacer.cap = cap;
     this.store.set({ frameCap: cap });
-    this.savePerformance();
+    this.saveSettings();
   }
 
   setAutoResolution(on: boolean): void {
     this.resolution.enabled = on;
     this.store.set({ autoResolution: on });
-    this.savePerformance();
+    this.saveSettings();
     if (!on && this.resolution.sample(0, this.pacer.cap)) this.applyPixelRatio();
   }
 
-  private loadPerformance(): void {
+  /** Every option a player sets is remembered on this device. */
+  private loadSettings(): void {
+    let saved: Partial<EngineState> = {};
     try {
-      const saved = JSON.parse(localStorage.getItem(PERFORMANCE_KEY) ?? "null") as Partial<EngineState> | null;
-      if (saved && FRAME_CAPS.includes(saved.frameCap as FrameCap)) this.pacer.cap = saved.frameCap as FrameCap;
-      if (typeof saved?.autoResolution === "boolean") this.resolution.enabled = saved.autoResolution;
+      saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? localStorage.getItem("moth.performance") ?? "{}") ?? {};
     } catch {
       // Private windows can refuse storage; the defaults are fine.
     }
-    this.store.set({ frameCap: this.pacer.cap, autoResolution: this.resolution.enabled });
+    const pick = <K extends keyof EngineState>(key: K, valid: (v: unknown) => boolean): EngineState[K] | undefined =>
+      valid(saved[key]) ? (saved[key] as EngineState[K]) : undefined;
+    const bool = (v: unknown) => typeof v === "boolean";
+    const range = (min: number, max: number) => (v: unknown) => typeof v === "number" && v >= min && v <= max;
+    this.loading = true;
+    const cap = pick("frameCap", (v) => FRAME_CAPS.includes(v as FrameCap));
+    if (cap !== undefined) this.setFrameCap(cap);
+    const autoRes = pick("autoResolution", bool);
+    if (autoRes !== undefined) this.setAutoResolution(autoRes);
+    const quality = pick("quality", bool);
+    if (quality !== undefined) this.setQuality(quality);
+    const flicker = pick("flicker", bool);
+    if (flicker !== undefined) this.setFlicker(flicker);
+    const exposure = pick("exposure", range(0.5, 2.5));
+    if (exposure !== undefined) this.setExposure(exposure);
+    const sensitivity = pick("sensitivity", range(0.4, 6));
+    if (sensitivity !== undefined) this.setSensitivity(sensitivity);
+    const fov = pick("fov", range(60, 105));
+    if (fov !== undefined) this.setFov(fov);
+    const headBob = pick("headBob", bool);
+    if (headBob !== undefined) this.setHeadBob(headBob);
+    const ambience = pick("ambience", bool);
+    if (ambience !== undefined) this.setAmbience(ambience);
+    const volume = pick("volume", range(0, 1));
+    if (volume !== undefined) this.setVolume(volume);
+    const sound = pick("sound", bool);
+    if (sound !== undefined) this.store.set({ sound });
+    this.loading = false;
   }
 
-  private savePerformance(): void {
-    const { frameCap, autoResolution } = this.store.get();
+  private saveSettings(): void {
+    if (this.loading) return;
+    const s = this.store.get();
+    const settings = {
+      frameCap: s.frameCap,
+      autoResolution: s.autoResolution,
+      quality: s.quality,
+      flicker: s.flicker,
+      exposure: s.exposure,
+      sensitivity: s.sensitivity,
+      fov: s.fov,
+      headBob: s.headBob,
+      ambience: s.ambience,
+      volume: s.volume,
+      sound: s.sound,
+    };
     try {
-      localStorage.setItem(PERFORMANCE_KEY, JSON.stringify({ frameCap, autoResolution }));
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
     } catch {
       // As above: the setting still applies for this visit.
     }
@@ -479,26 +530,31 @@ export class Engine {
   setExposure(value: number): void {
     this.renderer.toneMappingExposure = value;
     this.store.set({ exposure: value });
+    this.saveSettings();
   }
 
   setSensitivity(value: number): void {
     this.player.setOptions({ sensitivity: value });
     this.store.set({ sensitivity: value });
+    this.saveSettings();
   }
 
   setHeadBob(on: boolean): void {
     this.player.setOptions({ headBob: on });
     this.store.set({ headBob: on });
+    this.saveSettings();
   }
 
   setFov(value: number): void {
     this.store.set({ fov: value });
     this.resize();
+    this.saveSettings();
   }
 
   toggleSound(): void {
     const on = !this.store.get().sound;
     this.store.set({ sound: on });
+    this.saveSettings();
     if (on) this.startAudio();
     else {
       this.audio?.close();
@@ -506,12 +562,28 @@ export class Engine {
     }
   }
 
+  setVolume(value: number): void {
+    this.store.set({ volume: value });
+    this.audio?.setVolume(value);
+    this.saveSettings();
+  }
+
+  /** The horror score: drones, distant noises, the heartbeat, the stings. */
+  setAmbience(on: boolean): void {
+    this.store.set({ ambience: on });
+    this.audio?.setAmbience(on);
+    this.saveSettings();
+  }
+
   /** Browsers only allow audio after a user gesture, so this runs from clicks. */
   private startAudio(): void {
-    if (!this.store.get().sound) return;
+    const { sound, volume, ambience } = this.store.get();
+    if (!sound) return;
     if (this.audio) this.audio.resume();
     else {
       this.audio = new Audio();
+      this.audio.setVolume(volume);
+      this.audio.setAmbience(ambience);
       if (PISTOL.sounds) void this.audio.loadGunSounds(PISTOL.sounds, import.meta.env.BASE_URL);
     }
   }
@@ -596,6 +668,8 @@ export class Engine {
 
   /** A hidden tab renders nothing at all, rather than whatever the browser's throttled rAF allows. */
   private onVisibility = (): void => {
+    if (document.hidden) this.audio?.suspend();
+    else if (this.store.get().sound) this.audio?.resume();
     if (!this.running) return;
     if (document.hidden) {
       this.renderer.setAnimationLoop(null);
@@ -722,7 +796,7 @@ export class Engine {
   }
 }
 
-const PERFORMANCE_KEY = "moth.performance";
+const SETTINGS_KEY = "moth.settings";
 
 /** Above 1.75 the post chain costs far more than the sharpness is worth. */
 function basePixelRatio(): number {

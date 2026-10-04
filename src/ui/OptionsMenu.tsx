@@ -9,7 +9,7 @@ type Category = "camera" | "display" | "audio" | "crosshair" | "extras";
 const CATEGORIES: ReadonlyArray<{ id: Category; label: string; help: string }> = [
   { id: "camera", label: "Camera", help: "How the view moves." },
   { id: "display", label: "Display", help: "Brightness, the bulb, and how hard the game works your graphics card." },
-  { id: "audio", label: "Audio", help: "Sound." },
+  { id: "audio", label: "Audio", help: "Volume, and the horror score under everything." },
   { id: "crosshair", label: "Crosshair", help: "The aiming mark in the middle of the screen. Changes show in the preview." },
   { id: "extras", label: "Extras", help: "Put your own pictures on the accused, swap in your own character, and debugging tools." },
 ];
@@ -90,7 +90,11 @@ export function OptionsMenu({ engine, state, crosshair, onCrosshair, onBack }: P
       row("Dynamic resolution", "Lowers the resolution when the frame rate drops, and raises it again once it recovers.", <Choice value={state.autoResolution} options={ON_OFF} onChange={(v) => engine.setAutoResolution(v)} />),
     ];
   } else if (category === "audio") {
-    rows = [row("Sound", "Every sound is generated as you play. It starts with your first click.", <Choice value={state.sound} options={ON_OFF} onChange={() => engine.toggleSound()} />)];
+    rows = [
+      row("Sound", "All sound on or off. Everything you hear is generated as you play, and starts with your first click.", <Choice value={state.sound} options={ON_OFF} onChange={() => engine.toggleSound()} />),
+      row("Volume", "Overall loudness.", <Bar value={state.volume} min={0} max={1} step={0.05} format={(v) => `${Math.round(v * 100)}%`} onChange={(v) => engine.setVolume(v)} />),
+      row("Horror ambience", "The low drone, things moving in the walls, the heartbeat when something is close, and the stings. Off leaves footsteps, voices and the gun.", <Choice value={state.ambience} options={ON_OFF} onChange={(v) => engine.setAmbience(v)} />),
+    ];
   } else if (category === "crosshair") {
     rows = [
       <div className="crosshair-preview" key="preview" aria-hidden="true">
