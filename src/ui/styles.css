@@ -1803,3 +1803,8 @@ input[type="range"] {
 .title-column.compact .title-footer {
   display: none;
 }
+
+.roll .roll-proof {
+  font: 400 11px/1.5 var(--mono);
+  color: var(--dim);
+}

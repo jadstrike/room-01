@@ -11,6 +11,7 @@ import { ACCUSED_SCRIPT, accusedStart } from "../story/accusedScript";
 import { ENTITY_SCRIPT, entityStart } from "../story/entityScript";
 import { Investigation, type Inspection } from "../story/investigation";
 import { SITES, type AccusedId, type Place } from "../story/sites";
+import { prepareCoin, waitForCoin } from "../story/quantum";
 import { SAVE_KEY, currentPlace, newStoryState, parseSave, type Act, type EndingId, type Request, type StoryState } from "../story/state";
 import { ENDING_ORDER, endingFor, type EndingView } from "../story/endings";
 
@@ -122,6 +123,8 @@ export class Game {
   private deviceOff: (() => void) | null = null;
   private entityOff: (() => void) | null = null;
   private travelling = false;
+  /** Waiting for the coin to land before the toss line. */
+  private flipping = false;
   /** The act when the last line was shown, to catch the line that changes it. */
   private shownAct: Act = "intro";
   private wakeTimer: ReturnType<typeof setTimeout> | undefined;
@@ -191,6 +194,7 @@ export class Game {
   /** The end of the prologue: Rowan wakes up, and a moment later the entity speaks. */
   wake(): void {
     this.engine.store.set({ screen: "game" });
+    prepareCoin();
     this.tip("look");
     this.engine.requestLock();
     clearTimeout(this.wakeTimer);
@@ -377,6 +381,8 @@ export class Game {
     const entity = this.room01?.entity;
     if (!entity || this.conversation) return;
     if (!this.story.met) this.engine.audio?.sting("wake");
+    // Start measuring the coin now, so Moth's answer is in by the time the entity flips it.
+    if (this.story.act === "intro" && !this.story.destination) prepareCoin();
     entity.hold(true);
     this.converse(ENTITY_SCRIPT, entityStart(this.story));
   }
@@ -400,7 +406,20 @@ export class Game {
   /** Continue past a line with no choices; closes the conversation after its last line. */
   advanceDialogue(): void {
     const conversation = this.conversation;
-    if (!conversation) return;
+    if (!conversation || this.flipping) return;
+    // The coin is in the air: hold on "I'm going to flip a coin" until Moth's measurement lands, a few seconds at most.
+    if (conversation.at === "override") {
+      this.flipping = true;
+      void waitForCoin(6000).then(() => {
+        this.flipping = false;
+        if (this.conversation === conversation && conversation.at === "override") this.step(conversation);
+      });
+      return;
+    }
+    this.step(conversation);
+  }
+
+  private step(conversation: Conversation<StoryState>): void {
     if (conversation.advance()) this.showLine();
     else this.endDialogue();
   }

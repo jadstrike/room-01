@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
     "verify": "node scripts/verify-room.mjs",
     "build:chair": "node scripts/chair-character/build.mjs",
     "verify:sites": "node scripts/verify-sites.mjs",
@@ -19,6 +19,7 @@
     "three": "0.186.1"
   },
   "devDependencies": {
+    "@types/node": "^24.19.1",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
     "@types/three": "^0.186.0",

@@ -44,6 +44,16 @@ export function contradiction(s: StoryState): boolean {
   return CONTRADICTION.every((id) => hasEvidence(s, id));
 }
 
+const WORDS = ["None", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven"];
+
+/** What the coin really was: Moth's measurement, or the entity admitting it flipped it itself. */
+function measured(s: StoryState): string {
+  const p = s.coinProof;
+  if (!p || p.source !== "moth") return "I flipped this one myself. Your universe was slow to answer.";
+  const won = s.coin === "heads" ? p.heads : p.tails;
+  return `${WORDS[won] ?? won} out of ${WORDS[p.shots]?.toLowerCase() ?? p.shots}. One qubit, both sides at once, until I looked.`;
+}
+
 function otherPlace(s: StoryState): Place {
   return s.rounds[0] === "house" ? "lab" : "house";
 }
@@ -162,9 +172,6 @@ export const ENTITY_SCRIPT: Script<StoryState> = {
   override: {
     speaker: "The entity",
     text: "Good choice. Terrible choice. Irrelevant choice, actually, because I'm going to flip a coin.",
-    enter: (s) => {
-      s.coin = tossCoin();
-    },
     next: "toss",
   },
 
@@ -175,9 +182,13 @@ export const ENTITY_SCRIPT: Script<StoryState> = {
       const call = s.coin === "heads" ? "Heads." : "Tails.";
       const where = place === "house" ? "The boyfriend's house. Try not to touch anything you don't want to remember." : "The lab. Mind the equipment. Some of it still hums.";
       const agree = s.picked === place ? "Look at that, the universe agrees with you. It never does that." : "Not what you wanted? Nothing ever is.";
-      return `${call} ${where} ${agree}`;
+      return `${call} ${measured(s)} ${where} ${agree}`;
     },
     enter: (s) => {
+      // Flipped here rather than a line earlier, so Moth's measurement has as long as possible to land.
+      const { coin, ...proof } = tossCoin();
+      s.coin = coin;
+      s.coinProof = proof;
       const destination: Place = s.coin === "heads" ? "house" : "lab";
       s.destination = destination;
       // Even walking away mid-sentence does not get Rowan out of it.
