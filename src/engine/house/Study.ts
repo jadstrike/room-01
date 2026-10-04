@@ -10,7 +10,7 @@ export class Study extends ProceduralSection {
   readonly ports = [{ id: "hall", position: new THREE.Vector3(0, 0, 2.6), outward: new THREE.Vector3(0, 0, 1), width: 1.2, height: 2.2 }];
 
   constructor(message: (text: string) => void) {
-    super();
+    super("study", message);
     this.root.name = "House_Study";
     const plaster = this.material(0x8e8b79, this.texture("plaster"));
     const wood = this.material(0x614c36, this.texture("wood"));
@@ -20,8 +20,8 @@ export class Study extends ProceduralSection {
     const brass = this.material(0x9b8250, undefined, 0.6);
     const bookMaterials = [cloth, this.material(0x76524a), this.material(0x656f7c)];
     const box = this.box.bind(this);
-    const group = (name: string) => { const g = new THREE.Group(); g.name = name; this.root.add(g); return g; };
-    const inspect = (object: THREE.Object3D, label: string, text: string) => this.interactions.push({ id: `study:${object.name}`, object, verb: "Examine", label, range: 2.4, onInteract: () => message(text) });
+    const group = this.group.bind(this);
+    const inspect = this.inspect.bind(this);
     box("Floor", 0, -0.06, 0, 5.6, 0.12, 5.4, wood);
     box("Ceiling", 0, 2.96, 0, 5.6, 0.12, 5.4, plaster);
     for (const x of [-2.8, 2.8]) box("Side_Wall", x, 1.45, 0, 0.2, 2.9, 5.4, plaster, true);

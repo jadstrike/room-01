@@ -243,6 +243,7 @@ export class Engine {
         const publish = (message: string) => this.store.set({ message });
         const sections = { kitchen: Kitchen, "living-room": LivingRoom, bedroom: Bedroom, basement: Basement, "utility-room": UtilityRoom, study: Study };
         const section = new sections[this.location](publish);
+        section.finalize();
         this.houseSection = section;
         this.scene.add(section.root);
         section.root.traverse(o => { if (o instanceof THREE.Light) o.layers.enable(VIEWMODEL_LAYER); });
@@ -641,6 +642,7 @@ export class Engine {
     const sections = { kitchen: Kitchen, "living-room": LivingRoom, bedroom: Bedroom, basement: Basement, "utility-room": UtilityRoom, study: Study };
     let observed = "";
     const section = new sections[run.state.room](text => { observed = text; });
+    section.finalize();
     this.houseSection = section; this.scene.add(section.root);
     this.player.setBounds(section.bounds); this.player.setColliders(section.colliders); this.setConfineToRoom(true);
     this.player.spawnAt(section.spawn, section.lookAt);
@@ -662,6 +664,7 @@ export class Engine {
     this.houseDevice = new HouseDevice(section.ports[0].position.z, () => {
       this.acquireHouseDevice();
     });
+    this.houseDevice.finalize();
     this.scene.add(this.houseDevice.root);
     for (const item of this.houseDevice.interactions) this.register(item);
     this.interact.setRoots([section.root, this.houseDevice.root]);

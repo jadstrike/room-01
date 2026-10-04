@@ -10,7 +10,7 @@ export class Bedroom extends ProceduralSection {
   readonly ports = [{ id: "hall", position: new THREE.Vector3(0, 0, 3), outward: new THREE.Vector3(0, 0, 1), width: 1.2, height: 2.2 }];
 
   constructor(message: (text: string) => void) {
-    super();
+    super("bedroom", message);
     this.root.name = "House_Bedroom";
     const plaster = this.material(0x928979, this.texture("plaster"));
     const wood = this.material(0x64503c, this.texture("wood"));
@@ -20,8 +20,8 @@ export class Bedroom extends ProceduralSection {
     const brass = this.material(0x97835b, undefined, 0.6);
     const paper = this.material(0xc9bd9c);
     const box = this.box.bind(this);
-    const group = (name: string) => { const g = new THREE.Group(); g.name = name; this.root.add(g); return g; };
-    const inspect = (object: THREE.Object3D, label: string, text: string) => this.interactions.push({ id: `bedroom:${object.name}`, object, verb: "Examine", label, range: 2.4, onInteract: () => message(text) });
+    const group = this.group.bind(this);
+    const inspect = this.inspect.bind(this);
     box("Floor", 0, -0.06, 0, 6.2, 0.12, 6.2, wood);
     for (let x = -2.8; x < 3; x += 0.35) box("Floor_Joint", x, 0.002, 0, 0.008, 0.003, 6, dark);
     box("Ceiling", 0, 3.06, 0, 6.2, 0.12, 6.2, plaster);

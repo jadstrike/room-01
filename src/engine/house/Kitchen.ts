@@ -9,7 +9,7 @@ export class Kitchen extends ProceduralSection {
   readonly lookAt = new THREE.Vector3(-0.6, 1.2, -1.8);
   readonly ports = [{ id: "hall", position: new THREE.Vector3(0, 0, 2.5), outward: new THREE.Vector3(0, 0, 1), width: 1.2, height: 2.2 }];
   constructor(message: (text: string) => void) {
-    super();
+    super("kitchen", message);
     this.root.name = "House_Kitchen";
     const plaster = this.material(0x8c8370, this.texture("plaster"));
     const green = this.material(0x465850, this.texture("plaster"));
@@ -100,7 +100,7 @@ export class Kitchen extends ProceduralSection {
     this.root.add(light);
     const moon = new THREE.PointLight(0x8eb5d2, 5, 6, 2);
     moon.position.set(-2.65, 1.95, -0.2); this.root.add(moon);
-    const inspect = (object: THREE.Object3D, label: string, text: string) => this.interactions.push({ id: `kitchen:${object.name}`, object, verb: "Examine", label, range: 2.4, onInteract: () => message(text) });
+    const inspect = this.inspect.bind(this);
     inspect(mug, "the forgotten cup", "A skin has formed over the tea. A teaspoon lies beside the cup. Someone left in a hurry—or meant to come back.");
     inspect(fridge, "the refrigerator", "The refrigerator hums. A scrap of paper is pinned to its door, too faded to read. There is no date.");
     inspect(stove, "the cooker", "All four rings are cold. Grease has settled around the controls. Nothing here tells you when it was last used.");

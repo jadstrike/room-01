@@ -9,7 +9,7 @@ export class UtilityRoom extends ProceduralSection {
   readonly ports = [{ id: "hall", position: new THREE.Vector3(0, 0, 2.5), outward: new THREE.Vector3(0, 0, 1), width: 1.2, height: 2.2 }];
 
   constructor(message: (text: string) => void) {
-    super();
+    super("utility-room", message);
     this.root.name = "House_UtilityRoom";
     const plaster = this.material(0x91978a, this.texture("plaster"));
     const tile = this.material(0x8c9488, this.texture("tile"));
@@ -20,8 +20,8 @@ export class UtilityRoom extends ProceduralSection {
     const cloth = this.material(0x687f78, this.texture("fabric"));
     const paper = this.material(0xd1c5a3);
     const box = this.box.bind(this);
-    const group = (name: string) => { const g = new THREE.Group(); g.name = name; this.root.add(g); return g; };
-    const inspect = (object: THREE.Object3D, label: string, text: string) => this.interactions.push({ id: `utility-room:${object.name}`, object, verb: "Examine", label, range: 2.4, onInteract: () => message(text) });
+    const group = this.group.bind(this);
+    const inspect = this.inspect.bind(this);
     box("Floor", 0, -0.06, 0, 5.2, 0.12, 5.2, tile);
     box("Ceiling", 0, 2.86, 0, 5.2, 0.12, 5.2, plaster);
     for (const x of [-2.6, 2.6]) box("Side_Wall", x, 1.4, 0, 0.2, 2.8, 5.2, plaster, true);

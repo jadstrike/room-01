@@ -10,7 +10,7 @@ export class LivingRoom extends ProceduralSection {
   readonly ports = [{ id: "hall", position: new THREE.Vector3(0, 0, 3), outward: new THREE.Vector3(0, 0, 1), width: 1.2, height: 2.2 }];
 
   constructor(message: (text: string) => void) {
-    super();
+    super("living-room", message);
     this.root.name = "House_LivingRoom";
     const plaster = this.material(0x96907b, this.texture("plaster"));
     const green = this.material(0x4b5950, this.texture("plaster"));
@@ -25,10 +25,8 @@ export class LivingRoom extends ProceduralSection {
     const box = this.box.bind(this);
     const cylinder = this.cylinder.bind(this);
     // Components are grouped so details do not occlude their own inspection target.
-    const group = (name: string) => { const g = new THREE.Group(); g.name = name; this.root.add(g); return g; };
-    const inspect = (object: THREE.Object3D, label: string, text: string) => this.interactions.push({
-      id: `living-room:${object.name}`, object, verb: "Examine", label, range: 2.4, onInteract: () => message(text),
-    });
+    const group = this.group.bind(this);
+    const inspect = this.inspect.bind(this);
 
     box("Floor", 0, -0.06, 0, 7, 0.12, 6.2, darkWood);
     // Thin plank joints give the floor scale without creating collision obstacles.

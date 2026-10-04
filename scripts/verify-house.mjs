@@ -25,6 +25,10 @@ try {
   for (const Section of [Kitchen, LivingRoom, Bedroom, Basement, UtilityRoom, Study]) {
     let message = "";
     const section = new Section(text => { message = text; });
+    const countMeshes = () => { let n = 0; section.root.traverse(o => { if (o.isMesh) n++; }); return n; };
+    const before = countMeshes();
+    section.finalize();
+    const drawn = countMeshes();
     section.root.updateMatrixWorld(true);
     const radius = 0.3, step = 0.15;
     const free = (x, z) => x > section.bounds.min.x + radius && x < section.bounds.max.x - radius
@@ -68,12 +72,13 @@ try {
     section.root.traverse(o => {
       if (!o.isMesh) return;
       resources.add(o.geometry);
-      for (const mat of [].concat(o.material)) { resources.add(mat); if (mat.map) resources.add(mat.map); }
+      // Canvas textures are shared by every room for the life of the page, so only geometry and materials are owned.
+      for (const mat of [].concat(o.material)) resources.add(mat);
     });
     let disposed = 0;
     for (const resource of resources) resource.addEventListener("dispose", () => disposed++);
     section.dispose();
     assert.equal(disposed, resources.size, `${Section.name}: resource disposal mismatch`);
-    console.log(`ok ${Section.name}: ${positions.length} reachable floor samples, ${ids.size} inspectable targets, ports accessible, ${disposed} resources disposed`);
+    console.log(`ok ${Section.name}: ${positions.length} reachable floor samples, ${ids.size} inspectable targets, ports accessible, ${before} -> ${drawn} meshes, ${disposed} resources disposed`);
   }
 } finally { await server.close(); }
