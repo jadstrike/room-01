@@ -198,6 +198,34 @@ export abstract class ProceduralSection extends Procedural {
   /** The door Rowan leaves by: E on it opens the way out. */
   exit: Examinable | null = null;
 
+  /**
+   * Floor, ceiling and four walls around a w x d room of height h, centred
+   * on the origin, with a 1.2 x 2.2 m doorway in the middle of the +Z wall.
+   * Walls are 0.2 m shells outside the bounds, as Room 01's spec has them.
+   */
+  protected shell(w: number, d: number, h: number, wall: THREE.Material, floor: THREE.Material, ceiling: THREE.Material): void {
+    const hw = w / 2;
+    const hd = d / 2;
+    this.box("Floor", 0, -0.06, 0, w + 0.4, 0.12, d + 0.4, floor);
+    this.box("Ceiling", 0, h + 0.06, 0, w + 0.4, 0.12, d + 0.4, ceiling);
+    this.box("Wall_Left", -hw - 0.1, h / 2, 0, 0.2, h, d + 0.4, wall, true);
+    this.box("Wall_Right", hw + 0.1, h / 2, 0, 0.2, h, d + 0.4, wall, true);
+    this.box("Wall_Back", 0, h / 2, -hd - 0.1, w + 0.4, h, 0.2, wall, true);
+    const side = (w - 1.2) / 2;
+    for (const s of [-1, 1]) this.box("Entry_Wall", s * (0.6 + side / 2), h / 2, hd + 0.1, side, h, 0.2, wall, true);
+    this.box("Entry_Lintel", 0, (2.2 + h) / 2, hd + 0.1, 1.2, h - 2.2, 0.2, wall, true);
+  }
+
+  /** The door that closes the doorway shell() leaves, at z = hd. */
+  protected doorSlab(hd: number, slab: THREE.Material, handle: THREE.Material): THREE.Group {
+    const door = this.group("Hall_Door");
+    door.add(this.box("Door_Slab", 0, 1.1, hd - 0.01, 1.18, 2.2, 0.08, slab, true));
+    door.add(this.box("Door_Handle", -0.43, 1.02, hd - 0.1, 0.14, 0.04, 0.08, handle));
+    for (const x of [-0.67, 0.67]) this.box("Door_Trim", x, 1.13, hd - 0.08, 0.1, 2.26, 0.1, handle);
+    this.box("Door_Trim", 0, 2.26, hd - 0.08, 1.44, 0.1, 0.1, handle);
+    return door;
+  }
+
   protected exitDoor(object: THREE.Object3D, label: string, text: string): void {
     this.exit = { id: `${this.prefix}:${object.name}`, object, label, text };
   }

@@ -95,7 +95,7 @@ export class Game {
   /** Put the player wherever the saved story says they are. */
   async start(): Promise<void> {
     const place = currentPlace(this.story);
-    if (place && SITES[place]) return this.enterSite(place, false);
+    if (place) return this.enterSite(place, false);
     return this.enterRoom01({ title: "Room 01" }, "Click to look around. WASD to move, E to interact.");
   }
 
@@ -119,7 +119,6 @@ export class Game {
 
   private async enterSite(place: Place, arriving: boolean): Promise<void> {
     const site = SITES[place];
-    if (!site) return;
     const inv = new Investigation(site, this.story);
     this.investigation = inv;
     this.travelling = true;
@@ -140,11 +139,6 @@ export class Game {
 
   /** The coin (or a challenge) sends Rowan to `place` for a round of investigation. */
   private beginRound(place: Place): void {
-    const site = SITES[place];
-    if (!site) {
-      this.engine.store.set({ message: `The coin said ${place === "lab" ? "the lab" : "the house"}. That place is not built yet.` });
-      return;
-    }
     this.story.act = "investigating";
     this.story.rounds.push(place);
     this.save();
@@ -526,7 +520,7 @@ export class Game {
 
   /** Development shortcut: drop straight into a site, as if the coin had sent Rowan there. */
   async jumpTo(place: Place): Promise<void> {
-    if (this.travelling || !SITES[place]) return;
+    if (this.travelling) return;
     this.story = { ...newStoryState(), met: true, coin: place === "house" ? "heads" : "tails", destination: place, picked: place };
     this.beginRound(place);
   }
@@ -534,7 +528,7 @@ export class Game {
   /** Development shortcut: back in Room 01 with everything from `place` in the journal. */
   async jumpToTrial(place: Place): Promise<void> {
     const site = SITES[place];
-    if (this.travelling || !site) return;
+    if (this.travelling) return;
     this.story = { ...newStoryState(), met: true, coin: place === "house" ? "heads" : "tails", destination: place, picked: place, rounds: [place] };
     const inv = new Investigation(site, this.story);
     for (const room of site.rooms) {

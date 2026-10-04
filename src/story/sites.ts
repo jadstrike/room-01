@@ -87,5 +87,44 @@ export const HOUSE: SiteDef = {
   arrival: "The boyfriend's house. A brass device hums beside the door you came in by.",
 };
 
-/** The lab is not built yet. */
-export const SITES: Readonly<Partial<Record<Place, SiteDef>>> = { house: HOUSE };
+export const LAB: SiteDef = {
+  id: "lab",
+  name: "The research lab",
+  owner: "coworker",
+  rooms: ["reception", "office", "cryostat", "server-room", "break-room"],
+  roomNames: {
+    reception: "Reception",
+    office: "Shared office",
+    cryostat: "Lab 2",
+    "server-room": "Server room",
+    "break-room": "Break room",
+  },
+  start: "reception",
+  configurations: [
+    { id: "day", name: "01 · Day shift", hint: "The doors everyone uses.", edges: [["reception", "office"], ["office", "break-room"]] },
+    { id: "night", name: "02 · Night shift", hint: "The way in after hours.", edges: [["reception", "cryostat"], ["cryostat", "server-room"]] },
+    { id: "lockdown", name: "03 · Lockdown", hint: "What stays open when the alarms go.", edges: [["break-room", "server-room"], ["server-room", "office"]] },
+  ],
+  keyClues: {
+    reception: "reception:Badge_Log",
+    office: "office:Draft_Paper",
+    cryostat: "cryostat:Incident_Log",
+    "server-room": "server-room:Deletion_Record",
+    "break-room": "break-room:Whiteboard_Argument",
+  },
+  memories: {
+    "reception:Badge_Log": "She rang me at twenty to twelve on the fourteenth. She said she was swiping into Lab 2. I remember the beep of the reader down the line.",
+    "office:Draft_Paper": "She told me he would never forgive her for the paper. I remember her saying it. I don't remember her face while she said it.",
+    "cryostat:Incident_Log": "An alarm screaming behind her voice, and her saying the fridge was quenching. Or someone telling me she said that. The two feel the same.",
+    "server-room:Deletion_Record": "She backed everything up twice; she was proud of it. I remember the pride. I don't remember where the backups went.",
+    "break-room:Whiteboard_Argument": "I remember her laughing about this board. Or crying about it. In my head the sound is the same.",
+  },
+  device: {
+    name: "the access tablet",
+    style: "tablet",
+    intro: "A tablet wired into the building's door controller. Each schedule it loads reroutes the badge doors. It remembers the ones it has run; reload one if a door opens onto nothing.",
+  },
+  arrival: "The research lab. An access tablet is clipped to the wall by the door you came in by.",
+};
+
+export const SITES: Readonly<Record<Place, SiteDef>> = { house: HOUSE, lab: LAB };
