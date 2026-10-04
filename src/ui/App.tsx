@@ -83,7 +83,7 @@ export function App() {
         <PauseMenu engine={engine} state={state} crosshair={crosshair} onCrosshair={updateCrosshair} />
       )}
 
-      {engine && inGame && state.ending && !state.transition && <EndingScreen engine={engine} ending={state.ending} />}
+      {engine && inGame && state.ending && !state.transition && <EndingScreen engine={engine} ending={state.ending} found={state.endingsFound} />}
 
       {engine && state.screen === "title" && state.phase !== "error" && (
         <TitleScreen engine={engine} state={state} crosshair={crosshair} onCrosshair={updateCrosshair} />

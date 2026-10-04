@@ -6,6 +6,7 @@ import { MenuList, type MenuItem } from "./MenuList";
 import { OptionsMenu } from "./OptionsMenu";
 import { Keys } from "./Keys";
 import { Credits } from "./Credits";
+import { CREATORS } from "./CreditsRoll";
 
 type View = "main" | "confirm" | "options" | "controls" | "credits";
 
@@ -47,7 +48,8 @@ export function TitleScreen({ engine, state, crosshair, onCrosshair }: Props) {
 
   return (
     <div className="title-screen">
-      <div className="title-column">
+      {/* Sub-screens shrink the title so their content fits a short window. */}
+      <div className={view === "main" ? "title-column" : "title-column compact"}>
         <h1 className="game-title">
           ROOM <span>01</span>
         </h1>
@@ -80,6 +82,9 @@ export function TitleScreen({ engine, state, crosshair, onCrosshair }: Props) {
 
         {view === "credits" && (
           <div className="title-panel">
+            <p className="title-creators">
+              A game by <strong>{CREATORS.join(" and ")}</strong>.
+            </p>
             <p>A game about a sister you remember. Made for the Moth quantum games hackathon.</p>
             <Credits />
             <button className="quiet" onClick={() => setView("main")} autoFocus>
