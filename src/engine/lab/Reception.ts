@@ -47,7 +47,7 @@ export class Reception extends ProceduralSection {
     inspect(
       log,
       "the night log",
-      "The badge readers' night log, printed and clipped to the desk. Two lines are circled: 14 March, 23:40, badge 0412 (his) opens Lab 2. 23:41, her badge, same door. No exit is recorded for either.",
+      "The badge readers' night log, printed and clipped to the desk. Two lines are circled: 14 March, 23:40, her badge opens Lab 2. 23:41, badge 0412 (his), same door. No exit is recorded for either.",
     );
 
     const chairs = group("Waiting_Chairs");

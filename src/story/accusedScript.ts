@@ -78,7 +78,7 @@ const ACCUSED: Record<AccusedId, Accused> = {
     kill: "She was the best physicist I have ever worked with. Why would I kill the only person who could finish it?",
     evidence: {
       "reception:Badge_Log": {
-        ask: "Your badge opened Lab 2 at twenty to twelve.",
+        ask: "Your badge opened Lab 2 a minute after hers.",
         reply: "0412 is my badge, and I lost it on the ninth. I reported it. Nobody deactivated it. Anyone could have used it. Anyone did.",
       },
       "office:Draft_Paper": {
