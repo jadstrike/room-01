@@ -613,6 +613,7 @@ export class Engine {
       this.audio.setVolume(volume);
       this.audio.setAmbience(ambience);
       if (PISTOL.sounds) void this.audio.loadGunSounds(PISTOL.sounds, import.meta.env.BASE_URL);
+      void this.audio.loadEntityEcho(import.meta.env.BASE_URL);
     }
   }
 

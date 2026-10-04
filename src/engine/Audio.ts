@@ -24,6 +24,12 @@ export class Audio {
   private volume: GainNode;
   /** Drones, distant noises, the heartbeat, the stings. */
   readonly score: Score;
+  /**
+   * The entity's voice goes through an echo measured by Moth's
+   * Retrocausal Echo engine (public/audio/entity-echo.wav), where negative
+   * returns play reversed: it answers itself out of order. Dry until loaded.
+   */
+  private voiceEcho: ConvolverNode;
 
   constructor(ctx: AudioContext = new AudioContext()) {
     this.ctx = ctx;
@@ -98,6 +104,21 @@ export class Audio {
     this.drive.connect(this.gun);
 
     this.score = new Score(this.ctx, this.out, this.room);
+    this.voiceEcho = this.ctx.createConvolver();
+    const echoWet = this.ctx.createGain();
+    echoWet.gain.value = 0.55;
+    this.voiceEcho.connect(echoWet).connect(this.out);
+  }
+
+  /** Fetch the quantum echo for the entity's voice; until it lands the voice is dry. */
+  async loadEntityEcho(base: string): Promise<void> {
+    try {
+      const res = await fetch(`${base}audio/entity-echo.wav`);
+      if (!res.ok) throw new Error(`${res.status}`);
+      this.voiceEcho.buffer = await this.ctx.decodeAudioData(await res.arrayBuffer());
+    } catch (error) {
+      console.warn("[audio] could not load the entity's echo; its voice stays dry", error);
+    }
   }
 
   /** 0..1, applied after the limiter so the mix keeps its shape at any level. */
@@ -355,6 +376,7 @@ export class Audio {
     formant.frequency.setValueAtTime(420, now);
     for (let t = 0.1; t < len; t += 0.11) formant.frequency.linearRampToValueAtTime(260 + Math.random() * 520, now + t);
     formant.connect(g).connect(this.out);
+    if (this.voiceEcho.buffer) g.connect(this.voiceEcho);
     for (const f of [58, 58 * 1.505, 87.7]) {
       const o = this.ctx.createOscillator();
       o.type = "sawtooth";
