@@ -64,6 +64,8 @@ Movement uses ground acceleration and friction rather than a smoothed camera, so
 
 ## Credits
 
+A game by **Khant Zwe Naing (Isaac)** and **Kyaw Lwin (William)**, made for the Moth quantum games hackathon.
+
 Room, chair character and placeholder mannequin are original procedural assets, free to use.
 
 This work is based on "Beretta Pistol FPS ANIMATION" (https://sketchfab.com/3d-models/beretta-pistol-fps-animation-0313ab1888994c14abeaf444d7af3217) by BURNER (https://sketchfab.com/Alexander_Ovelar), licensed under CC BY 4.0 (http://creativecommons.org/licenses/by/4.0/). Textures resized and recompressed, and its animation cut into separate clips.
