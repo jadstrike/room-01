@@ -35,6 +35,12 @@ Drop a picture anywhere on the page (or pick one in the pause menu) to put it on
 
 Progress is saved in the browser as you play, so **Quit to title** in the pause menu loses nothing. The endings you have reached are remembered on the title screen. In a dev build the pause menu also has chapter jumps (straight into the house, the lab, or the trial) for testing.
 
+## How Moth's quantum engines are used
+
+The coin the entity flips to decide where Rowan investigates is measured live by Moth's **Coin Toss** engine: one qubit, eleven shots, majority decides. The entity reads the counts out and the end credits show the Moth job ID. See [docs/MOTH.md](docs/MOTH.md) for how it is wired, why it fits the story, and the Labyrinth research. In game, **The quantum** on the title screen explains it too.
+
+To run it locally, put `MOTH_API_KEY=...` in a git-ignored `.env`. Without a key the game uses a local coin and says so.
+
 ## The sites
 
 The house (six rooms) and the lab (five) are built in code rather than modelled, and connected by a device that changes which doors lead where. See [docs/SITES.md](docs/SITES.md) for how they work and how to add a room or a whole site.

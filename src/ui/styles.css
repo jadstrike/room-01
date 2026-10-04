@@ -1808,3 +1808,44 @@ input[type="range"] {
   font: 400 11px/1.5 var(--mono);
   color: var(--dim);
 }
+
+/* ---------------- the quantum page ---------------- */
+.title-column.compact .title-panel:has(.quantum-info) {
+  max-width: 640px;
+}
+
+.quantum-info h2 {
+  margin: 20px 0 6px;
+  font: 500 10px/1 var(--mono);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #e0827d;
+}
+
+.quantum-info h2:first-child {
+  margin-top: 0;
+}
+
+.quantum-info p {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink);
+}
+
+.quantum-info b {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.quantum-info code {
+  font: 12px var(--mono);
+  color: var(--moon);
+}
+
+.quantum-last {
+  padding-left: 10px;
+  border-left: 2px solid var(--blood);
+  font: 400 12px/1.5 var(--mono) !important;
+  color: var(--dim) !important;
+}

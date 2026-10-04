@@ -6,9 +6,10 @@ import { MenuList, type MenuItem } from "./MenuList";
 import { OptionsMenu } from "./OptionsMenu";
 import { Keys } from "./Keys";
 import { Credits } from "./Credits";
+import { QuantumInfo } from "./QuantumInfo";
 import { CREATORS } from "./CreditsRoll";
 
-type View = "main" | "confirm" | "options" | "controls" | "credits";
+type View = "main" | "confirm" | "options" | "controls" | "credits" | "quantum";
 
 type Props = {
   engine: Engine;
@@ -42,6 +43,7 @@ export function TitleScreen({ engine, state, crosshair, onCrosshair }: Props) {
     ...(state.progress ? [{ id: "continue", label: "Continue", detail: state.progress, disabled: loading, run: () => game.continueGame() }] : []),
     { id: "new", label: "New game", disabled: loading, run: () => (state.progress ? setView("confirm") : void game.beginNewGame()) },
     { id: "options", label: "Options", run: () => setView("options") },
+    { id: "quantum", label: "The quantum", detail: "How Moth's engines play a part", run: () => setView("quantum") },
     { id: "controls", label: "Controls", run: () => setView("controls") },
     { id: "credits", label: "Credits", run: () => setView("credits") },
   ];
@@ -75,6 +77,16 @@ export function TitleScreen({ engine, state, crosshair, onCrosshair }: Props) {
           <div className="title-panel">
             <Keys />
             <button className="quiet" onClick={() => setView("main")} autoFocus>
+              Back <kbd>Esc</kbd>
+            </button>
+          </div>
+        )}
+
+        {view === "quantum" && (
+          <div className="title-panel">
+            <QuantumInfo coin={game.story.coinProof} />
+            {/* No autofocus: focusing the button would scroll a long page to its end. */}
+            <button className="quiet" onClick={() => setView("main")}>
               Back <kbd>Esc</kbd>
             </button>
           </div>
