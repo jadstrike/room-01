@@ -139,6 +139,10 @@ export class Engine {
   /** Bumped by each enter(), so a slow load cannot land after a newer one. */
   private entering = 0;
   private shadowAccum = 0;
+  /** The examine view: where the camera goes, what it looks at, and how far along it is. */
+  private examine = { at: new THREE.Vector3(), look: new THREE.Vector3(), amount: 0, target: 0 };
+  // A camera, because lookAt faces cameras down -Z and everything else down +Z.
+  private examineTmp = new THREE.PerspectiveCamera();
   /** The view's yaw before the title screen's drift took over. */
   private attractYaw: number | null = null;
   private frames = 0;
@@ -296,9 +300,33 @@ export class Engine {
     this.player.spawnAt(level.spawn, level.lookAt);
     // The title screen's drift starts again from the new view, not the last level's.
     this.attractYaw = null;
+    this.examine.amount = this.examine.target = 0;
     this.interact.setRoots(level.raycastRoots());
     this.dust.setBulbPosition(level.lightPosition);
     this.buildDebug();
+  }
+
+  /**
+   * Move the view in on `object`, the way a horror game frames what you are
+   * examining; null moves it back. The player does not move: only the camera
+   * leans in, along the line Rowan was already looking down, so it never
+   * passes through a wall he could not see past.
+   */
+  focusOn(object: THREE.Object3D | null): void {
+    if (!object) {
+      this.examine.target = 0;
+      return;
+    }
+    const box = new THREE.Box3().setFromObject(object);
+    const centre = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3()).length();
+    const eye = this.player.position.clone().setY(this.player.position.y + 1.6);
+    const away = eye.clone().sub(centre);
+    const reach = away.length();
+    const distance = Math.min(reach * 0.85, THREE.MathUtils.clamp(size * 1.1, 0.55, 1.6));
+    this.examine.at.copy(centre).addScaledVector(away.normalize(), distance);
+    this.examine.look.copy(centre);
+    this.examine.target = 1;
   }
 
   /** Static shadows are drawn once; call this when one of their casters goes away. */
@@ -687,6 +715,18 @@ export class Engine {
     return dialogue || panel ? "ambient" : "menu";
   }
 
+  /** Blend the camera from where the player is looking to the examine view, eased both ways. */
+  private applyExamine(dt: number): void {
+    const e = this.examine;
+    e.amount += (e.target - e.amount) * Math.min(1, dt * 5);
+    if (e.amount < 0.001) return;
+    const k = e.amount * e.amount * (3 - 2 * e.amount);
+    this.examineTmp.position.copy(e.at);
+    this.examineTmp.lookAt(e.look);
+    this.camera.position.lerp(e.at, k);
+    this.camera.quaternion.slerp(this.examineTmp.quaternion, k);
+  }
+
   private frame = (now: number): void => {
     this.pacer.mode = this.paceMode();
     if (!this.pacer.tick(now)) return;
@@ -706,8 +746,8 @@ export class Engine {
       this.player.yaw = this.attractYaw;
       this.attractYaw = null;
     }
-    // The hands and gun belong to play, not to the title screen.
-    this.viewmodel.setShown(screen === "game");
+    // The hands and gun belong to play, not to the title screen or a close look at something.
+    this.viewmodel.setShown(screen === "game" && this.examine.amount < 0.05);
     this.player.update(dt);
     this.game.update();
     // The raycast walks the whole level, so run it at 30 Hz rather than every
@@ -724,6 +764,7 @@ export class Engine {
       this.shadowAccum = 0;
       this.renderer.shadowMap.needsUpdate = true;
     }
+    this.applyExamine(dt);
     this.viewmodel.update(dt, this.camera, this.player, this.player.speed01);
     this.weapon?.update(dt);
     this.wheelCooldown = Math.max(0, this.wheelCooldown - dt);
