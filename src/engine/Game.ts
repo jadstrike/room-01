@@ -1,8 +1,9 @@
-import type * as THREE from "three";
+import * as THREE from "three";
 import type { Card, Engine } from "./Engine";
 import type { Interactable } from "./Interact";
 import { PROP_INTERACTIONS } from "./Room";
 import { Room01Level } from "./levels/Room01Level";
+import type { Entity } from "./Entity";
 import { SiteLevel } from "./levels/SiteLevel";
 import { ROOMS } from "./levels/rooms";
 import type { Examinable } from "./house/ProceduralSection";
@@ -84,6 +85,8 @@ export const INITIAL_GAME: GameState = {
 };
 
 const ENDINGS_KEY = "moth.endings";
+/** Where the lent entity waits between appearances: under the floor, still drawn, so still compiled. */
+const HIDDEN_Y = -60;
 const TIPS_KEY = "moth.tips";
 
 export type Tip = { id: string; title: string; text: string; keys: string[] };
@@ -91,7 +94,7 @@ export type Tip = { id: string; title: string; text: string; keys: string[] };
 /** Each shown once per player, the first time it matters. */
 const TIPS: Readonly<Record<string, Omit<Tip, "id">>> = {
   look: { title: "Moving", text: "Walk with W A S D and look with the mouse. When the mark in the middle turns red, press E.", keys: ["W", "A", "S", "D", "E"] },
-  evidence: { title: "Evidence", text: "Examine everything with E. Key evidence is what the case turns on: record it, and try to remember.", keys: ["E"] },
+  evidence: { title: "Evidence", text: "It is dark here: L for your flashlight. Examine everything with E, and record the key evidence.", keys: ["L", "E"] },
   journal: { title: "Journal", text: "Everything you record goes in the journal. Read it any time.", keys: ["J"] },
   device: { title: "The device", text: "It decides where this place's doors lead. Turn it when a door leads nowhere useful.", keys: ["P"] },
   trial: { title: "The trial", text: "Talk to the accused and put what you found to them. When you are ready, give the entity your answer.", keys: ["E"] },
@@ -126,6 +129,12 @@ export class Game {
   private deviceOff: (() => void) | null = null;
   private entityOff: (() => void) | null = null;
   private travelling = false;
+  /** The entity, lent to the site Rowan is in. */
+  private ghost: Entity | null = null;
+  private haunted = false;
+  private roomTime = 0;
+  private ghostUntil = 0;
+  private dreadUntil = 0;
   /** Waiting for the coin to land before the toss line. */
   private flipping = false;
   /** The act when the last line was shown, to catch the line that changes it. */
@@ -253,6 +262,10 @@ export class Game {
       }
       this.site = null;
       this.investigation = null;
+      if (this.ghost) {
+        level.reclaimEntity();
+        this.ghost = null;
+      }
       this.wireRoom01(level);
       return level;
     }, card);
@@ -286,6 +299,7 @@ export class Game {
         const level = SiteLevel.create(inv.room, deviceHere ? { label: site.device.name, style: site.device.style } : null);
         this.site = level;
         this.wireSite(level, inv);
+        this.lendGhost(level);
         return level;
       },
       arriving ? { title: site.name, line: "The coin decided." } : { title: inv.roomName, line: inv.config.name },
@@ -482,8 +496,66 @@ export class Game {
     }
   }
 
+  // --- the entity follows ------------------------------------------------------------
+  /**
+   * Room 01 is detached while Rowan is in a site, so its entity can be lent
+   * to the site. It waits below the floor, where it is drawn (cheaply) and so
+   * compiled with the room behind the loading screen; the scare never stalls.
+   */
+  private lendGhost(level: SiteLevel): void {
+    const entity = this.room01?.entity;
+    if (!entity) return;
+    level.root.add(entity.root);
+    entity.hold(true);
+    entity.root.position.set(0, HIDDEN_Y, 0);
+    this.ghost = entity;
+    this.haunted = false;
+    this.roomTime = 0;
+    this.ghostUntil = 0;
+  }
+
+  /**
+   * Once per room visit, after Rowan has been there a while, when the lights
+   * black out: the entity at the edge of the torch beam, facing him, for a
+   * second, then gone.
+   */
+  private haunt(dt: number): void {
+    const ghost = this.ghost;
+    const site = this.site;
+    if (!ghost || !site || this.engine.level !== site) return;
+    const player = this.engine.player.position;
+    ghost.update(dt, { player, obstacles: [], area: { xMin: -99, xMax: 99, zMin: -99, zMax: 99 }, light: this.engine.live.bulb });
+    this.roomTime += dt;
+    // Timed by the clock, not by frames: on a slow machine a second must still be a second.
+    if (this.ghostUntil) {
+      if (performance.now() >= this.ghostUntil) {
+        ghost.root.position.y = HIDDEN_Y;
+        this.ghostUntil = 0;
+      }
+      return;
+    }
+    const { screen, panel, locked } = { ...this.engine.store.get(), locked: this.engine.player.locked };
+    if (this.haunted || this.roomTime < 10 || this.engine.live.bulb > 0.15 || screen !== "game" || panel || this.conversation || !locked) return;
+    // Three to four metres down the line Rowan is looking, inside the room.
+    const forward = new THREE.Vector3();
+    this.engine.camera.getWorldDirection(forward);
+    forward.setY(0).normalize();
+    const b = site.bounds;
+    const at = player.clone().addScaledVector(forward, 3.6);
+    at.x = THREE.MathUtils.clamp(at.x, b.min.x + 0.5, b.max.x - 0.5);
+    at.z = THREE.MathUtils.clamp(at.z, b.min.z + 0.5, b.max.z - 0.5);
+    // Facing a wall, there is no room for it in front of him. Next blackout.
+    if (at.distanceTo(player) < 2) return;
+    this.haunted = true;
+    ghost.place(at, player);
+    this.ghostUntil = performance.now() + 1100;
+    this.dreadUntil = performance.now() + 4000;
+    this.engine.audio?.sting("arrive");
+  }
+
   /** How close the entity is, 0..1, for the heartbeat; an execution keeps it going regardless. */
   private dread(): number {
+    if (performance.now() < this.dreadUntil) return 1;
     const entity = this.room01?.entity;
     if (!entity || this.engine.level !== this.room01 || this.engine.store.get().screen !== "game") return 0;
     const near = Math.min(1, Math.max(0, (4 - entity.position.distanceTo(this.engine.player.position)) / 3));
@@ -531,7 +603,8 @@ export class Game {
   }
 
   /** Per frame: only the walk out of Room 01 is a place rather than an action. */
-  update(): void {
+  update(dt: number): void {
+    this.haunt(dt);
     this.engine.audio?.setDread(this.dread());
     if (this.story.act !== "released" || !this.room01 || this.engine.level !== this.room01) return;
     // The far end of the spec's hallway runs to x = 7.

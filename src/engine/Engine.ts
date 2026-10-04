@@ -40,6 +40,8 @@ export type EngineState = GameState & {
   autoResolution: boolean;
   /** The horror score: drones, distant noises, heartbeat, stings. */
   ambience: boolean;
+  /** The torch Rowan carries. */
+  flashlight: boolean;
   /** Master volume, 0..1. */
   volume: number;
   autoScale: boolean;
@@ -77,6 +79,7 @@ export const INITIAL_STATE: EngineState = {
   frameCap: 60,
   autoResolution: true,
   ambience: true,
+  flashlight: false,
   volume: 0.8,
   autoScale: true,
   headBob: true,
@@ -150,6 +153,7 @@ export class Engine {
   private statAccum = 0;
   private interactAccum = 0;
   private wheelCooldown = 0;
+  private flashlight = new THREE.SpotLight(0xfff0d6, 0);
   private reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   private disposed = false;
   /** Applying saved settings, which should not save them again one by one. */
@@ -180,6 +184,18 @@ export class Engine {
     this.scene.add(this.debugGroup);
 
     this.camera = new THREE.PerspectiveCamera(INITIAL_STATE.fov, 1, 0.02, 60);
+    // The torch rides on the camera. It is always in the scene and only its
+    // intensity changes, so switching it never changes the light count (which
+    // would recompile every material); it casts no shadows, so it is cheap.
+    this.flashlight.angle = 0.5;
+    this.flashlight.penumbra = 0.8;
+    this.flashlight.decay = 2;
+    this.flashlight.distance = 14;
+    this.flashlight.intensity = 0;
+    this.flashlight.position.set(0.12, -0.08, 0);
+    this.flashlight.target.position.set(0.05, -0.1, -1);
+    this.camera.add(this.flashlight, this.flashlight.target);
+    this.scene.add(this.camera);
     this.post = new Post(this.renderer, this.scene, this.camera);
     this.post.addViewmodel(this.scene, this.viewmodel.camera);
 
@@ -395,6 +411,13 @@ export class Engine {
   }
 
   /** Put the gun away (true) or draw it (false). */
+  /** Switch the torch on or off. */
+  setFlashlight(on: boolean): void {
+    this.flashlight.intensity = on ? FLASHLIGHT_INTENSITY : 0;
+    this.store.set({ flashlight: on });
+    this.audio?.blip(on ? 1400 : 900, 0.03);
+  }
+
   setHolstered(on: boolean): void {
     if (this.weapon?.setHolstered(on)) this.audio?.holster(!on);
   }
@@ -678,6 +701,7 @@ export class Engine {
     if (e.code === "Digit1") this.setHolstered(false);
     if (e.code === "Digit2") this.setHolstered(true);
     if (e.code === "KeyQ") this.setHolstered(!this.weapon?.state.holstered);
+    if (e.code === "KeyL") this.setFlashlight(!this.store.get().flashlight);
   };
 
   // --- frame loop ----------------------------------------------------------
@@ -750,7 +774,7 @@ export class Engine {
     // The hands and gun belong to play, not to the title screen or a close look at something.
     this.viewmodel.setShown(screen === "game" && this.examine.amount < 0.05);
     this.player.update(dt);
-    this.game.update();
+    this.game.update(dt);
     // The raycast walks the whole level, so run it at 30 Hz rather than every
     // frame: still well inside the time it takes to read the prompt.
     if ((this.interactAccum += dt) >= 1 / 30) {
@@ -839,6 +863,8 @@ export class Engine {
 }
 
 const SETTINGS_KEY = "moth.settings";
+/** Bright enough to read evidence by at a few metres, dim enough that the dark still wins. */
+const FLASHLIGHT_INTENSITY = 11;
 
 /** Above 1.75 the post chain costs far more than the sharpness is worth. */
 function basePixelRatio(): number {

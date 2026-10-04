@@ -178,9 +178,7 @@ export class Room01Level implements Level {
   // --- the entity -------------------------------------------------------------
   private addEntity(entity: Entity): void {
     this.entity = entity;
-    this.root.add(entity.root);
-    // It starts behind the accused, facing the player, where the bulb barely reaches.
-    entity.place(new THREE.Vector3(-0.9, 0, -2.05), ROOM01.markers.cameraStart);
+    this.reclaimEntity();
     raycastAsBox(entity.root, entity.collider);
     this.refreshColliders();
   }
@@ -194,6 +192,19 @@ export class Room01Level implements Level {
     for (const seat of this.seats) seat.holder.removeFromParent();
     this.confine = null;
     this.refreshColliders();
+  }
+
+  /**
+   * Take the entity back after it has been lent to a site (where it follows
+   * Rowan), and put it where it starts: behind the accused, facing the
+   * player, where the bulb barely reaches.
+   */
+  reclaimEntity(): void {
+    const entity = this.entity;
+    if (!entity) return;
+    this.root.add(entity.root);
+    entity.hold(false);
+    entity.place(new THREE.Vector3(-0.9, 0, -2.05), ROOM01.markers.cameraStart);
   }
 
   isEntity(object: THREE.Object3D): boolean {

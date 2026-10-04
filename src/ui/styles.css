@@ -1948,3 +1948,15 @@ input[type="range"] {
     width: 120px;
   }
 }
+
+.loading-screen .lore {
+  margin: 44px auto 0;
+  max-width: 34ch;
+  font: italic 400 13px/1.6 var(--type);
+  color: var(--dim);
+  opacity: 0;
+}
+
+.loading-screen[data-visible] .lore {
+  animation: appear 1.2s ease 0.4s forwards;
+}
