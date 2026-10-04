@@ -19,6 +19,8 @@ export type ChoiceDef<S> = {
 export type NodeDef<S> = {
   speaker: string;
   text: string | ((s: S) => string);
+  /** A picture shown with the line, by name; the UI decides what it is. */
+  image?: string;
   /** Runs when the node is shown. */
   enter?: (s: S) => void;
   choices?: ChoiceDef<S>[];
@@ -34,6 +36,7 @@ export type DialogueView = {
   choices: { label: string; seen: boolean }[];
   /** No choices: Continue moves on, or ends the conversation when `last`. */
   last: boolean;
+  image?: string;
 };
 
 export class Conversation<S> {
@@ -58,6 +61,7 @@ export class Conversation<S> {
       text: typeof n.text === "function" ? n.text(this.state) : n.text,
       choices: this.choices.map((c) => ({ label: c.label, seen: c.seen?.(this.state) ?? false })),
       last: !this.choices.length && !n.next,
+      image: n.image,
     };
   }
 

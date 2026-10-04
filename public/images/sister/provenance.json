@@ -1,0 +1,46 @@
+{
+  "blur": [
+    {
+      "strength": 0.2,
+      "style": "rx",
+      "reach": 0.1,
+      "size": 384,
+      "downscale": true,
+      "job": "e2ccad03-4eea-4d64-a261-dac0f9c224b6"
+    },
+    {
+      "strength": 0.3,
+      "style": "rx",
+      "reach": 0.1,
+      "size": 384,
+      "downscale": true,
+      "job": "ee6d9465-2d93-42e6-ae2d-8706a044091b"
+    },
+    {
+      "strength": 0.4,
+      "style": "rx",
+      "reach": 0.1,
+      "size": 384,
+      "downscale": true,
+      "job": "a14f85de-319d-434f-9629-f930bade661e"
+    }
+  ],
+  "teleblur": [
+    {
+      "strength": 0.25,
+      "job": "25c75ff6-3f13-4d42-8718-fcdf699af143"
+    },
+    {
+      "strength": 0.5,
+      "job": "c353a029-5695-49d1-95b8-2d70877f6679"
+    },
+    {
+      "strength": 0.75,
+      "job": "21c3c71c-d969-4e30-b5c2-7bd11286fe91"
+    },
+    {
+      "strength": 1,
+      "job": "554e43c2-aa40-4a71-b215-df8e6b537d52"
+    }
+  ]
+}

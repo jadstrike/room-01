@@ -3,6 +3,7 @@ import type { Engine, EngineState } from "../engine/Engine";
 import type { Evidence } from "../story/state";
 import { CONTRADICTION } from "../story/entityScript";
 import { MenuList, type MenuItem } from "./MenuList";
+import { SisterPhoto } from "./SisterPhoto";
 
 const PLACE_NAMES: Record<Evidence["place"], string> = { house: "The boyfriend's house", lab: "The research lab" };
 
@@ -63,10 +64,14 @@ function Examine({ engine, state, back }: ScreenProps) {
       <section className="examine-text">
         <p>{inspection.observation}</p>
         {state.recalled && (
-          <p className="examine-memory">
-            <span>Rowan remembers</span>
-            {inspection.recall}
-          </p>
+          <div className="examine-recall">
+            {/* Her face slips further with every memory he records. */}
+            {inspection.key && <SisterPhoto kind="memory" stage={Math.floor(state.journal.filter((e) => e.memory).length / 3)} />}
+            <p className="examine-memory">
+              <span>Rowan remembers</span>
+              {inspection.recall}
+            </p>
+          </div>
         )}
         <div className="examine-actions">
           {!state.recalled && (

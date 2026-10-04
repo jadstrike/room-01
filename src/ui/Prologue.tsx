@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import type { Engine } from "../engine/Engine";
+import { SisterPhoto, preloadSister } from "./SisterPhoto";
 
 const LINES = [
   "Rowan Langdon had a sister.",
@@ -14,6 +15,8 @@ const LINES = [
  * is the click pointer lock needs.
  */
 export function Prologue({ engine, ready }: { engine: Engine; ready: boolean }) {
+  useEffect(preloadSister, []);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       // A focused button clicks itself on Enter and Space; this covers the rest of the page.
@@ -28,6 +31,8 @@ export function Prologue({ engine, ready }: { engine: Engine; ready: boolean }) 
 
   return (
     <div className="prologue" role="dialog" aria-label="Prologue">
+      <div className="prologue-body">
+      <SisterPhoto kind="memory" stage={2} caption={false} />
       <div className="card">
         {LINES.map((line, i) => (
           <p key={line} style={{ animationDelay: `${0.4 + i * 1.6}s` }}>
@@ -37,6 +42,7 @@ export function Prologue({ engine, ready }: { engine: Engine; ready: boolean }) 
         <button className="primary" style={{ animationDelay: `${0.4 + LINES.length * 1.6}s` }} disabled={!ready} onClick={() => engine.game.wake()} autoFocus>
           {ready ? "Wake up" : "…"}
         </button>
+      </div>
       </div>
     </div>
   );

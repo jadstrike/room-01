@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Engine } from "../engine/Engine";
 import type { DialogueView } from "../story/dialogue";
+import { SisterPhoto } from "./SisterPhoto";
 
 const CHARS_PER_SECOND = 55;
 
@@ -82,6 +83,7 @@ export function DialogueBox({ engine, view }: { engine: Engine; view: DialogueVi
     <div className="dialogue-backdrop" onClick={() => !view.choices.length && next()}>
       <section className="dialogue" role="dialog" aria-label={`Talking to ${view.speaker}`} onClick={(e) => e.stopPropagation()}>
         <h2 className="speaker">{view.speaker}</h2>
+        {view.image === "sister-morph" && <SisterPhoto kind="morph" />}
         <p className="line" ref={textRef} aria-live="polite" onClick={() => !typed && skip.current()} />
         {view.choices.length > 0 ? (
           <ol className="choices" data-hidden={!typed || undefined}>
