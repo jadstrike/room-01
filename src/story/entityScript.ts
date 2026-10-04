@@ -1,5 +1,7 @@
 import type { Script } from "./dialogue";
-import { tossCoin, type Coin } from "./quantum";
+import { tossCoin } from "./quantum";
+import type { Place } from "./sites";
+import type { StoryState } from "./state";
 
 /**
  * Room 01, first act, from the story flowchart: the entity claims Rowan's
@@ -13,27 +15,6 @@ import { tossCoin, type Coin } from "./quantum";
  * thing Rowan cannot quite remember - because the final reveal is that he
  * never had one.
  */
-
-export type Place = "house" | "lab";
-
-export type StoryState = {
-  met: boolean;
-  asked: { who: boolean; where: boolean; boyfriend: boolean; coworker: boolean; sister: boolean; research: boolean };
-  /** Where Rowan wanted to go, and what the coin said. */
-  picked: Place | null;
-  coin: Coin | null;
-  destination: Place | null;
-};
-
-export function newStoryState(): StoryState {
-  return {
-    met: false,
-    asked: { who: false, where: false, boyfriend: false, coworker: false, sister: false, research: false },
-    picked: null,
-    coin: null,
-    destination: null,
-  };
-}
 
 /** Where a conversation with the entity starts, given how far the story has got. */
 export function entityStart(s: StoryState): string {
@@ -157,7 +138,10 @@ export const ENTITY_SCRIPT: Script<StoryState> = {
       return `${call} ${where} ${agree}`;
     },
     enter: (s) => {
-      s.destination = s.coin === "heads" ? "house" : "lab";
+      const destination: Place = s.coin === "heads" ? "house" : "lab";
+      s.destination = destination;
+      // Even walking away mid-sentence does not get Rowan out of it.
+      s.request = { kind: "travel", to: destination };
     },
     choices: [{ label: "...Fine.", next: "send_off" }],
   },
