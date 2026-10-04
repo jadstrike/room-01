@@ -20,6 +20,7 @@ import { Flicker } from "./Flicker";
 import { Dust } from "./Dust";
 import { Audio } from "./Audio";
 import { ROOM01 } from "./room01";
+import { Pacer, AdaptiveResolution, FRAME_CAPS, type FrameCap, type PaceMode } from "./Pacer";
 import { Kitchen } from "./house/Kitchen";
 import { Bedroom } from "./house/Bedroom";
 import { Basement } from "./house/Basement";
@@ -60,6 +61,10 @@ export type EngineState = {
   flicker: boolean;
   sound: boolean;
   quality: boolean;
+  /** Frames per second while playing; 0 renders every display refresh. */
+  frameCap: FrameCap;
+  /** Lower the render resolution when the frame rate cannot hold. */
+  autoResolution: boolean;
   autoScale: boolean;
   headBob: boolean;
   exposure: number;
@@ -78,7 +83,7 @@ export type EngineState = {
   dialogue: DialogueView | null;
   /** Where the coin sent Rowan, once it has been tossed. */
   destination: Place | null;
-  stats: { fps: number; triangles: number; roomMeshes: number; characterHeight: number; scaled: boolean };
+  stats: { fps: number; triangles: number; roomMeshes: number; characterHeight: number; scaled: boolean; renderScale: number };
 };
 
 export const INITIAL_STATE: EngineState = {
@@ -94,6 +99,8 @@ export const INITIAL_STATE: EngineState = {
   // On, but the AudioContext only starts with the click that begins play.
   sound: true,
   quality: true,
+  frameCap: 60,
+  autoResolution: true,
   autoScale: true,
   headBob: true,
   exposure: 1.5,
@@ -108,7 +115,7 @@ export const INITIAL_STATE: EngineState = {
   signs: [],
   dialogue: null,
   destination: null,
-  stats: { fps: 0, triangles: 0, roomMeshes: 0, characterHeight: 0, scaled: false },
+  stats: { fps: 0, triangles: 0, roomMeshes: 0, characterHeight: 0, scaled: false, renderScale: 1 },
 };
 
 /**
@@ -159,6 +166,10 @@ export class Engine {
   private debugGroup = new THREE.Group();
   private unregister: Array<() => void> = [];
   private resizeObserver: ResizeObserver;
+  private pacer = new Pacer();
+  private resolution = new AdaptiveResolution();
+  /** Whether the frame loop should run while the tab is visible. */
+  private running = false;
   private frames = 0;
   private fpsAccum = 0;
   private statAccum = 0;
@@ -169,7 +180,7 @@ export class Engine {
 
   constructor(private canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
-    this.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+    this.renderer.setPixelRatio(basePixelRatio());
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = INITIAL_STATE.exposure;
@@ -210,6 +221,8 @@ export class Engine {
     window.addEventListener("keydown", this.onKeyDown);
     canvas.addEventListener("mousedown", this.onMouseDown);
     window.addEventListener("wheel", this.onWheel, { passive: true });
+    document.addEventListener("visibilitychange", this.onVisibility);
+    this.loadPerformance();
     this.resize();
   }
 
@@ -221,7 +234,7 @@ export class Engine {
         this.houseRun = new HouseRun(parseHouseSave(raw));
         this.enterHouseRoom();
         this.store.set({ phase: "ready", message: "The coin brought you here. Find the brass device beside the hall door. J opens your journal." });
-        this.renderer.setAnimationLoop(this.frame);
+        this.start();
       } catch (error) { this.store.set({ phase: "error", error: error instanceof Error ? error.message : String(error) }); }
       return;
     }
@@ -246,7 +259,7 @@ export class Engine {
         if (model) this.viewmodel.useModel(model);
         this.equip();
         this.store.set({ location: this.location, phase: "ready", message: `${locationLabel(this.location)}. WASD to explore, E to examine. Esc returns to the menu.` });
-        this.renderer.setAnimationLoop(this.frame);
+        this.start();
       } catch (error) {
         this.store.set({ phase: "error", error: error instanceof Error ? error.message : String(error) });
       }
@@ -306,7 +319,7 @@ export class Engine {
       if (model) this.viewmodel.useModel(model);
       this.equip();
       this.store.set({ phase: "ready", message: "Click to look around. WASD to move, click to fire, R to reload, F to inspect, E to interact." });
-      this.renderer.setAnimationLoop(this.frame);
+      this.start();
     } catch (error) {
       console.error(error);
       this.store.set({ phase: "error", error: error instanceof Error ? error.message : String(error) });
@@ -711,6 +724,46 @@ export class Engine {
     this.store.set({ quality: on });
   }
 
+  setFrameCap(cap: FrameCap): void {
+    this.pacer.cap = cap;
+    this.store.set({ frameCap: cap });
+    this.savePerformance();
+  }
+
+  setAutoResolution(on: boolean): void {
+    this.resolution.enabled = on;
+    this.store.set({ autoResolution: on });
+    this.savePerformance();
+    if (!on && this.resolution.sample(0, this.pacer.cap)) this.applyPixelRatio();
+  }
+
+  private loadPerformance(): void {
+    try {
+      const saved = JSON.parse(localStorage.getItem(PERFORMANCE_KEY) ?? "null") as Partial<EngineState> | null;
+      if (saved && FRAME_CAPS.includes(saved.frameCap as FrameCap)) this.pacer.cap = saved.frameCap as FrameCap;
+      if (typeof saved?.autoResolution === "boolean") this.resolution.enabled = saved.autoResolution;
+    } catch {
+      // Private windows can refuse storage; the defaults are fine.
+    }
+    this.store.set({ frameCap: this.pacer.cap, autoResolution: this.resolution.enabled });
+  }
+
+  private savePerformance(): void {
+    const { frameCap, autoResolution } = this.store.get();
+    try {
+      localStorage.setItem(PERFORMANCE_KEY, JSON.stringify({ frameCap, autoResolution }));
+    } catch {
+      // As above: the setting still applies for this visit.
+    }
+  }
+
+  private applyPixelRatio(): void {
+    const ratio = basePixelRatio() * this.resolution.scale;
+    this.renderer.setPixelRatio(ratio);
+    this.post.composer.setPixelRatio(ratio);
+    this.resize();
+  }
+
   setExposure(value: number): void {
     this.renderer.toneMappingExposure = value;
     this.store.set({ exposure: value });
@@ -828,7 +881,35 @@ export class Engine {
     if (e.code === "KeyQ") this.setHolstered(!this.weapon?.state.holstered);
   };
 
+  // --- frame loop ----------------------------------------------------------
+  /** Run the frame loop (from now on, whenever the tab is visible). */
+  private start(): void {
+    this.running = true;
+    if (!document.hidden) this.renderer.setAnimationLoop(this.frame);
+  }
+
+  /** A hidden tab renders nothing at all, rather than whatever the browser's throttled rAF allows. */
+  private onVisibility = (): void => {
+    if (!this.running) return;
+    if (document.hidden) {
+      this.renderer.setAnimationLoop(null);
+      return;
+    }
+    this.pacer.reset();
+    this.resolution.reset();
+    this.timer.reset();
+    this.renderer.setAnimationLoop(this.frame);
+  };
+
+  private paceMode(): PaceMode {
+    if (this.player.locked) return "play";
+    const { dialogue, housePanel } = this.store.get();
+    return dialogue || housePanel ? "ambient" : "menu";
+  }
+
   private frame = (now: number): void => {
+    this.pacer.mode = this.paceMode();
+    if (!this.pacer.tick(now)) return;
     this.timer.update(now);
     const dt = Math.min(this.timer.getDelta(), 0.05);
     const t = this.timer.getElapsed();
@@ -858,6 +939,8 @@ export class Engine {
     this.live.bulb = level;
 
     this.post.render(t, dt);
+
+    if (this.pacer.mode === "play" && this.resolution.sample(dt, this.pacer.cap)) this.applyPixelRatio();
 
     this.frames++;
     this.fpsAccum += dt;
@@ -891,13 +974,16 @@ export class Engine {
         roomMeshes,
         characterHeight: this.seats[0].character?.height ?? 0,
         scaled: this.seats[0].character?.scaled ?? false,
+        renderScale: this.resolution.scale,
       },
     });
   }
 
   dispose(): void {
     this.disposed = true;
+    this.running = false;
     this.renderer.setAnimationLoop(null);
+    document.removeEventListener("visibilitychange", this.onVisibility);
     window.removeEventListener("keydown", this.onKeyDown);
     this.canvas.removeEventListener("mousedown", this.onMouseDown);
     window.removeEventListener("wheel", this.onWheel);
@@ -939,4 +1025,11 @@ type Seat = {
 function isDescendant(o: THREE.Object3D, ancestor: THREE.Object3D): boolean {
   for (let n: THREE.Object3D | null = o; n; n = n.parent) if (n === ancestor) return true;
   return false;
+}
+
+const PERFORMANCE_KEY = "moth.performance";
+
+/** Above 1.75 the post chain costs far more than the sharpness is worth. */
+function basePixelRatio(): number {
+  return Math.min(devicePixelRatio, 1.75);
 }

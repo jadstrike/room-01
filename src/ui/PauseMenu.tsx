@@ -2,6 +2,7 @@ import { LOCATIONS, locationLabel } from "../engine/house/locations";
 import type { ChangeEvent } from "react";
 import type { Engine, EngineState } from "../engine/Engine";
 import { CROSSHAIR_PRESETS, type CrosshairSettings } from "./crosshairSettings";
+import { FRAME_CAPS, type FrameCap } from "../engine/Pacer";
 
 type Props = {
   engine: Engine | null;
@@ -95,7 +96,6 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
               onChange={(v) => engine.setExposure(v)}
             />
             {engine.location === "room01" && <Toggle label="Bulb flicker" on={state.flicker} onChange={(v) => engine.setFlicker(v)} />}
-            <Toggle label="AO + grain" on={state.quality} onChange={(v) => engine.setQuality(v)} />
             <Toggle label="Sound" on={state.sound} onChange={() => engine.toggleSound()} />
             <Toggle
               label="Keep player in the room"
@@ -103,6 +103,24 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
               onChange={(v) => engine.setConfineToRoom(v)}
             />
             <Toggle label="Show colliders" on={state.debug} onChange={(v) => engine.setDebug(v)} />
+
+            <h2>Performance</h2>
+            <label className="field">
+              <span>Frame cap</span>
+              <select value={state.frameCap} onChange={(e) => engine.setFrameCap(Number(e.target.value) as FrameCap)}>
+                {FRAME_CAPS.map((cap) => (
+                  <option key={cap} value={cap}>
+                    {cap ? `${cap} fps` : "Display rate"}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <Toggle label="Auto resolution" on={state.autoResolution} onChange={(v) => engine.setAutoResolution(v)} />
+            <Toggle label="AO + grain" on={state.quality} onChange={(v) => engine.setQuality(v)} />
+            <p className="hint">
+              A lower cap runs cooler. Menus and conversations already draw fewer frames, and nothing renders while the tab
+              is hidden.
+            </p>
           </section>
 
           <section>

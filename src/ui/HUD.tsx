@@ -33,6 +33,10 @@ export function HUD({ state }: { state: EngineState }) {
           <dd>{stats.fps || "–"}</dd>
         </div>
         <div>
+          <dt>Res</dt>
+          <dd>{Math.round(stats.renderScale * 100)}%</dd>
+        </div>
+        <div>
           <dt>Tris</dt>
           <dd>{stats.triangles.toLocaleString()}</dd>
         </div>
