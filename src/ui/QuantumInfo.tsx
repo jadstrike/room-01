@@ -1,56 +1,67 @@
 import type { StoryState } from "../story/state";
+import { BAKED } from "../story/moth";
 
 /**
  * How the game uses Moth's quantum engines, for players and judges, on the
- * title screen. Only what is really in the build is stated as such; what is
- * planned says so.
+ * title screen. Five engines, each doing a job the story needs.
  */
-export function QuantumInfo({ coin }: { coin: StoryState["coinProof"] }) {
+export function QuantumInfo({ story }: { story: StoryState }) {
+  const coin = story.coinProof;
+  const measured = Object.entries(story.sites).flatMap(([place, p]) => (p?.measured ? [[place, p.measured.jobId] as const] : []));
+
   return (
     <div className="quantum-info">
-      <h2>The coin is real</h2>
-      <p>
-        Early on, the entity refuses to let Rowan choose where to look for evidence and flips a coin instead: heads, the
-        boyfriend&apos;s house; tails, the research lab. That coin is not a random number in your browser. The game asks
-        Moth&apos;s <b>Coin Toss</b> engine to put one qubit into superposition and measure it eleven times. Whichever side
-        comes up more often decides where the story goes.
-      </p>
-      <p>
-        The entity reads the result out (&ldquo;Six out of eleven&rdquo;), and the end credits show the Moth job that decided
-        your playthrough. It runs on Moth&apos;s quantum simulator, so the answer arrives in about five seconds, while the
-        entity is still talking.
-      </p>
-      {coin && (
-        <p className="quantum-last">
-          {coin.source === "moth"
-            ? `Your last coin: ${coin.heads} heads, ${coin.tails} tails · Moth job ${coin.jobId}`
-            : "Your last coin was flipped locally: Moth did not answer in time."}
-        </p>
-      )}
+      <p>Five of Moth&apos;s quantum engines are part of this game. Each one decides or makes something the story turns on.</p>
 
-      <h2>Why a quantum coin</h2>
+      <h2>1 · Coin Toss: where you go</h2>
       <p>
-        The entity is a four-dimensional being that sees every side of a thing at once. The one choice it hands to chance
-        is the one that sets the whole investigation going, and a qubit is the honest version of chance: both answers at
-        once, until it is measured. It is the same thing Rowan&apos;s memory of his sister turns out to be.
+        The entity won&apos;t let Rowan choose where to look for evidence. It flips a coin: heads, the boyfriend&apos;s house;
+        tails, the research lab. The game asks Moth to put one qubit into superposition and measure it eleven times, live,
+        while the entity talks. The majority decides your story, and the entity reads the count out.
+      </p>
+
+      <h2>2 · Quantum Labyrinth: how the place is joined</h2>
+      <p>
+        When you arrive, Moth measures the house or the lab. Each room is a qubit; a door opens between two rooms whose qubits
+        measured the same. The three layouts measured most often become the brass device&apos;s arrangements, so every
+        playthrough has a different house, and no measurement can leave a room unreachable.
+      </p>
+
+      <h2>3 · Quantum Blur: her face</h2>
+      <p>
+        Rowan can&apos;t remember his sister&apos;s face. Her photograph went through Moth&apos;s Blur engine at three
+        strengths. It never comes into focus, and each memory he recalls shows it a little less clearly.
+      </p>
+
+      <h2>4 · Quantum Teleblur: whose face</h2>
+      <p>
+        At the reveal, the entity admits it built her out of other people. Her photograph comes apart through quantum
+        interference into a stranger&apos;s: Moth&apos;s Teleblur, in four steps.
+      </p>
+
+      <h2>5 · Retrocausal Echo: its voice</h2>
+      <p>
+        The entity&apos;s voice runs through an echo measured on a qubit chain, where negative returns play backwards. It
+        answers itself out of order, the way a thing outside time would.
       </p>
 
       <h2>How it is wired</h2>
       <p>
-        Your browser never sees the API key. It asks this game&apos;s own server, which calls the Moth Quantum API, waits for
-        the measurement and passes back only the counts. If Moth is slow or unreachable, a local coin stands in and the
-        entity admits it flipped that one itself. The game never stalls on the network.
+        Coin Toss and Labyrinth run live, through this game&apos;s own server, which holds the API key; your browser never
+        sees it. If Moth is slow, the game carries on with a local coin and the authored rooms, and says so. Blur, Teleblur
+        and Echo were made once, ahead of time, so they never keep you waiting.
       </p>
 
-      <h2>Researched, and next</h2>
-      <p>
-        <b>Quantum Labyrinth</b>: we ran Moth&apos;s Labyrinth engine on four rooms of the house to see whether measured
-        qubit correlations could decide which doors connect. The findings, from a real run, are in the project&apos;s{" "}
-        <code>docs/quantum-house</code>. The device that rearranges the house and the lab is where it will go.
-      </p>
-      <p>
-        <b>Quantum Blur</b>: Rowan cannot remember his sister&apos;s face. Planned: her face, blurred by Moth&apos;s Blur
-        engine, that never comes into focus.
+      <p className="quantum-last">
+        {coin ? (coin.source === "moth" ? `Your coin: ${coin.heads} heads, ${coin.tails} tails · job ${coin.jobId}` : "Your coin was flipped locally: Moth did not answer in time.") : "Your coin has not been flipped yet."}
+        {measured.map(([place, job]) => (
+          <span key={job}>
+            <br />
+            Your {place === "house" ? "house" : "lab"}: Labyrinth job {job}
+          </span>
+        ))}
+        <br />
+        Blur {BAKED.blur[0].slice(0, 8)}… · Teleblur {BAKED.teleblur[0].slice(0, 8)}… · Echo {BAKED.echo.slice(0, 8)}…
       </p>
     </div>
   );

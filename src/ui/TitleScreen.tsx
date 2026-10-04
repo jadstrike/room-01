@@ -43,7 +43,7 @@ export function TitleScreen({ engine, state, crosshair, onCrosshair }: Props) {
     ...(state.progress ? [{ id: "continue", label: "Continue", detail: state.progress, disabled: loading, run: () => game.continueGame() }] : []),
     { id: "new", label: "New game", disabled: loading, run: () => (state.progress ? setView("confirm") : void game.beginNewGame()) },
     { id: "options", label: "Options", run: () => setView("options") },
-    { id: "quantum", label: "The quantum", detail: "How Moth's engines play a part", run: () => setView("quantum") },
+    { id: "quantum", label: "The quantum", detail: "Five of Moth's engines, and what each does", run: () => setView("quantum") },
     { id: "controls", label: "Controls", run: () => setView("controls") },
     { id: "credits", label: "Credits", run: () => setView("credits") },
   ];
@@ -84,7 +84,7 @@ export function TitleScreen({ engine, state, crosshair, onCrosshair }: Props) {
 
         {view === "quantum" && (
           <div className="title-panel">
-            <QuantumInfo coin={game.story.coinProof} />
+            <QuantumInfo story={game.story} />
             {/* No autofocus: focusing the button would scroll a long page to its end. */}
             <button className="quiet" onClick={() => setView("main")}>
               Back <kbd>Esc</kbd>
