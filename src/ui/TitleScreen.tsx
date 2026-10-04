@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Engine, EngineState } from "../engine/Engine";
 import type { CrosshairSettings } from "./crosshairSettings";
 import { ENDING_ORDER, ENDING_TITLES } from "../story/endings";
-import { Settings } from "./Settings";
+import { MenuList, type MenuItem } from "./MenuList";
+import { OptionsMenu } from "./OptionsMenu";
 import { Keys } from "./Keys";
 import { Credits } from "./Credits";
 
 type View = "main" | "confirm" | "options" | "controls" | "credits";
-type Item = { id: string; label: string; detail?: string; disabled?: boolean; run: () => void };
 
 type Props = {
   engine: Engine;
@@ -23,47 +23,27 @@ type Props = {
  */
 export function TitleScreen({ engine, state, crosshair, onCrosshair }: Props) {
   const [view, setView] = useState<View>("main");
-  const [selected, setSelected] = useState(0);
   const loading = state.phase !== "ready" || state.transition !== null;
   const game = engine.game;
 
-  const items: Item[] = [
+  useEffect(() => {
+    if (view === "main" || view === "options") return;
+    const onKey = (e: KeyboardEvent) => e.code === "Escape" && setView("main");
+    addEventListener("keydown", onKey);
+    return () => removeEventListener("keydown", onKey);
+  }, [view]);
+
+  if (view === "options") {
+    return <OptionsMenu engine={engine} state={state} crosshair={crosshair} onCrosshair={onCrosshair} onBack={() => setView("main")} />;
+  }
+
+  const items: MenuItem[] = [
     ...(state.progress ? [{ id: "continue", label: "Continue", detail: state.progress, disabled: loading, run: () => game.continueGame() }] : []),
     { id: "new", label: "New game", disabled: loading, run: () => (state.progress ? setView("confirm") : void game.beginNewGame()) },
     { id: "options", label: "Options", run: () => setView("options") },
     { id: "controls", label: "Controls", run: () => setView("controls") },
     { id: "credits", label: "Credits", run: () => setView("credits") },
   ];
-
-  // Keep the selection on something that can be picked as items come and go.
-  const current = Math.min(selected, items.length - 1);
-  const itemsRef = useRef(items);
-  itemsRef.current = items;
-  const menuRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (view !== "main") {
-        if (e.code === "Escape") setView("main");
-        return;
-      }
-      // Arrows move focus; Enter and Space then click the focused button natively.
-      const list = itemsRef.current;
-      const step = e.code === "ArrowDown" || e.code === "KeyS" ? 1 : e.code === "ArrowUp" || e.code === "KeyW" ? -1 : 0;
-      if (!step) return;
-      e.preventDefault();
-      let next = Math.min(selected, list.length - 1);
-      for (let n = 0; n < list.length; n++) {
-        next = (next + step + list.length) % list.length;
-        if (!list[next].disabled) break;
-      }
-      setSelected(next);
-      menuRef.current?.querySelectorAll("button")[next]?.focus();
-      engine.audio?.blip(520, 0.03);
-    };
-    addEventListener("keydown", onKey);
-    return () => removeEventListener("keydown", onKey);
-  }, [view, selected, engine]);
 
   return (
     <div className="title-screen">
@@ -73,24 +53,7 @@ export function TitleScreen({ engine, state, crosshair, onCrosshair }: Props) {
         </h1>
         <p className="tagline">One of them killed your sister.</p>
 
-        {view === "main" && (
-          <nav className="title-menu" aria-label="Main menu" ref={menuRef}>
-            {items.map((item, i) => (
-              <button
-                key={item.id}
-                className={i === current ? "selected" : undefined}
-                disabled={item.disabled}
-                onMouseEnter={() => !item.disabled && setSelected(i)}
-                onFocus={() => setSelected(i)}
-                onClick={item.run}
-                autoFocus={i === 0}
-              >
-                <span>{item.label}</span>
-                {item.detail && <small>{item.detail}</small>}
-              </button>
-            ))}
-          </nav>
-        )}
+        {view === "main" && <MenuList items={items} label="Main menu" onMove={() => engine.audio?.blip(520, 0.03)} />}
 
         {view === "confirm" && (
           <div className="title-panel">
@@ -109,10 +72,6 @@ export function TitleScreen({ engine, state, crosshair, onCrosshair }: Props) {
         {view === "controls" && (
           <div className="title-panel">
             <Keys />
-            <p className="hint">
-              Talk to the entity, find the evidence, give it an answer. E examines and talks; J is the journal; in the
-              house and the lab, P turns the device that decides where doors lead.
-            </p>
             <button className="quiet" onClick={() => setView("main")} autoFocus>
               Back <kbd>Esc</kbd>
             </button>
@@ -146,20 +105,6 @@ export function TitleScreen({ engine, state, crosshair, onCrosshair }: Props) {
           </span>
         </footer>
       </div>
-
-      {view === "options" && (
-        <div className="menu-backdrop">
-          <div className="menu" role="dialog" aria-label="Options">
-            <header>
-              <h1>OPTIONS</h1>
-              <button className="primary" onClick={() => setView("main")} autoFocus>
-                Back
-              </button>
-            </header>
-            <Settings engine={engine} state={state} crosshair={crosshair} onCrosshair={onCrosshair} />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

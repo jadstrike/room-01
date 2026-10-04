@@ -29,7 +29,7 @@ export const SEATS: readonly SeatDef[] = [
     x: 0.62,
     z: 0,
     yaw: -0.14,
-    examine: "Tied to the chair. Her lab badge is still clipped to the collar.",
+    examine: "Tied to the chair. His lab badge is still clipped to his collar: the same lab she worked in.",
   },
 ];
 
