@@ -276,7 +276,7 @@ export class Game {
             return;
           }
           this.engine.audio?.blip(300, 0.06);
-          this.engine.store.set({ message: `${prop.verb} ${prop.label} — nothing here yet.` });
+          this.engine.store.set({ message: prop.text });
         },
       };
       if (prop.node === "Door") this.doorItem = item;
@@ -485,6 +485,10 @@ export class Game {
   private examine(item: Examinable): void {
     const inv = this.investigation;
     if (!inv) return;
+    // Fridges and cupboards open as Rowan looks in them.
+    const swung = this.site?.open(item.id);
+    if (swung === "fridge") this.engine.audio?.fridge();
+    else if (swung) this.engine.audio?.door();
     const title = item.label.replace(/^the /, "");
     this.inspection = inv.inspection(item.id, title[0].toUpperCase() + title.slice(1), item.text);
     this.engine.audio?.blip(260, 0.08);
@@ -547,7 +551,19 @@ export class Game {
     if (!inv || this.travelling || !inv.travel(room)) return;
     this.closePanel();
     this.save();
+    await this.throughTheDoor();
     await this.enterSite(inv.site.id, false);
+  }
+
+  /** The exit door swings open on the fold behind it, and only then does the room change. */
+  private async throughTheDoor(): Promise<void> {
+    const site = this.site;
+    if (!site) return;
+    this.travelling = true;
+    this.engine.player.frozen = true;
+    this.engine.audio?.door();
+    setTimeout(() => this.engine.audio?.portal(), 250);
+    await site.openExit();
   }
 
   shiftDevice(): void {
@@ -575,6 +591,7 @@ export class Game {
     this.closePanel();
     this.story.act = "trial";
     this.save();
+    await this.throughTheDoor();
     await this.enterRoom01({ title: "Room 01", line: "The entity folds you back into the room." }, "Back in Room 01. The entity is waiting for an answer.");
   }
 

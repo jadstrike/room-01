@@ -41,11 +41,22 @@ export class BreakRoom extends ProceduralSection {
     for (const [i, x] of [-1.0, -0.75, -0.5].entries()) mugs.add(this.cylinder("Mug", x, 1.0, -1.85, 0.05, 0.12, i === 1 ? red : white));
     inspect(mugs, "the mugs", "One says WORLD'S SECOND-BEST PHYSICIST. It is chipped, and clearly his, and clearly used every day without irony.");
 
-    this.box("Fridge", 1.85, 0.95, -1.9, 0.7, 1.9, 0.7, white, true);
-    this.box("Fridge_Handle", 1.55, 1.2, -1.53, 0.03, 0.4, 0.04, steel);
+    // The fridge opens on the wall side; the birthday card on its door goes with it.
+    const fridge = this.group("Fridge");
+    fridge.add(this.box("Fridge_Body", 1.85, 0.95, -1.93, 0.7, 1.9, 0.64, white, true));
+    const glow = this.own(new THREE.MeshStandardMaterial({ color: 0xb9c4c0, emissive: 0xc9dcd6, emissiveIntensity: 0.18 }));
+    fridge.add(this.box("Fridge_Inside", 1.85, 0.95, -1.607, 0.6, 1.8, 0.01, glow));
+    for (const y of [0.5, 0.95, 1.4]) fridge.add(this.box("Fridge_Shelf", 1.85, y, -1.59, 0.58, 0.015, 0.04, glow));
+    for (const [i, x] of [1.65, 1.8, 1.97].entries()) fridge.add(this.box("Lunch", x, 1.0, -1.59, 0.12, 0.09, 0.04, i === 2 ? paper : this.material(0x4f6b7a)));
+    fridge.add(this.box("Her_Label", 1.85, 0.53, -1.588, 0.16, 0.035, 0.005, paper));
+    const fridgeDoor = [this.box("Fridge_Door", 1.85, 0.95, -1.57, 0.7, 1.9, 0.06, white), this.box("Fridge_Handle", 1.55, 1.2, -1.52, 0.03, 0.4, 0.04, steel)];
+    for (const part of fridgeDoor) fridge.add(part);
     const card = group("Birthday_Card");
     card.add(this.box("Card", 1.95, 1.35, -1.545, 0.22, 0.28, 0.01, paper));
     card.add(this.box("Card_Front", 1.95, 1.4, -1.538, 0.16, 0.08, 0.002, red));
+    fridge.add(card);
+    this.swing(fridge, [...fridgeDoor, card], new THREE.Vector3(2.2, 0, -1.57), 1.9, "fridge");
+    inspect(fridge, "the break room fridge", "Lunches in labelled boxes. The bottom shelf has her name on the label, in her own handwriting. It is empty.");
     inspect(
       card,
       "the birthday card",

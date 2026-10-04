@@ -69,9 +69,19 @@ export class UtilityRoom extends ProceduralSection {
 
     const cupboard = group("Cleaning_Cupboard");
     cupboard.add(box("Cupboard", 2.13, 1, 0.05, 0.6, 2, 1, wood, true));
-    cupboard.add(box("Cupboard_Front", 1.81, 1, 0.05, 0.04, 1.86, 0.88, enamel));
-    cupboard.add(box("Cupboard_Handle", 1.76, 1.02, 0.34, 0.06, 0.22, 0.03, steel));
-    inspect(cupboard, "the cleaning cupboard", "Buckets, brushes and spare bulbs belong here. A handwritten list on the inside of the door asks someone to fix the cellar latch.");
+    // Inside, just behind the door: a shelf, a bucket and a brush, seen when it swings open.
+    cupboard.add(box("Cupboard_Back", 1.84, 1, 0.05, 0.01, 1.84, 0.84, this.material(0x2b2f2c)));
+    cupboard.add(box("Cupboard_Shelf", 1.86, 1.35, 0.05, 0.05, 0.02, 0.8, wood));
+    cupboard.add(this.cylinder("Bucket", 1.88, 0.2, -0.15, 0.13, 0.3, this.material(0x8a2f27)));
+    cupboard.add(box("Brush", 1.88, 0.55, 0.3, 0.04, 0.9, 0.04, wood));
+    const cupboardDoor = [
+      box("Cupboard_Front", 1.81, 1, 0.05, 0.04, 1.86, 0.88, enamel),
+      box("Cupboard_Handle", 1.76, 1.02, 0.34, 0.06, 0.22, 0.03, steel),
+      box("Repair_List", 1.834, 1.3, 0.1, 0.008, 0.3, 0.22, paper),
+    ];
+    for (const part of cupboardDoor) cupboard.add(part);
+    this.swing(cupboard, cupboardDoor, new THREE.Vector3(1.81, 0, -0.39), -1.75);
+    inspect(cupboard, "the cleaning cupboard", "Buckets, brushes and spare bulbs. On the inside of the door, a handwritten list: \"Cellar latch. Stain for the stairs. Pipe under the sink.\" The last one is underlined twice.");
     const basket = group("Laundry_Basket");
     basket.add(box("Basket_Base", -1.87, 0.04, 0.31, 0.65, 0.08, 0.58, wood));
     for (const x of [-2.17, -1.57]) basket.add(box("Basket_Side", x, 0.25, 0.31, 0.05, 0.46, 0.58, wood));
