@@ -9,8 +9,8 @@ export class Study extends ProceduralSection {
   readonly lookAt = new THREE.Vector3(-0.6, 1, -1.7);
   readonly ports = [{ id: "hall", position: new THREE.Vector3(0, 0, 2.6), outward: new THREE.Vector3(0, 0, 1), width: 1.2, height: 2.2 }];
 
-  constructor(message: (text: string) => void) {
-    super("study", message);
+  constructor() {
+    super("study");
     this.root.name = "House_Study";
     const plaster = this.material(0x8e8b79, this.texture("plaster"));
     const wood = this.material(0x614c36, this.texture("wood"));
@@ -32,7 +32,7 @@ export class Study extends ProceduralSection {
     const door = group("Hall_Door");
     door.add(box("Door", 0, 1.1, 2.59, 1.18, 2.2, 0.08, wood, true));
     door.add(box("Handle", -0.43, 1, 2.5, 0.14, 0.04, 0.08, brass));
-    inspect(door, "the study door", "The study is quieter than the rest of the house. For a moment, Rowan expects to hear someone turning a page behind him.");
+    this.exitDoor(door, "the study door", "The study is quieter than the rest of the house. For a moment, Rowan expects to hear someone turning a page behind him.");
 
     box("Desk_Top", -0.8, 0.88, -1.92, 2.2, 0.12, 1, wood, true);
     for (const x of [-1.7, 0.1]) box("Desk_Pedestal", x, 0.41, -1.92, 0.35, 0.82, 0.83, wood, true);

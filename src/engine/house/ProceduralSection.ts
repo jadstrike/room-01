@@ -1,15 +1,20 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
-import type { Interactable } from "../Interact";
-import type { HouseSection } from "./HouseSection";
 
 export type TextureKind = "plaster" | "wood" | "tile" | "floor" | "fabric" | "rug";
 
 /** Built once per kind and shared by every room for the life of the page: six 256 px canvases. */
 const sharedTextures = new Map<TextureKind, THREE.CanvasTexture>();
 
+/** Something in a room E can be pressed on, and what Rowan sees when it is. */
+export type Examinable = { id: string; object: THREE.Object3D; label: string; text: string };
+
+/** A doorway in a room's local space: the door the player leaves by. */
+export type Port = { id: string; position: THREE.Vector3; outward: THREE.Vector3; width: number; height: number };
+
 /**
- * Shared resource ownership for authored rooms, independent of maze topology.
+ * Builds procedural props out of boxes and cylinders, and owns what they
+ * allocate: geometry and materials are disposed with it, textures are shared.
  *
  * Rooms are written as many small boxes, which reads well but would cost a
  * draw call each - several hundred per room, times six for every point-light
@@ -17,25 +22,17 @@ const sharedTextures = new Map<TextureKind, THREE.CanvasTexture>();
  * merges each inspectable object's parts the same way under that object, so
  * the centre-screen raycast still finds what it is looking at.
  */
-export abstract class ProceduralSection implements HouseSection {
+export abstract class Procedural {
   readonly root = new THREE.Group();
   readonly colliders: THREE.Box3[] = [];
-  readonly interactions: Interactable[] = [];
-  abstract readonly bounds: THREE.Box3;
-  abstract readonly dustOrigin: THREE.Vector3;
-  abstract readonly spawn: THREE.Vector3;
-  abstract readonly lookAt: THREE.Vector3;
-  abstract readonly ports: HouseSection["ports"];
+  readonly examinables: Examinable[] = [];
   protected geometries = new Set<THREE.BufferGeometry>();
   protected materials = new Set<THREE.Material>();
   private cube = new THREE.BoxGeometry(1, 1, 1);
   private finalized = false;
 
-  /** `prefix` namespaces interaction ids, e.g. "kitchen". */
-  constructor(
-    private prefix = "",
-    private message: (text: string) => void = () => {},
-  ) {
+  /** `prefix` namespaces examinable ids, e.g. "kitchen". */
+  constructor(protected prefix: string) {
     this.geometries.add(this.cube);
   }
 
@@ -88,15 +85,10 @@ export abstract class ProceduralSection implements HouseSection {
   }
 
   /** Make an object examinable: E shows `text`. */
-  protected inspect(object: THREE.Object3D, label: string, text: string): void {
-    this.interactions.push({
-      id: `${this.prefix}:${object.name}`,
-      object,
-      verb: "Examine",
-      label,
-      range: 2.4,
-      onInteract: () => this.message(text),
-    });
+  protected inspect(object: THREE.Object3D, label: string, text: string): Examinable {
+    const item = { id: `${this.prefix}:${object.name}`, object, label, text };
+    this.examinables.push(item);
+    return item;
   }
 
   /** A shadow-casting point light with the settings every room uses. */
@@ -130,7 +122,7 @@ export abstract class ProceduralSection implements HouseSection {
     if (this.finalized) return;
     this.finalized = true;
     this.root.updateMatrixWorld(true);
-    const owners = new Set<THREE.Object3D>(this.interactions.map((i) => i.object));
+    const owners = new Set<THREE.Object3D>(this.interactionObjects());
     const batches = new Map<string, { owner: THREE.Object3D; material: THREE.Material; meshes: THREE.Mesh[] }>();
     this.root.traverse((o) => {
       const mesh = o as THREE.Mesh;
@@ -177,6 +169,11 @@ export abstract class ProceduralSection implements HouseSection {
     }
   }
 
+  /** Objects the raycast must still be able to find after merging. */
+  protected interactionObjects(): THREE.Object3D[] {
+    return this.examinables.map((e) => e.object);
+  }
+
   dispose(): void {
     this.root.traverse((o) => {
       if (o instanceof THREE.Light) o.dispose();
@@ -184,6 +181,31 @@ export abstract class ProceduralSection implements HouseSection {
     for (const geometry of this.geometries) geometry.dispose();
     for (const material of this.materials) material.dispose();
     this.root.removeFromParent();
+  }
+}
+
+/**
+ * An authored room of a site. All measurements are local metres, with the
+ * floor at y = 0 and the exit door in `ports[0]`.
+ */
+export abstract class ProceduralSection extends Procedural {
+  abstract readonly bounds: THREE.Box3;
+  /** The main light: dust glows around it. */
+  abstract readonly dustOrigin: THREE.Vector3;
+  abstract readonly spawn: THREE.Vector3;
+  abstract readonly lookAt: THREE.Vector3;
+  abstract readonly ports: readonly Port[];
+  /** The door Rowan leaves by: E on it opens the way out. */
+  exit: Examinable | null = null;
+
+  protected exitDoor(object: THREE.Object3D, label: string, text: string): void {
+    this.exit = { id: `${this.prefix}:${object.name}`, object, label, text };
+  }
+
+  protected override interactionObjects(): THREE.Object3D[] {
+    const objects = super.interactionObjects();
+    if (this.exit) objects.push(this.exit.object);
+    return objects;
   }
 }
 

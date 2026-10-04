@@ -1,61 +1,32 @@
 import * as THREE from "three";
 import { Store } from "./store";
-import { Room, PROP_INTERACTIONS } from "./Room";
-import { dressChair } from "./ChairDressing";
-import { Character } from "./Character";
 import { Viewmodel, VIEWMODEL_LAYER } from "./Viewmodel";
 import { WeaponModel } from "./WeaponModel";
 import { Weapon, type WeaponState } from "./Weapon";
 import { Impacts } from "./Impacts";
 import { PISTOL } from "./weapons";
-import { SignPicture } from "./Sign";
-import { Entity, type EntityContext } from "./Entity";
-import { SEATS, type SeatDef } from "./cast";
-import { Conversation, type DialogueView } from "../story/dialogue";
-import { ENTITY_SCRIPT, entityStart } from "../story/entityScript";
-import { newStoryState, type StoryState } from "../story/state";
-import type { Place } from "../story/sites";
 import { Player } from "./Player";
 import { Interact, type FocusInfo, type Interactable } from "./Interact";
 import { Post } from "./Post";
 import { Flicker } from "./Flicker";
 import { Dust } from "./Dust";
 import { Audio } from "./Audio";
-import { ROOM01 } from "./room01";
+import { Character } from "./Character";
 import { Pacer, AdaptiveResolution, FRAME_CAPS, type FrameCap, type PaceMode } from "./Pacer";
-import { Kitchen } from "./house/Kitchen";
-import { Bedroom } from "./house/Bedroom";
-import { Basement } from "./house/Basement";
-import { UtilityRoom } from "./house/UtilityRoom";
-import { Study } from "./house/Study";
-import { LivingRoom } from "./house/LivingRoom";
-import type { HouseSection } from "./house/HouseSection";
-import { locationFromSearch, locationLabel, type LocationId } from "./house/locations";
-import { HouseRun, SAVE_KEY, parseHouseSave, memoryFor, ROOM_NAMES, type HouseRoom, type Inspection, type HouseSave } from "./house/HouseRun";
-import { HouseDevice } from "./house/HouseDevice";
+import { Game, INITIAL_GAME, type GameState } from "./Game";
+import type { Level, Report } from "./levels/Level";
+import type { DialogueView } from "../story/dialogue";
 
-/**
- * Asset paths go through BASE_URL so a sub-path deploy (GitHub Pages) works.
- * horror_room.web.glb is the meshopt + WebP build (1.1 MB); horror_room.glb is
- * the uncompressed 3 MB original, kept for exact side-by-side comparison with
- * docs/reference_camera_start.jpg.
- */
-const BASE = import.meta.env.BASE_URL;
-export const ASSETS = {
-  room: `${BASE}models/horror_room.web.glb`,
-  roomUncompressed: `${BASE}models/horror_room.glb`,
-  character: `${BASE}models/chair_character.glb`,
-};
+/** What the loading screen shows. */
+export type Card = { title: string; line?: string };
 
-export type EngineState = {
-  house: HouseSave | null;
-  housePanel: "inspection" | "journal" | "device" | "passage" | null;
-  inspection: Inspection | null;
-  recalled: boolean;
-  saveWarning: string;
+export type Transition = Card & { step: string; progress: number };
+
+export type EngineState = GameState & {
   phase: "loading" | "ready" | "error";
-  location: LocationId;
   error: string | null;
+  /** The loading screen, while one level is being swapped for another. */
+  transition: Transition | null;
   locked: boolean;
   focus: FocusInfo | null;
   clips: string[];
@@ -74,7 +45,7 @@ export type EngineState = {
   fov: number;
   debug: boolean;
   doorOpen: boolean;
-  /** Keeps the player inside the room even when the door is open. */
+  /** Keeps the player inside the room even when a door is open. */
   confineToRoom: boolean;
   specOk: boolean;
   message: string;
@@ -83,16 +54,14 @@ export type EngineState = {
   signs: { id: string; label: string; custom: boolean }[];
   /** The conversation on screen, if any. */
   dialogue: DialogueView | null;
-  /** Where the coin sent Rowan, once it has been tossed. */
-  destination: Place | null;
-  stats: { fps: number; triangles: number; roomMeshes: number; characterHeight: number; scaled: boolean; renderScale: number };
+  stats: { fps: number; triangles: number; meshes: number; characterHeight: number; scaled: boolean; renderScale: number };
 };
 
 export const INITIAL_STATE: EngineState = {
-  house: null, housePanel: null, inspection: null, recalled: false, saveWarning: "",
+  ...INITIAL_GAME,
   phase: "loading",
-  location: "room01",
   error: null,
+  transition: { title: "", step: "", progress: 0 },
   locked: false,
   focus: null,
   clips: [],
@@ -116,15 +85,20 @@ export const INITIAL_STATE: EngineState = {
   weapon: null,
   signs: [],
   dialogue: null,
-  destination: null,
-  stats: { fps: 0, triangles: 0, roomMeshes: 0, characterHeight: 0, scaled: false, renderScale: 1 },
+  stats: { fps: 0, triangles: 0, meshes: 0, characterHeight: 0, scaled: false, renderScale: 1 },
 };
 
+/** Matches the loading screen's CSS fade. */
+const FADE_MS = 320;
+/** Moving shadow casters (the entity, the door) do not need their shadows redrawn every frame. */
+const SHADOW_HZ = 30;
+
 /**
- * Owns the renderer, the scene and the frame loop. React mounts one of these
- * and reads discrete state through store.subscribe(); per-frame values live on
- * `live` and are read by an rAF in the components that need them, so the render
- * loop never causes a React re-render.
+ * Owns the renderer, the scene and the frame loop, and hosts one level at a
+ * time. React mounts one of these and reads discrete state through
+ * store.subscribe(); per-frame values live on `live` and are read by an rAF in
+ * the components that need them, so the render loop never causes a re-render.
+ * What happens in the world is the Game's business (`game`).
  */
 export class Engine {
   readonly store = new Store<EngineState>(INITIAL_STATE);
@@ -135,25 +109,11 @@ export class Engine {
   readonly camera: THREE.PerspectiveCamera;
   readonly player: Player;
   readonly interact = new Interact();
-
-  location = locationFromSearch(window.location.search);
-  readonly houseMode = new URLSearchParams(window.location.search).get("house") === "1";
-  houseRun: HouseRun | null = null;
-  private houseDevice: HouseDevice | null = null;
-  houseSection: HouseSection | null = null;
-  room: Room | null = null;
-  /** The two accused, each tied to a chair, in the order of `SEATS`. */
-  readonly seats: Seat[] = SEATS.map((def) => ({
-    def,
-    holder: new THREE.Group(),
-    character: null,
-    sign: new SignPicture(`room01.sign.${def.id}`),
-    off: null,
-  }));
-  entity: Entity | null = null;
-  private story: StoryState = newStoryState();
-  private conversation: Conversation<StoryState> | null = null;
+  readonly game: Game;
+  /** The level in the scene, or null while the loading screen is up. */
+  level: Level | null = null;
   weapon: Weapon | null = null;
+  audio: Audio | null = null;
 
   private renderer: THREE.WebGLRenderer;
   private post: Post;
@@ -161,17 +121,18 @@ export class Engine {
   private dust = new Dust();
   private viewmodel = new Viewmodel();
   private impacts = new Impacts();
-  /** Room colliders plus the chairs: what the entity steers around. */
-  private obstacles: THREE.Box3[] = [];
-  private audio: Audio | null = null;
   private timer = new THREE.Timer();
   private debugGroup = new THREE.Group();
-  private unregister: Array<() => void> = [];
+  /** Interactions registered for the current level; cleared when it is left. */
+  private scope: Array<() => void> = [];
   private resizeObserver: ResizeObserver;
   private pacer = new Pacer();
   private resolution = new AdaptiveResolution();
   /** Whether the frame loop should run while the tab is visible. */
   private running = false;
+  /** Bumped by each enter(), so a slow load cannot land after a newer one. */
+  private entering = 0;
+  private shadowAccum = 0;
   private frames = 0;
   private fpsAccum = 0;
   private statAccum = 0;
@@ -188,6 +149,10 @@ export class Engine {
     this.renderer.toneMappingExposure = INITIAL_STATE.exposure;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
+    // Every renderer.render() would otherwise redraw every shadow map - and
+    // the post chain renders the scene three times a frame (scene, GTAO
+    // normals, viewmodel). Shadows are redrawn only when a level asks.
+    this.renderer.shadowMap.autoUpdate = false;
 
     this.scene.background = new THREE.Color(0x030304);
     this.scene.fog = new THREE.FogExp2(0x040406, 0.075);
@@ -211,12 +176,14 @@ export class Engine {
     this.player.onLockChange = (locked) => this.store.set({ locked });
     this.player.onStep = (hard) => this.audio?.footstep(hard);
     this.flicker.enabled = !this.reduceMotion;
-    this.store.set({ location: this.location, flicker: this.flicker.enabled });
+    this.store.set({ flicker: this.flicker.enabled });
 
     this.interact.onFocusChange = (focus) => {
       this.store.set({ focus });
       if (focus) this.audio?.blip(360, 0.05);
     };
+
+    this.game = new Game(this);
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(canvas.parentElement ?? canvas);
@@ -229,313 +196,118 @@ export class Engine {
   }
 
   async init(): Promise<void> {
-    if (this.houseMode) {
-      try {
-        let raw: string | null = null;
-        try { raw = localStorage.getItem(SAVE_KEY); } catch { this.store.set({ saveWarning: "Saving is unavailable. Progress lasts for this visit only." }); }
-        this.houseRun = new HouseRun(parseHouseSave(raw));
-        this.enterHouseRoom();
-        this.store.set({ phase: "ready", message: "The coin brought you here. Find the brass device beside the hall door. J opens your journal." });
-        this.start();
-      } catch (error) { this.store.set({ phase: "error", error: error instanceof Error ? error.message : String(error) }); }
-      return;
-    }
-    if (this.location !== "room01") {
-      try {
-        const publish = (message: string) => this.store.set({ message });
-        const sections = { kitchen: Kitchen, "living-room": LivingRoom, bedroom: Bedroom, basement: Basement, "utility-room": UtilityRoom, study: Study };
-        const section = new sections[this.location](publish);
-        section.finalize();
-        this.houseSection = section;
-        this.scene.add(section.root);
-        section.root.traverse(o => { if (o instanceof THREE.Light) o.layers.enable(VIEWMODEL_LAYER); });
-        this.player.setBounds(section.bounds);
-        this.player.setColliders(section.colliders);
-        this.setConfineToRoom(true);
-        this.player.spawnAt(section.spawn, section.lookAt);
-        this.interact.setRoots([section.root]);
-        for (const item of section.interactions) this.register(item);
-        this.dust.setBulbPosition(section.dustOrigin);
-        this.buildDebug();
-        const model = PISTOL.viewmodel ? await WeaponModel.load(PISTOL.viewmodel).catch(() => null) : null;
-        if (this.disposed) { model?.dispose(); return; }
-        if (model) this.viewmodel.useModel(model);
-        this.equip();
-        this.store.set({ location: this.location, phase: "ready", message: `${locationLabel(this.location)}. WASD to explore, E to examine. Esc returns to the menu.` });
-        this.start();
-      } catch (error) {
-        this.store.set({ phase: "error", error: error instanceof Error ? error.message : String(error) });
-      }
-      return;
-    }
-    // The game carries on without it if it fails to load.
-    const entityModel = Entity.load().catch((error) => {
-      console.warn("[entity] could not load the entity", error);
-      return null;
-    });
-    // Loads alongside the room; if it fails, the procedural pistol stands in.
+    // Loads alongside the first level; until it arrives, the procedural pistol stands in.
     const gunModel = PISTOL.viewmodel
       ? WeaponModel.load(PISTOL.viewmodel).catch((error) => {
           console.warn("[weapon] could not load the pistol model, using the built-in one", error);
           return null;
         })
       : Promise.resolve(null);
+    this.equip();
+    void gunModel.then((model) => {
+      if (this.disposed) model?.dispose();
+      else if (model) this.viewmodel.useModel(model);
+    });
+    await this.game.start();
+  }
+
+  // --- levels ------------------------------------------------------------------
+  /**
+   * Swap the current level for the one `load` produces, behind the loading
+   * screen: fade to black, stop rendering, let the old level go, build the
+   * new one, compile its shaders and draw its shadows once, fade back in.
+   * Nothing is rendered while the CPU is busy loading, and the first frame of
+   * the new level does not stall on shader compilation.
+   *
+   * Returns false if the load failed or a newer enter() overtook this one.
+   */
+  async enter(load: (report: Report) => Level | Promise<Level>, card: Card): Promise<boolean> {
+    const token = ++this.entering;
+    const report: Report = (step, progress) => {
+      if (token === this.entering) this.store.set({ transition: { ...card, step, progress } });
+    };
+    this.store.set({ transition: { ...card, step: "", progress: 0 }, focus: null, message: "" });
+    this.player.frozen = true;
+    if (this.level) await wait(FADE_MS);
+    if (token !== this.entering || this.disposed) return false;
+
+    this.stopLoop();
+    this.leaveLevel();
+    let level: Level;
     try {
-      const room = await Room.load(ASSETS.room);
-      if (this.disposed) return room.dispose();
-      this.room = room;
-      this.scene.add(room.root);
-      // Lights only reach cameras that share a layer with them.
-      room.root.traverse((o) => {
-        if ((o as THREE.Light).isLight) o.layers.enable(VIEWMODEL_LAYER);
-      });
-      this.dust.setBulbPosition(room.bulbWorldPosition);
-      this.player.setBounds(room.bounds);
-      this.player.setColliders(room.colliders);
-      this.player.setConfinement(ROOM01.walkable.room);
-      this.interact.setRoots([room.root]);
-
-      // Spec markers, not the GLB's camera nodes: the player's eye height comes
-      // from the capsule, so only the XZ of CameraStart is meaningful here.
-      this.player.spawnAt(ROOM01.markers.cameraStart, ROOM01.markers.cameraTarget);
-
-      this.registerProps();
-      this.buildDebug();
-
-      const check = room.verifyAgainstSpec();
-      this.store.set({ specOk: check.ok });
-      if (check.ok) {
-        console.info("[room] matches ROOM01_SPEC", check.report);
-      } else {
-        console.warn("[room] does NOT match ROOM01_SPEC", check.report);
-      }
-
-      await this.setCharacters(() => Character.fromURL(ASSETS.character));
-      if (this.disposed) return;
-
-      const entity = await entityModel;
-      if (this.disposed) return entity?.dispose();
-      if (entity) this.addEntity(entity);
-
-      const model = await gunModel;
-      if (this.disposed) return model?.dispose();
-      if (model) this.viewmodel.useModel(model);
-      this.equip();
-      this.store.set({ phase: "ready", message: "Click to look around. WASD to move, click to fire, R to reload, F to inspect, E to interact." });
-      this.start();
+      level = await load(report);
     } catch (error) {
       console.error(error);
-      this.store.set({ phase: "error", error: error instanceof Error ? error.message : String(error) });
+      this.store.set({ phase: "error", error: error instanceof Error ? error.message : String(error), transition: null });
+      return false;
     }
+    if (token !== this.entering || this.disposed) {
+      if (!level.persistent) level.dispose();
+      return false;
+    }
+
+    this.attach(level);
+    report("Preparing the light", 0.92);
+    // Behind the black screen either way; compiling in parallel just keeps the page responsive while it happens.
+    if (this.renderer.extensions.has("KHR_parallel_shader_compile")) await this.renderer.compileAsync(this.scene, this.camera);
+    else this.renderer.compile(this.scene, this.camera);
+    if (token !== this.entering || this.disposed) return false;
+    this.renderer.shadowMap.needsUpdate = true;
+    this.player.frozen = false;
+    this.store.set({ phase: "ready", transition: null });
+    this.startLoop();
+    return true;
   }
 
-  // --- the accused ----------------------------------------------------------
-  /** Seat a fresh figure in every chair, from whatever `make` loads. */
-  async setCharacters(make: () => Promise<Character>): Promise<void> {
-    const loaded = await Promise.all(this.seats.map(() => make()));
-    const room = this.room;
-    if (!room || this.disposed) {
-      for (const c of loaded) c.dispose();
-      return;
-    }
-    this.seats.forEach((seat, i) => this.seatCharacter(seat, loaded[i], room));
-    this.refreshColliders();
-    this.interact.setRoots(this.interactRoots());
-    const first = loaded[0];
-    this.store.set({
-      clips: first.clipNames,
-      clipIndex: first.defaultClipIndex,
-      message: `Loaded character · ${first.clips.length} clip(s) · ${first.authoredHeight.toFixed(2)} m as authored`,
+  private leaveLevel(): void {
+    for (const off of this.scope) off();
+    this.scope = [];
+    this.interact.clear();
+    this.interact.setRoots([]);
+    this.impacts.clear();
+    const old = this.level;
+    this.level = null;
+    if (!old) return;
+    old.root.removeFromParent();
+    if (!old.persistent) old.dispose();
+  }
+
+  private attach(level: Level): void {
+    this.level = level;
+    this.scene.add(level.root);
+    // Lights only reach cameras that share a layer with them.
+    level.root.traverse((o) => {
+      if ((o as THREE.Light).isLight) o.layers.enable(VIEWMODEL_LAYER);
     });
-    this.publishSigns();
-  }
-
-  private seatCharacter(seat: Seat, next: Character, room: Room): void {
-    seat.off?.();
-    seat.character?.dispose();
-    seat.character = next;
-    if (!seat.holder.parent) {
-      // The holder places the chair; the room's CharacterSpawn places the holder.
-      seat.holder.position.set(seat.def.x, 0, seat.def.z);
-      seat.holder.rotation.y = seat.def.yaw;
-      room.spawn.add(seat.holder);
-    }
-    // fit() measures in world space, so the holder's placement has to be in the matrices first.
-    seat.holder.updateWorldMatrix(true, false);
-    dressChair(next.root, room.root);
-    seat.holder.add(next.root);
-    next.fit(this.store.get().autoScale);
-    const clipIndex = next.defaultClipIndex;
-    if (clipIndex >= 0) next.playClip(clipIndex);
-    this.attachSign(seat);
-    seat.off = this.register({
-      id: seat.def.id,
-      object: next.root,
-      verb: "Examine",
-      label: seat.def.label,
-      // Seated back against the chair, each figure is about 2.6 m from the spawn point.
-      range: 2.8,
-      onInteract: () => {
-        this.audio?.blip(220, 0.12);
-        this.store.set({ message: seat.def.examine });
-      },
-    });
-  }
-
-  private attachSign(seat: Seat): void {
-    if (!seat.character || !seat.sign.attach(seat.character.root)) return;
-    const saved = seat.sign.saved();
-    if (!saved) return;
-    seat.sign
-      .set(saved, false)
-      .then(() => this.publishSigns())
-      .catch(() => seat.sign.reset());
-  }
-
-  private publishSigns(): void {
-    this.store.set({
-      signs: this.seats
-        .filter((seat) => seat.sign.available)
-        .map((seat) => ({ id: seat.def.id, label: seat.def.label, custom: seat.sign.custom })),
-    });
-  }
-
-  /** Put the player's picture on one accused's sign. */
-  async setSignPicture(id: string, file: Blob): Promise<void> {
-    const seat = this.seats.find((s) => s.def.id === id);
-    if (!seat?.sign.available) {
-      this.store.set({ message: "That figure has no sign to put a picture on." });
-      return;
-    }
-    try {
-      if (await seat.sign.set(file)) {
-        this.publishSigns();
-        this.store.set({ message: `Your picture is on the sign of ${seat.def.label.toLowerCase()} now.` });
-      }
-    } catch {
-      this.store.set({ message: "Could not read that picture. Try a .jpg, .png or .webp." });
-    }
-  }
-
-  resetSignPicture(id: string): void {
-    this.seats.find((s) => s.def.id === id)?.sign.reset();
-    this.publishSigns();
-  }
-
-  /** Where a dropped picture goes: the accused under the crosshair, else the first still showing the old face. */
-  signDropTarget(): string | null {
-    const { signs, focus } = this.store.get();
-    return (signs.find((s) => s.id === focus?.id) ?? signs.find((s) => !s.custom) ?? signs[0])?.id ?? null;
-  }
-
-  /** Load a character the user picked or dropped, into every chair. */
-  async loadCharacterFiles(files: FileList | File[]): Promise<void> {
-    const list = [...files];
-    try {
-      await this.setCharacters(() => Character.fromFiles(list));
-    } catch (error) {
-      this.store.set({ message: `Could not load that file: ${error instanceof Error ? error.message : error}` });
-    }
-  }
-
-  setAutoScale(on: boolean): void {
-    this.store.set({ autoScale: on });
-    for (const seat of this.seats) seat.character?.fit(on);
-    this.refreshColliders();
-  }
-
-  selectClip(index: number): void {
-    for (const seat of this.seats) seat.character?.playClip(index);
-    this.store.set({ clipIndex: index });
-  }
-
-  private refreshColliders(): void {
-    if (!this.room) return;
-    this.obstacles = [...this.room.colliders];
-    for (const seat of this.seats) {
-      if (!seat.character) continue;
-      seat.character.refreshCollider();
-      this.obstacles.push(seat.character.collider);
-    }
-    // The entity's box is moved in place every frame, so the player always collides with where it is now.
-    this.player.setColliders(this.entity ? [...this.obstacles, this.entity.collider] : this.obstacles);
+    this.player.setBounds(level.bounds);
+    this.player.setColliders(level.colliders);
+    this.player.setConfinement(this.store.get().confineToRoom ? level.confine : null);
+    this.player.spawnAt(level.spawn, level.lookAt);
+    this.interact.setRoots(level.raycastRoots());
+    this.dust.setBulbPosition(level.lightPosition);
     this.buildDebug();
   }
 
-  // --- the entity -------------------------------------------------------------
-  private addEntity(entity: Entity): void {
-    this.entity = entity;
-    this.scene.add(entity.root);
-    // It starts behind the accused, facing the player, where the bulb barely reaches.
-    entity.place(new THREE.Vector3(-0.9, 0, -2.05), ROOM01.markers.cameraStart);
-    this.refreshColliders();
-    this.interact.setRoots(this.interactRoots());
-    this.register({
-      id: "entity",
-      object: entity.root,
-      verb: "Talk to",
-      label: "The entity",
-      range: 6,
-      onInteract: () => this.talkToEntity(),
-    });
+  /** Raycast roots and colliders change when something joins or leaves the level. */
+  refreshLevel(): void {
+    const level = this.level;
+    if (!level) return;
+    this.interact.setRoots(level.raycastRoots());
+    this.player.setColliders(level.colliders);
+    this.buildDebug();
   }
 
-  // --- dialogue ------------------------------------------------------------------
-  /** Open a conversation with the entity. The pointer is released so choices can be clicked. */
-  talkToEntity(): void {
-    if (!this.entity || this.conversation) return;
-    this.conversation = new Conversation(ENTITY_SCRIPT, this.story, entityStart(this.story));
-    this.entity.hold(true);
-    this.player.releaseLock();
-    this.showLine();
+  // --- interaction -------------------------------------------------------
+  /** Register a target for the current level; it goes when the level does. */
+  register(item: Interactable): () => void {
+    const off = this.interact.register(item);
+    this.scope.push(off);
+    return off;
   }
 
-  chooseDialogue(index: number): void {
-    if (this.conversation?.choose(index)) this.showLine();
-  }
-
-  /** Continue past a line with no choices; closes the conversation after its last line. */
-  advanceDialogue(): void {
-    const conversation = this.conversation;
-    if (!conversation) return;
-    if (conversation.advance()) this.showLine();
-    else this.endDialogue();
-  }
-
-  endDialogue(): void {
-    if (!this.conversation) return;
-    this.conversation = null;
-    this.entity?.hold(false);
-    const destination = this.story.destination;
-    if (destination === "house") {
-      window.location.assign(`${BASE}?house=1`);
-      return;
-    }
-    this.store.set({
-      dialogue: null,
-      destination,
-      message: destination
-        ? "The coin said the lab. That place is not built yet."
-        : "",
-    });
-  }
-
-  private showLine(): void {
-    const view = this.conversation?.view ?? null;
-    this.store.set({ dialogue: view });
-    if (view) this.audio?.voice(view.text.length);
-  }
-
-  private entityContext(light: number): EntityContext {
-    return { player: this.player.position, obstacles: this.obstacles, area: ROOM01.walkable.room, light };
-  }
-
-  private interactRoots(): THREE.Object3D[] {
-    const roots: THREE.Object3D[] = [];
-    if (this.room) roots.push(this.room.root);
-    if (this.houseSection) roots.push(this.houseSection.root);
-    if (this.entity) roots.push(this.entity.root);
-    return roots;
+  triggerInteract(): void {
+    if (!this.player.locked) return;
+    this.interact.trigger();
   }
 
   // --- weapon ----------------------------------------------------------------
@@ -544,17 +316,7 @@ export class Engine {
     weapon.onChange = (state) => this.store.set({ weapon: state });
     weapon.onShot = (hit) => {
       this.audio?.gunshot();
-      if (!hit) return;
-      const entity = this.entity;
-      if (entity && isDescendant(hit.object, entity.root) && !this.conversation) {
-        // A hole in something that moves in four dimensions would not stay put; it just is not there any more.
-        entity.blink(this.entityContext(this.live.bulb));
-        this.store.set({ message: "It is somewhere else now. It did not seem to mind." });
-        return;
-      }
-      this.impacts.add(hit);
-      const seat = this.seats.find((s) => s.character && isDescendant(hit.object, s.character.root));
-      if (seat) this.store.set({ message: "The round goes in. It does not react." });
+      if (hit && !this.game.onShot(hit)) this.impacts.add(hit);
     };
     weapon.onDryFire = () => this.audio?.dryFire();
     weapon.onReload = (empty) => this.audio?.reload(empty, empty ? PISTOL.reloadEmptyTime : PISTOL.reloadTime);
@@ -562,13 +324,22 @@ export class Engine {
     this.store.set({ weapon: weapon.state });
   }
 
+  /** A fresh magazine and reserve, as at the start of the story. */
+  resetWeapon(): void {
+    const weapon = this.weapon;
+    if (!weapon) return;
+    weapon.ammo = PISTOL.magSize;
+    weapon.reserve = PISTOL.reserve;
+    this.store.set({ weapon: weapon.state });
+  }
+
   fire(): void {
-    if (!this.player.locked || !this.weapon || (!this.room && !this.houseSection)) return;
+    if (!this.player.locked || !this.weapon || !this.level) return;
     this.weapon.trigger({
       camera: this.camera,
       speed01: this.player.speed01,
       onGround: this.player.onGround,
-      roots: this.interactRoots(),
+      roots: this.level.raycastRoots(),
     });
   }
 
@@ -588,134 +359,64 @@ export class Engine {
     this.setHolstered(!this.weapon?.state.holstered);
   };
 
-  // --- interaction -------------------------------------------------------
-  /** The game layer can register its own targets on top of these. */
-  register(item: Interactable): () => void {
-    const off = this.interact.register(item);
-    this.unregister.push(off);
-    return off;
-  }
-
-  private registerProps(): void {
-    const room = this.room;
+  // --- Room 01 dressing: the figure in the chairs, and the pictures on their signs ---
+  /** Load a character the user picked or dropped, into every chair. */
+  async loadCharacterFiles(files: FileList | File[]): Promise<void> {
+    const room = this.game.room01;
     if (!room) return;
-    for (const prop of PROP_INTERACTIONS) {
-      const object = room.root.getObjectByName(prop.node);
-      if (!object) continue;
-      const item: Interactable = {
-        id: prop.node,
-        object,
-        verb: prop.verb,
-        label: prop.label,
-        range: prop.range,
-        onInteract: () => {
-          if (prop.node === "Door") {
-            const open = room.toggleDoor();
-            item.verb = open ? "Close" : "Open";
-            this.store.set({
-              doorOpen: open,
-              focus: { id: item.id, verb: item.verb, label: item.label, distance: 0 },
-              message: open ? "The hallway is darker than the room." : "The latch does not sound like it caught.",
-            });
-            this.audio?.blip(160, 0.2);
-            return;
-          }
-          this.audio?.blip(300, 0.06);
-          this.store.set({ message: `${prop.verb} ${prop.label} — nothing here yet.` });
-        },
-      };
-      this.register(item);
+    const list = [...files];
+    try {
+      await room.setCharacters(() => Character.fromFiles(list));
+      const first = room.seats[0].character;
+      if (first) this.store.set({ message: `Loaded character · ${first.clips.length} clip(s) · ${first.authoredHeight.toFixed(2)} m as authored` });
+      if (this.level === room) this.refreshLevel();
+    } catch (error) {
+      this.store.set({ message: `Could not load that file: ${error instanceof Error ? error.message : error}` });
     }
   }
 
-  triggerInteract(): void {
-    if (!this.player.locked) return;
-    this.interact.trigger();
+  setAutoScale(on: boolean): void {
+    this.store.set({ autoScale: on });
+    this.game.room01?.setAutoScale(on);
+    if (this.level === this.game.room01) this.refreshLevel();
   }
 
-  /** Room swaps are synchronous: only the current authored room owns GPU resources. */
-  private enterHouseRoom(): void {
-    const run = this.houseRun!;
-    for (const off of this.unregister) off();
-    this.unregister = []; this.interact.clear();
-    this.houseDevice?.dispose(); this.houseDevice = null;
-    this.houseSection?.dispose();
-    this.location = run.state.room;
-    const sections = { kitchen: Kitchen, "living-room": LivingRoom, bedroom: Bedroom, basement: Basement, "utility-room": UtilityRoom, study: Study };
-    let observed = "";
-    const section = new sections[run.state.room](text => { observed = text; });
-    section.finalize();
-    this.houseSection = section; this.scene.add(section.root);
-    this.player.setBounds(section.bounds); this.player.setColliders(section.colliders); this.setConfineToRoom(true);
-    this.player.spawnAt(section.spawn, section.lookAt);
-    for (const item of section.interactions) {
-      const port = section.ports[0];
-      const isDoor = /door/i.test(item.object.name);
-      if (isDoor) {
-        this.register({ ...item, verb: "Open", label: "the shifting passage", onInteract: () => this.openHousePanel("passage") });
-      } else {
-        this.register({ ...item, onInteract: () => {
-          observed = ""; item.onInteract?.(item);
-          this.store.set({ inspection: { id: item.id, room: run.state.room, title: item.label.replace(/^the /, ""), observation: observed, memory: null, recall: memoryFor(run.state.room, item.id) }, recalled: false });
-          this.openHousePanel("inspection");
-        } });
+  selectClip(index: number): void {
+    this.game.room01?.selectClip(index);
+    this.store.set({ clipIndex: index });
+  }
+
+  /** Put the player's picture on one accused's sign. */
+  async setSignPicture(id: string, file: Blob): Promise<void> {
+    const seat = this.game.room01?.seats.find((s) => s.def.id === id);
+    if (!seat?.sign.available) {
+      this.store.set({ message: "That figure has no sign to put a picture on." });
+      return;
+    }
+    try {
+      if (await seat.sign.set(file)) {
+        this.publishSigns();
+        this.store.set({ message: `Your picture is on the sign of ${seat.def.label.toLowerCase()} now.` });
       }
-      // Keep the port contract meaningful even though this MVP folds space at its door.
-      if (!port) throw new Error("House room has no passage port.");
+    } catch {
+      this.store.set({ message: "Could not read that picture. Try a .jpg, .png or .webp." });
     }
-    this.houseDevice = new HouseDevice(section.ports[0].position.z, () => {
-      this.acquireHouseDevice();
-    });
-    this.houseDevice.finalize();
-    this.scene.add(this.houseDevice.root);
-    for (const item of this.houseDevice.interactions) this.register(item);
-    this.interact.setRoots([section.root, this.houseDevice.root]);
-    this.dust.setBulbPosition(section.dustOrigin); this.buildDebug();
-    this.store.set({ location: this.location, housePanel: null, inspection: null, focus: null, message: `${ROOM_NAMES[run.state.room]}. The passage follows ${run.config.name}.` });
-    this.publishHouse();
   }
 
-  private publishHouse(): void {
-    const run = this.houseRun; if (!run) return;
-    this.store.set({ house: run.state });
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify(run.state)); }
-    catch { this.store.set({ saveWarning: "Could not save progress. Keep this page open to continue." }); }
+  resetSignPicture(id: string): void {
+    this.game.room01?.seats.find((s) => s.def.id === id)?.sign.reset();
+    this.publishSigns();
   }
-  acquireHouseDevice(): void {
-    if (!this.houseRun || !this.houseSection || Math.hypot(this.player.position.x - 0.92, this.player.position.z - (this.houseSection.ports[0].position.z - 0.19)) > 2.4) return;
-    this.houseRun.acquireDevice(); this.publishHouse(); this.openHousePanel("device");
+
+  /** Where a dropped picture goes: the accused under the crosshair, else the first still showing the old face. */
+  signDropTarget(): string | null {
+    const { signs, focus } = this.store.get();
+    return (signs.find((s) => s.id === focus?.id) ?? signs.find((s) => !s.custom) ?? signs[0])?.id ?? null;
   }
-  openHousePanel(panel: "journal" | "device" | "passage" | "inspection"): void {
-    if (!this.houseRun || (panel === "device" && !this.houseRun.state.device) || (panel === "passage" && !this.atHouseDoor())) return;
-    this.store.set({ housePanel: panel }); this.player.releaseLock();
-  }
-  closeHousePanel(): void { this.store.set({ housePanel: null }); }
-  recallEvidence(): void { if (this.store.get().inspection) this.store.set({ recalled: true }); }
-  collectEvidence(): void {
-    const { inspection, recalled } = this.store.get();
-    if (!this.houseRun || !inspection || this.store.get().housePanel !== "inspection") return;
-    this.houseRun.collect(inspection, recalled); this.publishHouse();
-    this.store.set({ message: "Recorded in your journal. Objects stay in the house." });
-  }
-  shiftHouse(): void {
-    if (this.store.get().housePanel !== "device" || !this.houseRun?.shift()) return;
-    this.publishHouse(); this.store.set({ message: `The house settles into ${this.houseRun.config.name}.` });
-  }
-  restoreHouse(index: number): void {
-    if (this.store.get().housePanel !== "device" || !this.houseRun?.restore(index)) return;
-    this.publishHouse(); this.store.set({ message: `Restored ${this.houseRun.config.name}.` });
-  }
-  private atHouseDoor(): boolean {
-    const port = this.houseSection?.ports[0];
-    return !!port && Math.hypot(this.player.position.x - port.position.x, this.player.position.z - port.position.z) <= 2.4;
-  }
-  travelHouse(room: HouseRoom): void {
-    if (this.store.get().housePanel !== "passage" || !this.atHouseDoor() || !this.houseRun?.travel(room)) return;
-    this.enterHouseRoom();
-  }
-  restartHouse(): void {
-    if (!this.houseRun) return;
-    this.houseRun = new HouseRun(); this.enterHouseRoom();
+
+  private publishSigns(): void {
+    const seats = this.game.room01?.seats ?? [];
+    this.store.set({ signs: seats.filter((s) => s.sign.available).map((s) => ({ id: s.def.id, label: s.def.label, custom: s.sign.custom })) });
   }
 
   // --- settings ----------------------------------------------------------
@@ -814,10 +515,9 @@ export class Engine {
     this.store.set({ debug: on });
   }
 
-  /** Off lets the player walk through the doorway into the hallway. */
+  /** Off lets the player walk out through an open door. */
   setConfineToRoom(on: boolean): void {
-    const b = this.houseSection?.bounds;
-    this.player.setConfinement(on ? (b ? { xMin: b.min.x, xMax: b.max.x, zMin: b.min.z, zMax: b.max.z } : ROOM01.walkable.room) : null);
+    this.player.setConfinement(on ? (this.level?.confine ?? null) : null);
     this.store.set({ confineToRoom: on });
   }
 
@@ -828,24 +528,11 @@ export class Engine {
 
   // --- internals ---------------------------------------------------------
   private buildDebug(): void {
-    for (const child of [...this.debugGroup.children]) {
-      if (child instanceof THREE.Box3Helper) { child.geometry.dispose(); for (const material of ([] as THREE.Material[]).concat(child.material)) material.dispose(); }
-    }
+    for (const child of this.debugGroup.children) disposeHelper(child);
     this.debugGroup.clear();
-    if (this.houseSection) {
-      this.debugGroup.add(new THREE.Box3Helper(this.houseSection.bounds, new THREE.Color(0x4ad3a1)));
-      for (const box of this.houseSection.colliders) this.debugGroup.add(new THREE.Box3Helper(box, new THREE.Color(0x8e1b17)));
+    for (const { box, color } of this.level?.debugBoxes() ?? []) {
+      this.debugGroup.add(new THREE.Box3Helper(box, new THREE.Color(color)));
     }
-    if (!this.room) return;
-    const bounds = new THREE.Box3().copy(this.room.bounds);
-    this.debugGroup.add(new THREE.Box3Helper(bounds, new THREE.Color(0x4ad3a1)));
-    for (const box of this.room.colliders) {
-      this.debugGroup.add(new THREE.Box3Helper(box, new THREE.Color(0x8e1b17)));
-    }
-    for (const seat of this.seats) {
-      if (seat.character) this.debugGroup.add(new THREE.Box3Helper(seat.character.collider, new THREE.Color(0xd8d2c4)));
-    }
-    if (this.entity) this.debugGroup.add(new THREE.Box3Helper(this.entity.collider, new THREE.Color(0x9fb4d8)));
   }
 
   private resize(): void {
@@ -867,11 +554,10 @@ export class Engine {
   };
 
   private onKeyDown = (e: KeyboardEvent): void => {
-    if (this.houseRun) {
-      if (e.repeat) return;
-      if (e.code === "Escape") { this.closeHousePanel(); return; }
-      if (e.code === "KeyJ") { e.preventDefault(); this.openHousePanel("journal"); return; }
-      if (e.code === "KeyP") { e.preventDefault(); this.openHousePanel("device"); return; }
+    if (this.store.get().transition) return;
+    if (this.game.onKey(e)) {
+      e.preventDefault();
+      return;
     }
     if (e.code === "Backquote") {
       this.setDebug(!this.store.get().debug);
@@ -887,10 +573,18 @@ export class Engine {
   };
 
   // --- frame loop ----------------------------------------------------------
-  /** Run the frame loop (from now on, whenever the tab is visible). */
-  private start(): void {
+  /** Run the frame loop (whenever the tab is visible). */
+  private startLoop(): void {
     this.running = true;
+    this.pacer.reset();
+    this.resolution.reset();
+    this.timer.reset();
     if (!document.hidden) this.renderer.setAnimationLoop(this.frame);
+  }
+
+  private stopLoop(): void {
+    this.running = false;
+    this.renderer.setAnimationLoop(null);
   }
 
   /** A hidden tab renders nothing at all, rather than whatever the browser's throttled rAF allows. */
@@ -908,40 +602,44 @@ export class Engine {
 
   private paceMode(): PaceMode {
     if (this.player.locked) return "play";
-    const { dialogue, housePanel } = this.store.get();
-    return dialogue || housePanel ? "ambient" : "menu";
+    const { dialogue, panel } = this.store.get();
+    return dialogue || panel ? "ambient" : "menu";
   }
 
   private frame = (now: number): void => {
     this.pacer.mode = this.paceMode();
     if (!this.pacer.tick(now)) return;
+    const level = this.level;
+    if (!level) return;
     this.timer.update(now);
     const dt = Math.min(this.timer.getDelta(), 0.05);
     const t = this.timer.getElapsed();
 
     this.player.update(dt);
-    // The raycast walks the whole room, so run it at 30 Hz rather than every
+    // The raycast walks the whole level, so run it at 30 Hz rather than every
     // frame: still well inside the time it takes to read the prompt.
     if ((this.interactAccum += dt) >= 1 / 30) {
       this.interactAccum = 0;
       this.interact.update(this.camera);
     }
 
-    const level = this.flicker.level(t);
-    this.room?.setBulbLevel(level);
-    this.room?.update(dt);
-    for (const seat of this.seats) seat.character?.update(dt);
-    this.entity?.update(dt, this.entityContext(level));
+    const light = this.flicker.level(t);
+    level.setLightLevel(light);
+    level.update(dt, { player: this.player.position, light });
+    if (level.dynamicShadows && (this.shadowAccum += dt) >= 1 / SHADOW_HZ) {
+      this.shadowAccum = 0;
+      this.renderer.shadowMap.needsUpdate = true;
+    }
     this.viewmodel.update(dt, this.camera, this.player, this.player.speed01);
     this.weapon?.update(dt);
     this.wheelCooldown = Math.max(0, this.wheelCooldown - dt);
     this.impacts.update(dt);
     this.live.bloom01 = this.weapon?.bloom01 ?? 0;
-    this.dust.update(this.reduceMotion ? 0 : t, level);
-    this.audio?.setBulbLevel(level);
+    this.dust.update(this.reduceMotion ? 0 : t, light);
+    this.audio?.setBulbLevel(light);
 
     this.live.speed01 = this.player.speed01;
-    this.live.bulb = level;
+    this.live.bulb = light;
 
     this.post.render(t, dt);
 
@@ -962,23 +660,22 @@ export class Engine {
 
   private publishStats(): void {
     let triangles = 0;
-    let roomMeshes = 0;
-    this.scene.traverse((o) => {
+    let meshes = 0;
+    this.level?.root.traverse((o) => {
       const mesh = o as THREE.Mesh;
       if (!mesh.isMesh || !mesh.geometry) return;
+      meshes++;
       const g = mesh.geometry;
       triangles += (g.index ? g.index.count : g.attributes.position.count) / 3;
     });
-    (this.houseSection?.root ?? this.room?.root)?.traverse((o) => {
-      if ((o as THREE.Mesh).isMesh) roomMeshes++;
-    });
+    const figure = this.level === this.game.room01 ? this.game.room01?.seats[0].character : null;
     this.store.set({
       stats: {
         fps: this.live.fps,
         triangles: Math.round(triangles),
-        roomMeshes,
-        characterHeight: this.seats[0].character?.height ?? 0,
-        scaled: this.seats[0].character?.scaled ?? false,
+        meshes,
+        characterHeight: figure?.height ?? 0,
+        scaled: figure?.scaled ?? false,
         renderScale: this.resolution.scale,
       },
     });
@@ -986,29 +683,17 @@ export class Engine {
 
   dispose(): void {
     this.disposed = true;
-    this.running = false;
-    this.renderer.setAnimationLoop(null);
+    this.stopLoop();
     document.removeEventListener("visibilitychange", this.onVisibility);
     window.removeEventListener("keydown", this.onKeyDown);
     this.canvas.removeEventListener("mousedown", this.onMouseDown);
     window.removeEventListener("wheel", this.onWheel);
     this.resizeObserver.disconnect();
-    for (const off of this.unregister) off();
-    this.unregister = [];
-    this.interact.clear();
+    this.leaveLevel();
+    this.game.dispose();
     this.player.dispose();
     this.audio?.close();
-    for (const seat of this.seats) {
-      seat.character?.dispose();
-      seat.sign.dispose();
-    }
-    this.entity?.dispose();
-    this.room?.dispose();
-    this.houseSection?.dispose();
-    this.houseDevice?.dispose();
-    for (const child of this.debugGroup.children) {
-      if (child instanceof THREE.Box3Helper) { child.geometry.dispose(); for (const material of ([] as THREE.Material[]).concat(child.material)) material.dispose(); }
-    }
+    for (const child of this.debugGroup.children) disposeHelper(child);
     this.dust.dispose();
     this.viewmodel.dispose();
     this.impacts.dispose();
@@ -1017,24 +702,19 @@ export class Engine {
   }
 }
 
-type Seat = {
-  def: SeatDef;
-  /** Places the chair around CharacterSpawn. */
-  holder: THREE.Group;
-  character: Character | null;
-  sign: SignPicture;
-  /** Unregisters this seat's interaction. */
-  off: (() => void) | null;
-};
-
-function isDescendant(o: THREE.Object3D, ancestor: THREE.Object3D): boolean {
-  for (let n: THREE.Object3D | null = o; n; n = n.parent) if (n === ancestor) return true;
-  return false;
-}
-
 const PERFORMANCE_KEY = "moth.performance";
 
 /** Above 1.75 the post chain costs far more than the sharpness is worth. */
 function basePixelRatio(): number {
   return Math.min(devicePixelRatio, 1.75);
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function disposeHelper(o: THREE.Object3D): void {
+  if (!(o instanceof THREE.Box3Helper)) return;
+  o.geometry.dispose();
+  for (const material of ([] as THREE.Material[]).concat(o.material)) material.dispose();
 }

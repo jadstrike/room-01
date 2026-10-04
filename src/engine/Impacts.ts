@@ -117,6 +117,15 @@ export class Impacts {
     }
   }
 
+  /** Holes belong to the level they were shot into. */
+  clear(): void {
+    for (const d of this.decals) {
+      d.geometry.dispose();
+      d.removeFromParent();
+    }
+    this.decals = [];
+  }
+
   update(dt: number): void {
     let live = false;
     for (let k = 0; k < MAX_SPARKS; k++) {

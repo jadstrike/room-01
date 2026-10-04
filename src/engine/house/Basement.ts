@@ -9,8 +9,8 @@ export class Basement extends ProceduralSection {
   readonly lookAt = new THREE.Vector3(-1.2, 1, -1.7);
   readonly ports = [{ id: "hall", position: new THREE.Vector3(0, 0, 3), outward: new THREE.Vector3(0, 0, 1), width: 1.2, height: 2.2 }];
 
-  constructor(message: (text: string) => void) {
-    super("basement", message);
+  constructor() {
+    super("basement");
     this.root.name = "House_Basement";
     const concrete = this.material(0x777b75, this.texture("plaster"));
     const wood = this.material(0x67503a, this.texture("wood"));
@@ -32,7 +32,7 @@ export class Basement extends ProceduralSection {
     const door = group("Cellar_Door");
     door.add(box("Door", 0, 1.1, 2.99, 1.18, 2.2, 0.08, wood, true));
     door.add(box("Handle", -0.43, 1, 2.9, 0.14, 0.04, 0.08, steel));
-    inspect(door, "the cellar door", "A cold draught comes from the stairwell beyond. The latch catches against an old, uneven frame.");
+    this.exitDoor(door, "the cellar door", "A cold draught comes from the stairwell beyond. The latch catches against an old, uneven frame.");
     for (const z of [-2, 0, 2]) box("Ceiling_Joist", 0, 2.7, z, 6.4, 0.18, 0.16, wood);
     for (const x of [2.65, 2.87]) {
       const pipe = this.cylinder("Overhead_Pipe", x, 2.55, 0, 0.045, 5.8, steel); pipe.rotation.x = Math.PI / 2;

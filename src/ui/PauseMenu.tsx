@@ -1,5 +1,4 @@
-import { LOCATIONS, locationLabel } from "../engine/house/locations";
-import type { ChangeEvent } from "react";
+import { useState, type ChangeEvent } from "react";
 import type { Engine, EngineState } from "../engine/Engine";
 import { CROSSHAIR_PRESETS, type CrosshairSettings } from "./crosshairSettings";
 import { FRAME_CAPS, type FrameCap } from "../engine/Pacer";
@@ -16,6 +15,7 @@ type Props = {
  * both the start screen and the settings menu, the way an FPS does it.
  */
 export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
+  const [confirmNew, setConfirmNew] = useState(false);
   if (!engine) return null;
 
   const onFiles = (e: ChangeEvent<HTMLInputElement>) => {
@@ -31,18 +31,51 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
     <div className="menu-backdrop">
       <div className="menu" role="dialog" aria-label="Paused">
         <header>
-          <h1>{locationLabel(engine.location).toUpperCase()}</h1>
+          <h1>{state.place.toUpperCase()}</h1>
           <button className="primary" onClick={() => engine.requestLock()} autoFocus>
             {state.locked ? "Resume" : "Click to play"}
           </button>
         </header>
 
-        <nav className="section-nav" aria-label="Explore locations">
-          <a href="?house=1">Play the house investigation</a>
-          {LOCATIONS.map(location => (
-            <a key={location.id} href={location.href} aria-current={engine.location === location.id ? "page" : undefined}>{location.label}</a>
-          ))}
-        </nav>
+        {state.objective && <p className="objective-line">{state.objective}</p>}
+
+        <div className="story-actions">
+          {confirmNew ? (
+            <>
+              <span>Lose this story and start again?</span>
+              <button
+                className="danger"
+                onClick={() => {
+                  setConfirmNew(false);
+                  void engine.game.newGame();
+                }}
+              >
+                Start again
+              </button>
+              <button className="quiet" onClick={() => setConfirmNew(false)}>
+                Keep playing
+              </button>
+            </>
+          ) : (
+            <button className="quiet" onClick={() => setConfirmNew(true)}>
+              New game
+            </button>
+          )}
+          {import.meta.env.DEV && (
+            <span className="dev-jumps">
+              Dev:
+              <button className="quiet" onClick={() => void engine.game.jumpTo("house")}>
+                House
+              </button>
+              <button className="quiet" onClick={() => void engine.game.jumpTo("lab")}>
+                Lab
+              </button>
+              <button className="quiet" onClick={() => void engine.game.jumpToTrial("house")}>
+                Trial
+              </button>
+            </span>
+          )}
+        </div>
         <ul className="keys">
           <li>
             <kbd>W</kbd>
@@ -55,6 +88,9 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
           </li>
           <li>
             <kbd>Click</kbd> fire · <kbd>R</kbd> reload · <kbd>F</kbd> inspect · <kbd>E</kbd> interact / talk
+          </li>
+          <li>
+            <kbd>J</kbd> journal · <kbd>P</kbd> device, in a site
           </li>
           <li>
             <kbd>1</kbd> pistol · <kbd>2</kbd> put away · <kbd>Q</kbd> / scroll swap
@@ -95,7 +131,7 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
               step={0.05}
               onChange={(v) => engine.setExposure(v)}
             />
-            {engine.location === "room01" && <Toggle label="Bulb flicker" on={state.flicker} onChange={(v) => engine.setFlicker(v)} />}
+            <Toggle label="Light flicker" on={state.flicker} onChange={(v) => engine.setFlicker(v)} />
             <Toggle label="Sound" on={state.sound} onChange={() => engine.toggleSound()} />
             <Toggle
               label="Keep player in the room"
@@ -230,7 +266,6 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
               </>
             )}
 
-            {engine.location === "room01" && <>
             <h2>Character</h2>
             <label className="file">
               Load .glb / .gltf
@@ -264,7 +299,6 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
               Drop a .glb anywhere on the page to replace the figure. A .gltf needs its .bin and textures selected
               together.
             </p>
-            </>}
           </section>
         </div>
 

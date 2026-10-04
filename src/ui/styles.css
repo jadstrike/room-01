@@ -12,30 +12,6 @@
   --type: "Special Elite", "Courier New", monospace;
 }
 
-.house-status { position: fixed; top: 20px; left: 24px; width: min(410px, calc(100vw - 48px)); z-index: 5; padding: 14px 18px; background: rgba(8,13,11,.86); border-left: 2px solid #a38b5b; pointer-events: none; }
-.house-status span,.house-status small { display: block; color: #a8b5ac; font-size: 11px; }
-.house-status strong { display: block; margin-top: 5px; }
-.house-status p { margin: 8px 0; }
-.house-backdrop { position: fixed; inset: 0; z-index: 15; background: rgba(3,7,5,.78); display: grid; place-items: center; padding: 24px; }
-.house-panel { width: min(880px,100%); max-height: calc(100vh - 48px); overflow: auto; background: #111b16; border: 1px solid #596353; box-shadow: 0 20px 90px #000; padding: 30px; }
-.house-panel header { display: flex; align-items: center; justify-content: space-between; gap: 16px; color: #b9a97e; font-size: 11px; letter-spacing: 1px; }
-.house-panel h1 { font: 30px var(--type); margin: 30px 0 20px; text-transform: capitalize; }
-.house-panel h2 { font-size: 15px; margin-top: 24px; }
-.house-panel p { line-height: 1.8; }
-.house-panel button { padding: 11px 16px; border: 1px solid #7f8869; background: #28392d; color: #eee3cc; cursor: pointer; font: inherit; }
-.house-panel button:disabled { opacity: .45; cursor: default; }
-.house-panel button:focus-visible { outline: 2px solid #e3c98c; outline-offset: 3px; }
-.house-actions { display: flex; gap: 12px; flex-wrap: wrap; margin: 24px 0; }
-.house-memory { padding: 14px 20px; border-left: 2px solid #a38b5b; background: #1e2b23; margin: 20px 0; }
-.house-eyebrow { display: block; color: #b9a97e; margin-top: 25px; }
-.journal-entry { border-top: 1px solid #3c4a3e; margin-top: 20px; padding: 20px 0; }
-.house-configurations { display: grid; grid-template-columns: repeat(auto-fit,minmax(210px,1fr)); gap: 16px; }
-.house-configurations article { padding: 14px; border: 1px solid #3c4a3e; }
-.house-configurations li { margin-bottom: 8px; }
-.house-routes { display: grid; gap: 10px; margin: 24px 0; }
-.house-panel details { margin-top: 24px; }
-@media(max-width:600px) { .house-panel { padding: 20px; } .house-status { top: 8px; left: 8px; width: calc(100vw - 16px); } }
-
 * {
   box-sizing: border-box;
 }
@@ -292,7 +268,8 @@ kbd {
 
 .debug-note {
   position: fixed;
-  left: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   top: calc(env(safe-area-inset-top, 0px) + 14px);
   margin: 0;
   z-index: 3;
@@ -668,6 +645,291 @@ input[type="range"] {
   }
 }
 
-.section-nav { display: flex; flex-wrap: wrap; gap: 1.25rem; margin: 1rem 0; font-size: .85rem; }
-.section-nav a { color: #b9b2a0; text-decoration: none; padding-bottom: .35rem; border-bottom: 1px solid transparent; }
-.section-nav a:hover, .section-nav a[aria-current="page"] { color: #eee5d1; border-color: #a68b59; }
+/* ---------------- story ---------------- */
+.objective {
+  position: fixed;
+  left: 20px;
+  top: calc(env(safe-area-inset-top, 0px) + 14px);
+  z-index: 3;
+  max-width: min(420px, calc(100% - 180px));
+  padding-left: 10px;
+  border-left: 2px solid var(--blood);
+  font-size: 11px;
+  color: var(--dim);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+
+.objective span {
+  font: 400 13px/1.2 var(--type);
+  color: var(--ink);
+}
+
+.objective p {
+  margin: 4px 0;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.objective kbd {
+  height: 16px;
+  min-width: 16px;
+  font-size: 10px;
+}
+
+.objective-line {
+  margin: 12px 0 0;
+  padding-left: 10px;
+  border-left: 2px solid var(--blood);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.story-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--dim);
+}
+
+.dev-jumps {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+button.danger {
+  border-color: var(--blood);
+  color: #e0827d;
+}
+
+/* The investigation panels share the menu's look, in one reading-width column. */
+.panel-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(3, 3, 4, 0.78);
+  backdrop-filter: blur(3px);
+}
+
+.panel {
+  width: min(760px, 100%);
+  max-height: calc(100dvh - 40px);
+  overflow: auto;
+  padding: 20px 24px 24px;
+  background: rgba(8, 8, 10, 0.94);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--blood);
+  border-radius: 10px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+.panel header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.panel header kbd {
+  margin-left: 6px;
+}
+
+.panel h1 {
+  margin: 18px 0 12px;
+  font: 400 clamp(22px, 4vw, 30px)/1.1 var(--type);
+}
+
+.panel h2 {
+  margin: 22px 0 8px;
+  font: 500 10px/1 var(--mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.panel h3 {
+  margin: 0 0 6px;
+  font: 400 15px/1.2 var(--type);
+}
+
+.panel p {
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.panel .eyebrow {
+  display: block;
+  margin-top: 18px;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #e0827d;
+}
+
+.panel .actions,
+.panel .routes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.panel .routes {
+  display: grid;
+}
+
+.panel .routes button {
+  text-align: left;
+}
+
+.panel button:disabled {
+  opacity: 0.4;
+  cursor: default;
+  border-color: var(--line);
+}
+
+.memory {
+  margin: 16px 0;
+  padding: 10px 14px;
+  border-left: 2px solid var(--moon);
+  background: rgba(159, 180, 216, 0.06);
+}
+
+.memory h2 {
+  margin-top: 0;
+}
+
+.memory small {
+  color: var(--dim);
+  font-size: 11px;
+}
+
+.journal-entry {
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+
+.configurations {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.configurations article {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.configurations article[data-active] {
+  border-color: var(--ink);
+}
+
+.configurations ul {
+  margin: 0 0 10px;
+  padding-left: 16px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--dim);
+}
+
+/* Black card over the canvas between levels. */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.32s ease;
+}
+
+.loading-screen[data-visible] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.loading-screen .card {
+  width: min(420px, 100%);
+  text-align: center;
+}
+
+.loading-screen h1 {
+  margin: 0;
+  font: 400 clamp(24px, 5vw, 34px)/1.1 var(--type);
+  letter-spacing: 0.06em;
+}
+
+.loading-screen .line {
+  margin: 10px 0 0;
+  color: var(--dim);
+  font-size: 12px;
+}
+
+.loading-screen .bar {
+  height: 2px;
+  margin: 22px auto 8px;
+  background: var(--line);
+  overflow: hidden;
+  opacity: 0;
+}
+
+.loading-screen .bar i {
+  display: block;
+  height: 100%;
+  background: var(--blood);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.loading-screen .step {
+  min-height: 1.4em;
+  margin: 0;
+  color: var(--dim);
+  font-size: 11px;
+  opacity: 0;
+}
+
+/* Only a load that takes a while shows its progress; a room change is just a dip to black. */
+.loading-screen[data-visible] .bar,
+.loading-screen[data-visible] .step {
+  animation: appear 0.3s ease 0.6s forwards;
+}
+
+@keyframes appear {
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-screen,
+  .loading-screen .bar i {
+    transition: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .objective {
+    max-width: calc(100% - 140px);
+  }
+
+  .panel {
+    padding: 16px;
+  }
+}

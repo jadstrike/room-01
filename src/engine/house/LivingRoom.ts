@@ -9,8 +9,8 @@ export class LivingRoom extends ProceduralSection {
   readonly lookAt = new THREE.Vector3(-0.4, 1.1, -1.7);
   readonly ports = [{ id: "hall", position: new THREE.Vector3(0, 0, 3), outward: new THREE.Vector3(0, 0, 1), width: 1.2, height: 2.2 }];
 
-  constructor(message: (text: string) => void) {
-    super("living-room", message);
+  constructor() {
+    super("living-room");
     this.root.name = "House_LivingRoom";
     const plaster = this.material(0x96907b, this.texture("plaster"));
     const green = this.material(0x4b5950, this.texture("plaster"));
@@ -53,7 +53,7 @@ export class LivingRoom extends ProceduralSection {
     door.add(box("Door_Handle", -0.43, 1.03, 2.87, 0.14, 0.04, 0.08, brass));
     for (const x of [-0.67, 0.67]) box("Door_Trim", x, 1.13, 2.9, 0.1, 2.26, 0.12, wood);
     box("Door_Trim", 0, 2.26, 2.9, 1.44, 0.1, 0.12, wood);
-    inspect(door, "the hall door", "The handle turns, but the door stays shut. A narrow line of darkness runs underneath it.");
+    this.exitDoor(door, "the hall door", "The handle turns, but the door stays shut. A narrow line of darkness runs underneath it.");
 
     // Seating along the left wall leaves a continuous route down the right side.
     const sofa = group("Sofa");

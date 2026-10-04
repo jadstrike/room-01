@@ -9,8 +9,8 @@ export class Bedroom extends ProceduralSection {
   readonly lookAt = new THREE.Vector3(-0.7, 0.95, -1.6);
   readonly ports = [{ id: "hall", position: new THREE.Vector3(0, 0, 3), outward: new THREE.Vector3(0, 0, 1), width: 1.2, height: 2.2 }];
 
-  constructor(message: (text: string) => void) {
-    super("bedroom", message);
+  constructor() {
+    super("bedroom");
     this.root.name = "House_Bedroom";
     const plaster = this.material(0x928979, this.texture("plaster"));
     const wood = this.material(0x64503c, this.texture("wood"));
@@ -40,7 +40,7 @@ export class Bedroom extends ProceduralSection {
       const scratch = box("Latch_Splinter", -0.5 + i * 0.045, 0.95 + i * 0.035, 2.941, 0.015, 0.19, 0.008, paper);
       scratch.rotation.z = -0.3; door.add(scratch);
     }
-    inspect(door, "the damaged door", "Wood has splintered beside the latch. Someone may have forced this door. You cannot tell who was on either side.");
+    this.exitDoor(door, "the damaged door", "Wood has splintered beside the latch. Someone may have forced this door. You cannot tell who was on either side.");
 
     const bed = group("Disturbed_Bed");
     bed.add(box("Bed_Frame", -1.45, 0.3, -1.38, 1.85, 0.35, 2.48, wood, true));

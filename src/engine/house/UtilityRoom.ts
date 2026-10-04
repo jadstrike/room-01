@@ -8,8 +8,8 @@ export class UtilityRoom extends ProceduralSection {
   readonly lookAt = new THREE.Vector3(-0.6, 1, -1.7);
   readonly ports = [{ id: "hall", position: new THREE.Vector3(0, 0, 2.5), outward: new THREE.Vector3(0, 0, 1), width: 1.2, height: 2.2 }];
 
-  constructor(message: (text: string) => void) {
-    super("utility-room", message);
+  constructor() {
+    super("utility-room");
     this.root.name = "House_UtilityRoom";
     const plaster = this.material(0x91978a, this.texture("plaster"));
     const tile = this.material(0x8c9488, this.texture("tile"));
@@ -33,7 +33,7 @@ export class UtilityRoom extends ProceduralSection {
     const door = group("Hall_Door");
     door.add(box("Door_Slab", 0, 1.1, 2.49, 1.18, 2.2, 0.08, wood, true));
     door.add(box("Handle", -0.43, 1, 2.4, 0.14, 0.04, 0.08, steel));
-    inspect(door, "the utility room door", "A draught slips beneath the door. The smell of detergent fades as you turn toward the hall.");
+    this.exitDoor(door, "the utility room door", "A draught slips beneath the door. The smell of detergent fades as you turn toward the hall.");
 
     // Front-facing drums share the same construction and resource ownership.
     for (const [index, x] of [-1.73, -0.62].entries()) {

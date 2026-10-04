@@ -8,8 +8,8 @@ export class Kitchen extends ProceduralSection {
   readonly spawn = new THREE.Vector3(0, 0, 1.8);
   readonly lookAt = new THREE.Vector3(-0.6, 1.2, -1.8);
   readonly ports = [{ id: "hall", position: new THREE.Vector3(0, 0, 2.5), outward: new THREE.Vector3(0, 0, 1), width: 1.2, height: 2.2 }];
-  constructor(message: (text: string) => void) {
-    super("kitchen", message);
+  constructor() {
+    super("kitchen");
     this.root.name = "House_Kitchen";
     const plaster = this.material(0x8c8370, this.texture("plaster"));
     const green = this.material(0x465850, this.texture("plaster"));
@@ -104,7 +104,7 @@ export class Kitchen extends ProceduralSection {
     inspect(mug, "the forgotten cup", "A skin has formed over the tea. A teaspoon lies beside the cup. Someone left in a hurry—or meant to come back.");
     inspect(fridge, "the refrigerator", "The refrigerator hums. A scrap of paper is pinned to its door, too faded to read. There is no date.");
     inspect(stove, "the cooker", "All four rings are cold. Grease has settled around the controls. Nothing here tells you when it was last used.");
-    inspect(door, "the hall door", "The rest of the house lies beyond this door. This section is not connected yet.");
+    this.exitDoor(door, "the hall door", "The rest of the house lies beyond this door, wherever the device has put it.");
   }
 
 }

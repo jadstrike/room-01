@@ -46,23 +46,23 @@ export function DialogueBox({ engine, view }: { engine: Engine; view: DialogueVi
 
   // Back to the game: the click that closed the box counts as the gesture pointer lock needs.
   const close = () => {
-    engine.endDialogue();
+    engine.game.endDialogue();
     engine.requestLock();
   };
   const next = () => {
     if (!typed) return skip.current();
     if (view.last) close();
-    else engine.advanceDialogue();
+    else engine.game.advanceDialogue();
   };
   const choose = (i: number) => {
     if (!typed) return skip.current();
-    engine.chooseDialogue(i);
+    engine.game.chooseDialogue(i);
   };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.code === "Escape") {
-        engine.endDialogue();
+        engine.game.endDialogue();
         return;
       }
       if (e.code === "Space" || e.code === "Enter") {

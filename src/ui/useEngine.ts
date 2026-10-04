@@ -22,11 +22,10 @@ export function useEngine(): {
     if (!container) return;
     const canvas = document.createElement("canvas");
     canvas.className = "viewport";
-    canvas.setAttribute("aria-label", "Room 01, first person");
+    canvas.setAttribute("aria-label", "The game, first person");
     container.appendChild(canvas);
 
     const next = new Engine(canvas);
-    if (next.houseMode) { canvas.setAttribute("aria-label", "The house, first person"); document.title = "The House · Investigation"; }
     // A console handle for debugging in dev; stripped from production builds.
     if (import.meta.env.DEV) (window as unknown as { __engine?: Engine }).__engine = next;
     setEngine(next);

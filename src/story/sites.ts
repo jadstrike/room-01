@@ -35,7 +35,7 @@ export type SiteDef = {
   keyClues: Readonly<Record<string, string>>;
   /** What Rowan remembers when he recalls a key clue, by interaction id. */
   memories: Readonly<Record<string, string>>;
-  device: { name: string; intro: string };
+  device: { name: string; intro: string; style: "brass" | "tablet" };
   /** Shown when the entity drops Rowan here. */
   arrival: string;
 };
@@ -81,6 +81,7 @@ export const HOUSE: SiteDef = {
   },
   device: {
     name: "the brass device",
+    style: "brass",
     intro: "Turning the dial folds the house into a new arrangement. You keep your journal. Each arrangement is remembered; restore one whenever a door leads nowhere.",
   },
   arrival: "The boyfriend's house. A brass device hums beside the door you came in by.",
