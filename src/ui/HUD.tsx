@@ -1,12 +1,21 @@
 import type { EngineState } from "../engine/Engine";
-import { ROOM01 } from "../engine/room01";
 
 /** Everything drawn over the viewport while the player has the pointer. */
 export function HUD({ state }: { state: EngineState }) {
-  const { focus, stats } = state;
+  const { focus, stats, site } = state;
 
   return (
     <>
+      <div className="objective">
+        <span>{state.place}</span>
+        {state.objective && <p>{state.objective}</p>}
+        <small>
+          {site && `${site.clues.found}/${site.clues.total} key evidence · ${site.config.name} · `}
+          {state.journal.length > 0 && <><kbd>J</kbd> journal</>}
+          {site?.device.held && <> · <kbd>P</kbd> device</>}
+        </small>
+      </div>
+
       {focus && (
         <div className="prompt" role="status">
           <kbd>E</kbd>
@@ -32,31 +41,34 @@ export function HUD({ state }: { state: EngineState }) {
           <dd>{stats.fps || "–"}</dd>
         </div>
         <div>
+          <dt>Res</dt>
+          <dd>{Math.round(stats.renderScale * 100)}%</dd>
+        </div>
+        <div>
           <dt>Tris</dt>
           <dd>{stats.triangles.toLocaleString()}</dd>
         </div>
         <div>
           <dt>Meshes</dt>
-          <dd>{stats.roomMeshes}</dd>
+          <dd>{stats.meshes}</dd>
         </div>
-        <div>
-          <dt>Figure</dt>
-          <dd>
-            {stats.characterHeight ? `${stats.characterHeight.toFixed(2)} m` : "–"}
-            {stats.scaled && <em> scaled</em>}
-          </dd>
-        </div>
-        <div className={state.specOk ? "spec ok" : "spec bad"}>
-          <dt>Spec</dt>
-          <dd>{state.specOk ? "match" : "see console"}</dd>
-        </div>
+        {stats.characterHeight > 0 && (
+          <div>
+            <dt>Figure</dt>
+            <dd>
+              {stats.characterHeight.toFixed(2)} m{stats.scaled && <em> scaled</em>}
+            </dd>
+          </div>
+        )}
+        {!site && (
+          <div className={state.specOk ? "spec ok" : "spec bad"}>
+            <dt>Spec</dt>
+            <dd>{state.specOk ? "match" : "see console"}</dd>
+          </div>
+        )}
       </dl>
 
-      {state.debug && (
-        <p className="debug-note">
-          Collider view · room {ROOM01.shell.xMin}…{ROOM01.shell.xMax} m · green = confinement, red = spec colliders
-        </p>
-      )}
+      {state.debug && <p className="debug-note">Collider view · green = level bounds, red = obstacles</p>}
     </>
   );
 }

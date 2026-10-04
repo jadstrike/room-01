@@ -215,6 +215,8 @@ export class Viewmodel {
   readonly flashLight = new THREE.PointLight(0xffb266, 0, 4.5, 2);
 
   private rig = new THREE.Group();
+  /** Holds the rig, so it can be hidden off-screen without touching the holster state on the rig itself. */
+  private stage = new THREE.Group();
   private slide = new THREE.Group();
   private mag = new THREE.Group();
   private trigger = new THREE.Group();
@@ -267,7 +269,8 @@ export class Viewmodel {
       this.camera.add(mesh);
       this.shells.push({ mesh, vel: V(0, 0, 0), spin: V(0, 0, 0), life: 0 });
     }
-    this.camera.add(this.rig);
+    this.stage.add(this.rig);
+    this.camera.add(this.stage);
     this.rig.position.copy(this.restPos);
 
     this.camera.traverse((o) => {
@@ -434,6 +437,15 @@ export class Viewmodel {
     this.restPos.set(0, 0, 0);
     this.restRot.set(0, 0, 0);
     model.play("draw", 0);
+  }
+
+  /**
+   * Show or hide the hands and gun, as behind the title screen. The muzzle
+   * flash light stays in the scene either way: removing a light would change
+   * the light count and recompile every material on the way back.
+   */
+  setShown(on: boolean): void {
+    this.stage.visible = on;
   }
 
   get hasModel(): boolean {

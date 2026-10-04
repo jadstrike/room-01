@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import { readFile, writeFile } from 'node:fs/promises';
+import { decodeHouse, readHouseResult, HOUSE_ROOMS } from './house-labyrinth.mjs';
+const envelope = JSON.parse(await readFile(new URL('../docs/quantum-house/result.json', import.meta.url), 'utf8'));
+const { samples, states } = readHouseResult(envelope);
+assert.deepEqual(decodeHouse('1101').reachable, [0, 1, 3]);
+assert.deepEqual(decodeHouse('0010').edges, decodeHouse('1101').edges);
+assert.deepEqual(decodeHouse('1000').reachable, [0]); // catches accidental bit reversal
+assert(decodeHouse('1111').connected);
+assert(decodeHouse('0000').connected);
+for (const invalid of ['', '010', '10101', '001x', null]) assert.throws(() => decodeHouse(invalid));
+assert.throws(() => readHouseResult({ result: { output: { num_qubits: 5 } } }));
+const broken = structuredClone(envelope); broken.result.output.results.measurements[0].probability = NaN;
+assert.throws(() => readHouseResult(broken));
+assert(!HOUSE_ROOMS.some(room => room.id === 'room01'));
+const outcomes = samples.map(s => ({ ...s, ...decodeHouse(s.bitstring) }));
+const connectedProbability = outcomes.filter(o => o.connected).reduce((sum, o) => sum + o.probability, 0);
+const report = { rooms: HOUSE_ROOMS, shots: 4096, mode: 'emu', connectedProbability, radiating: states[0].radiating, outcomes };
+await writeFile(new URL('../docs/quantum-house/analysis.json', import.meta.url), JSON.stringify(report, null, 2) + '\n');
+console.log(`PASS: 16 outcomes, leftmost bit order, metadata, validation, Room 01 excluded. Connected samples: ${(connectedProbability * 100).toFixed(2)}%.`);

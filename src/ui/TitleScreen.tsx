@@ -1,0 +1,165 @@
+import { useEffect, useRef, useState } from "react";
+import type { Engine, EngineState } from "../engine/Engine";
+import type { CrosshairSettings } from "./crosshairSettings";
+import { ENDING_ORDER, ENDING_TITLES } from "../story/endings";
+import { Settings } from "./Settings";
+import { Keys } from "./Keys";
+import { Credits } from "./Credits";
+
+type View = "main" | "confirm" | "options" | "controls" | "credits";
+type Item = { id: string; label: string; detail?: string; disabled?: boolean; run: () => void };
+
+type Props = {
+  engine: Engine;
+  state: EngineState;
+  crosshair: CrosshairSettings;
+  onCrosshair: (patch: Partial<CrosshairSettings>) => void;
+};
+
+/**
+ * The main menu, drawn over the room itself: whatever level the save is in
+ * loads behind it, so Continue is instant, and the view drifts slowly while
+ * it waits. Arrow keys or W/S move, Enter picks, Esc goes back.
+ */
+export function TitleScreen({ engine, state, crosshair, onCrosshair }: Props) {
+  const [view, setView] = useState<View>("main");
+  const [selected, setSelected] = useState(0);
+  const loading = state.phase !== "ready" || state.transition !== null;
+  const game = engine.game;
+
+  const items: Item[] = [
+    ...(state.progress ? [{ id: "continue", label: "Continue", detail: state.progress, disabled: loading, run: () => game.continueGame() }] : []),
+    { id: "new", label: "New game", disabled: loading, run: () => (state.progress ? setView("confirm") : void game.beginNewGame()) },
+    { id: "options", label: "Options", run: () => setView("options") },
+    { id: "controls", label: "Controls", run: () => setView("controls") },
+    { id: "credits", label: "Credits", run: () => setView("credits") },
+  ];
+
+  // Keep the selection on something that can be picked as items come and go.
+  const current = Math.min(selected, items.length - 1);
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
+  const menuRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (view !== "main") {
+        if (e.code === "Escape") setView("main");
+        return;
+      }
+      // Arrows move focus; Enter and Space then click the focused button natively.
+      const list = itemsRef.current;
+      const step = e.code === "ArrowDown" || e.code === "KeyS" ? 1 : e.code === "ArrowUp" || e.code === "KeyW" ? -1 : 0;
+      if (!step) return;
+      e.preventDefault();
+      let next = Math.min(selected, list.length - 1);
+      for (let n = 0; n < list.length; n++) {
+        next = (next + step + list.length) % list.length;
+        if (!list[next].disabled) break;
+      }
+      setSelected(next);
+      menuRef.current?.querySelectorAll("button")[next]?.focus();
+      engine.audio?.blip(520, 0.03);
+    };
+    addEventListener("keydown", onKey);
+    return () => removeEventListener("keydown", onKey);
+  }, [view, selected, engine]);
+
+  return (
+    <div className="title-screen">
+      <div className="title-column">
+        <h1 className="game-title">
+          ROOM <span>01</span>
+        </h1>
+        <p className="tagline">One of them killed your sister.</p>
+
+        {view === "main" && (
+          <nav className="title-menu" aria-label="Main menu" ref={menuRef}>
+            {items.map((item, i) => (
+              <button
+                key={item.id}
+                className={i === current ? "selected" : undefined}
+                disabled={item.disabled}
+                onMouseEnter={() => !item.disabled && setSelected(i)}
+                onFocus={() => setSelected(i)}
+                onClick={item.run}
+                autoFocus={i === 0}
+              >
+                <span>{item.label}</span>
+                {item.detail && <small>{item.detail}</small>}
+              </button>
+            ))}
+          </nav>
+        )}
+
+        {view === "confirm" && (
+          <div className="title-panel">
+            <p>Start again from the beginning? The story so far will be lost. Endings you have found are kept.</p>
+            <div className="title-actions">
+              <button className="primary" onClick={() => void game.beginNewGame()} autoFocus>
+                Start again
+              </button>
+              <button className="quiet" onClick={() => setView("main")}>
+                Back
+              </button>
+            </div>
+          </div>
+        )}
+
+        {view === "controls" && (
+          <div className="title-panel">
+            <Keys />
+            <p className="hint">
+              Talk to the entity, find the evidence, give it an answer. E examines and talks; J is the journal; in the
+              house and the lab, P turns the device that decides where doors lead.
+            </p>
+            <button className="quiet" onClick={() => setView("main")} autoFocus>
+              Back <kbd>Esc</kbd>
+            </button>
+          </div>
+        )}
+
+        {view === "credits" && (
+          <div className="title-panel">
+            <p>A game about a sister you remember. Made for the Moth quantum games hackathon.</p>
+            <Credits />
+            <button className="quiet" onClick={() => setView("main")} autoFocus>
+              Back <kbd>Esc</kbd>
+            </button>
+          </div>
+        )}
+
+        <footer className="title-footer">
+          {loading ? (
+            <span className="title-loading">{state.transition?.step || "Preparing the room"}…</span>
+          ) : (
+            <span>
+              <kbd>↑</kbd>
+              <kbd>↓</kbd> select · <kbd>Enter</kbd> choose
+            </span>
+          )}
+          <span className="endings-found" aria-label={`${state.endingsFound.length} of 4 endings found`}>
+            Endings{" "}
+            {ENDING_ORDER.map((id) => (
+              <i key={id} data-found={state.endingsFound.includes(id) || undefined} title={state.endingsFound.includes(id) ? ENDING_TITLES[id] : "Not found yet"} />
+            ))}
+          </span>
+        </footer>
+      </div>
+
+      {view === "options" && (
+        <div className="menu-backdrop">
+          <div className="menu" role="dialog" aria-label="Options">
+            <header>
+              <h1>OPTIONS</h1>
+              <button className="primary" onClick={() => setView("main")} autoFocus>
+                Back
+              </button>
+            </header>
+            <Settings engine={engine} state={state} crosshair={crosshair} onCrosshair={onCrosshair} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

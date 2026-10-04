@@ -3,6 +3,11 @@ import { useEngine } from "./useEngine";
 import { HUD } from "./HUD";
 import { PauseMenu } from "./PauseMenu";
 import { DialogueBox } from "./DialogueBox";
+import { InvestigationPanel } from "./InvestigationPanel";
+import { LoadingScreen } from "./LoadingScreen";
+import { EndingScreen } from "./EndingScreen";
+import { TitleScreen } from "./TitleScreen";
+import { Prologue } from "./Prologue";
 import { Crosshair } from "./Crosshair";
 import { loadCrosshair, saveCrosshair, type CrosshairSettings } from "./crosshairSettings";
 
@@ -50,7 +55,9 @@ export function App() {
     };
   }, [engine]);
 
-  const playing = state.phase === "ready" && state.locked;
+  const inGame = state.screen === "game";
+  const ready = inGame && state.phase === "ready" && !state.transition && !state.ending;
+  const playing = ready && state.locked;
 
   return (
     <div className="app" ref={containerRef}>
@@ -58,27 +65,34 @@ export function App() {
 
       {playing && <HUD state={state} />}
 
-      {state.phase === "loading" && (
-        <div className="overlay">
-          <p className="loading">Loading Room 01…</p>
-        </div>
-      )}
-
       {state.phase === "error" && (
         <div className="overlay">
           <div className="error">
             <h2>Could not load the room</h2>
             <p>{state.error}</p>
-            <p className="hint">Check that /models/horror_room.web.glb is being served.</p>
+            <p className="hint">Reload the page and check that the game assets are being served.</p>
           </div>
         </div>
       )}
 
-      {state.phase === "ready" && engine && state.dialogue && <DialogueBox engine={engine} view={state.dialogue} />}
+      {ready && engine && state.dialogue && <DialogueBox engine={engine} view={state.dialogue} />}
 
-      {state.phase === "ready" && !state.locked && !state.dialogue && (
+      {ready && engine && state.panel && <InvestigationPanel engine={engine} state={state} />}
+
+      {ready && !state.locked && !state.dialogue && !state.panel && (
         <PauseMenu engine={engine} state={state} crosshair={crosshair} onCrosshair={updateCrosshair} />
       )}
+
+      {engine && inGame && state.ending && !state.transition && <EndingScreen engine={engine} ending={state.ending} />}
+
+      {engine && state.screen === "title" && state.phase !== "error" && (
+        <TitleScreen engine={engine} state={state} crosshair={crosshair} onCrosshair={updateCrosshair} />
+      )}
+
+      {engine && state.screen === "prologue" && <Prologue engine={engine} ready={state.phase === "ready" && !state.transition} />}
+
+      {/* The title and the prologue show their own progress; the card is for moving between places in play. */}
+      <LoadingScreen transition={inGame && state.phase !== "error" ? state.transition : null} />
 
       {dragging && <div className="dropzone">Drop a picture for the sign, or a .glb character</div>}
     </div>

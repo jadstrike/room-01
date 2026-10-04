@@ -1,0 +1,13 @@
+# Source is LF everywhere; Windows editors were committing CRLF, which turned
+# small edits into whole-file diffs.
+* text=auto eol=lf
+
+*.glb binary
+*.gltf binary
+*.bin binary
+*.png binary
+*.jpg binary
+*.webp binary
+*.mp3 binary
+*.ogg binary
+*.wav binary

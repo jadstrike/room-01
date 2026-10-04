@@ -1,6 +1,8 @@
 # Room 01
 
-A first-person horror room on the web. You wake up in a boarded-up bedroom with two people tied to chairs in the middle of it, under a bulb that will not stay lit, and something tall moving around them in the dark.
+A first-person horror game on the web. You are Rowan Langdon. You wake up in a boarded-up bedroom with two people tied to chairs in the middle of it, under a bulb that will not stay lit, and something tall moving around them in the dark. It says one of them murdered your sister, and it is offering you revenge.
+
+Talk to it, and a coin decides where you look for evidence: the boyfriend's house or the research lab. Bring the evidence back, question the accused, and give the entity its answer. There are four endings.
 
 Built with React 19, TypeScript, Vite and three.js 0.186. No game engine, no physics library.
 
@@ -11,7 +13,7 @@ npm install
 npm run dev
 ```
 
-Then open http://localhost:5173 and click to play.
+Then open http://localhost:5173. The title screen has Continue (once there is a story to continue), New game, Options, Controls and Credits; arrow keys and Enter work as well as the mouse.
 
 | | |
 |---|---|
@@ -22,11 +24,20 @@ Then open http://localhost:5173 and click to play.
 | `R` | reload |
 | `F` | inspect the gun |
 | `1` / `2` | draw the pistol / put it away (`Q` or scroll swaps) |
-| `E` | interact with whatever the crosshair is on, or talk to the entity |
+| `E` | examine, open, or talk to whatever the crosshair is on |
+| `J` | journal: the evidence you have recorded |
+| `P` | the device that rearranges a site's doors, once you have it |
+| `1`–`9`, `0` | pick a dialogue choice |
 | `Esc` | pause, settings and crosshair customisation |
 | `` ` `` | show collision boxes |
 
 Drop a picture anywhere on the page (or pick one in the pause menu) to put it on the figure's sign; it is kept on your device. Drop a `.glb` to replace the figure with your own character. A `.gltf` needs its `.bin` and textures selected together.
+
+Progress is saved in the browser as you play, so **Quit to title** in the pause menu loses nothing. The endings you have reached are remembered on the title screen. In a dev build the pause menu also has chapter jumps (straight into the house, the lab, or the trial) for testing.
+
+## The sites
+
+The house (six rooms) and the lab (five) are built in code rather than modelled, and connected by a device that changes which doors lead where. See [docs/SITES.md](docs/SITES.md) for how they work and how to add a room or a whole site.
 
 ## Scripts
 
@@ -36,6 +47,8 @@ npm run build       # typecheck + production build to dist/
 npm run preview     # serve the production build
 npm run typecheck   # tsc --noEmit
 npm run verify      # check the room models against the spec, offline
+npm run verify:sites # walk every site room: reachability, raycasts, cleanup
+npm run verify:story # play every branch of the story to all four endings, offline
 npm run build:chair # rebuild the chair character model
 ```
 
@@ -44,6 +57,8 @@ npm run build:chair # rebuild the chair character model
 The 3D scene is plain three.js in `src/engine/`, which imports no React. React owns only the interface — HUD, pause menu, crosshair — in `src/ui/`. A small external store carries discrete state (what the crosshair is pointing at, settings, stats) into React, while per-frame values are read imperatively inside an animation frame so the render loop never causes a re-render.
 
 The room itself is a glTF file whose objects are found by name. `docs/ROOM01_SPEC.md` records every measurement of it — positions, lights, materials, collider boxes, the door animation — and `src/engine/room01.ts` holds the numbers the game needs. `npm run verify` checks the models still match.
+
+Only one place is loaded at a time. Moving between them (through a door, or when the entity sends you somewhere) fades to a loading screen, stops rendering while the next place is built, compiles its shaders and draws its shadows before fading back in. Room 01 stays in memory because the story keeps coming back to it; site rooms are rebuilt each visit. The frame rate is capped (60 by default, in the pause menu), menus and conversations draw fewer frames, a hidden tab draws none, and the resolution drops on its own if a machine cannot keep up.
 
 Movement uses ground acceleration and friction rather than a smoothed camera, so it feels like a shooter. The player is kept inside the room by both the spec's wall colliders and a hard boundary, and the crosshair is customisable the way Counter-Strike's is: length, thickness, gap, outline, dot, colour, and a spread that opens up as you move.
 

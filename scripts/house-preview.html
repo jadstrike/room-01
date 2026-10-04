@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>House section visual check</title>
+<style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#030304}canvas{display:block;width:100%;height:100%}</style></head>
+<body><canvas id="scene" aria-label="House section rendering"></canvas>
+<script type="module">
+// Development-only visual harness: uses the actual Engine without the pause overlay.
+import { Engine } from '/src/engine/Engine.ts';
+const engine = new Engine(document.getElementById('scene'));
+await engine.init();
+engine.setHolstered(true);
+addEventListener('pagehide', () => engine.dispose(), { once: true });
+</script></body></html>

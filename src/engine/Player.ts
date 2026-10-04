@@ -45,6 +45,8 @@ export class Player {
   /** Horizontal speed normalised to sprint speed - drives crosshair spread. */
   speed01 = 0;
   locked = false;
+  /** Ignores movement keys, as while the loading screen is up. */
+  frozen = false;
   onStep: ((hard: boolean) => void) | null = null;
   onLockChange: ((locked: boolean) => void) | null = null;
 
@@ -132,7 +134,7 @@ export class Player {
     // --- wish direction in camera yaw space -------------------------------
     let forward = 0;
     let strafe = 0;
-    if (this.locked) {
+    if (this.locked && !this.frozen) {
       if (this.keys.has("KeyW") || this.keys.has("ArrowUp")) forward += 1;
       if (this.keys.has("KeyS") || this.keys.has("ArrowDown")) forward -= 1;
       if (this.keys.has("KeyD") || this.keys.has("ArrowRight")) strafe += 1;
