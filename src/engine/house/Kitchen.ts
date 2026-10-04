@@ -60,11 +60,25 @@ export class Kitchen extends ProceduralSection {
     box("Oven_Handle", 1.36, 0.72, -1.55, 0.62, 0.045, 0.06, metal);
     for (const x of [1.13, 1.58]) for (const z of [-2.28, -1.87]) this.cylinder("Burner", x, 0.95, z, 0.14, 0.018, dark);
     for (let i = 0; i < 4; i++) this.cylinder("Cooker_Dial", 1.1 + i * 0.17, 0.86, -1.6, 0.04, 0.045, dark).rotation.x = Math.PI / 2;
-    const fridge = box("Fridge", 2.43, 1.02, -1.96, 0.91, 2.04, 0.97, cream, true);
-    box("Freezer_Seam", 2.43, 1.5, -1.466, 0.85, 0.018, 0.012, dark);
-    box("Fridge_Handle", 2.1, 1.15, -1.41, 0.045, 0.4, 0.08, metal);
-    box("Fridge_Note", 2.45, 1.67, -1.462, 0.22, 0.28, 0.008, this.material(0xd4c894));
-    this.cylinder("Magnet", 2.45, 1.78, -1.45, 0.022, 0.015, green).rotation.x = Math.PI / 2;
+    // The fridge opens: a body, a lit inside just behind the door, and the door on a hinge at the wall side.
+    const fridge = this.group("Fridge");
+    fridge.add(box("Fridge_Body", 2.43, 1.02, -2.0, 0.91, 2.04, 0.89, cream, true));
+    const glow = this.own(new THREE.MeshStandardMaterial({ color: 0xb9c4c0, emissive: 0xc9dcd6, emissiveIntensity: 0.18 }));
+    fridge.add(box("Fridge_Inside", 2.43, 1.02, -1.553, 0.8, 1.92, 0.01, glow));
+    for (const y of [0.55, 0.95, 1.5]) fridge.add(box("Fridge_Shelf", 2.43, y, -1.53, 0.78, 0.015, 0.05, glow));
+    fridge.add(box("Milk", 2.2, 1.06, -1.53, 0.09, 0.2, 0.05, this.material(0xe9e4d4)));
+    fridge.add(box("Cake", 2.55, 0.62, -1.53, 0.3, 0.12, 0.05, this.material(0x6b3a2c)));
+    fridge.add(this.cylinder("Jar", 2.68, 1.03, -1.53, 0.04, 0.14, this.material(0x8a6a3a)));
+    const fridgeDoor = [
+      box("Fridge_Door", 2.43, 1.02, -1.51, 0.91, 2.04, 0.06, cream),
+      box("Freezer_Seam", 2.43, 1.5, -1.476, 0.85, 0.018, 0.012, dark),
+      box("Fridge_Handle", 2.1, 1.15, -1.43, 0.045, 0.4, 0.08, metal),
+      box("Fridge_Note", 2.45, 1.67, -1.472, 0.22, 0.28, 0.008, this.material(0xd4c894)),
+    ];
+    const magnet = this.cylinder("Magnet", 2.45, 1.78, -1.465, 0.022, 0.015, green);
+    magnet.rotation.x = Math.PI / 2;
+    for (const part of [...fridgeDoor, magnet]) fridge.add(part);
+    this.swing(fridge, [...fridgeDoor, magnet], new THREE.Vector3(2.885, 0, -1.51), 1.9, "fridge");
     // Moonlit window on the left wall; the backing is intentionally opaque.
     const glass = new THREE.MeshStandardMaterial({ color: 0x172c37, emissive: 0x496579, emissiveIntensity: 0.45, roughness: 0.3 });
     this.materials.add(glass);
@@ -102,7 +116,7 @@ export class Kitchen extends ProceduralSection {
     moon.position.set(-2.65, 1.95, -0.2); this.root.add(moon);
     const inspect = this.inspect.bind(this);
     inspect(mug, "the forgotten cup", "A skin has formed over the tea. A teaspoon lies beside the cup. Someone left in a hurry—or meant to come back.");
-    inspect(fridge, "the refrigerator", "The refrigerator hums. A scrap of paper is pinned to its door, too faded to read. There is no date.");
+    inspect(fridge, "the refrigerator", "Milk two weeks past its date, and a cake with one slice gone. The note on the door is too faded to read. There is no date on anything.");
     inspect(stove, "the cooker", "All four rings are cold. Grease has settled around the controls. Nothing here tells you when it was last used.");
     this.exitDoor(door, "the hall door", "The rest of the house lies beyond this door, wherever the device has put it.");
   }

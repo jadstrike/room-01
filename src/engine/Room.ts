@@ -12,17 +12,17 @@ import { ROOM01, specColliderBoxes, roomBounds } from "./room01";
  */
 const NO_SHADOW_MATS = new Set(["M_WindowGlass", "M_NightSky", "M_Void", "M_BulbGlass"]);
 
-/** Props the interaction system offers: node name -> verb + label. */
-export const PROP_INTERACTIONS: ReadonlyArray<{ node: string; verb: string; label: string; range?: number }> = [
-  { node: "Door", verb: "Open", label: "the door" },
-  { node: "Mirror", verb: "Look into", label: "the mirror" },
-  { node: "Frame_Portrait", verb: "Examine", label: "the portrait" },
-  { node: "Frame_Fallen", verb: "Examine", label: "the fallen frame" },
-  { node: "Desk_Items", verb: "Search", label: "the desk" },
-  { node: "Wardrobe", verb: "Open", label: "the wardrobe" },
-  { node: "Window_Boards", verb: "Examine", label: "the boarded window" },
-  { node: "Bed", verb: "Examine", label: "the bed" },
-  { node: "Radiator", verb: "Touch", label: "the radiator" },
+/** Props the interaction system offers: node name -> verb + label, and what Rowan finds. */
+export const PROP_INTERACTIONS: ReadonlyArray<{ node: string; verb: string; label: string; text: string; range?: number }> = [
+  { node: "Door", verb: "Open", label: "the door", text: "" },
+  { node: "Mirror", verb: "Look into", label: "the mirror", text: "You look like someone who has been crying. You don't remember crying." },
+  { node: "Frame_Portrait", verb: "Examine", label: "the portrait", text: "A family portrait, sun-faded. Everyone in it is turned slightly away from the camera." },
+  { node: "Frame_Fallen", verb: "Examine", label: "the fallen frame", text: "Face down, the glass cracked. You leave it face down." },
+  { node: "Desk_Items", verb: "Search", label: "the desk", text: "Pens, a dead phone, a florist's receipt. The date has been torn off." },
+  { node: "Wardrobe", verb: "Open", label: "the wardrobe", text: "Empty hangers, still swaying, as if someone has only just taken the clothes." },
+  { node: "Window_Boards", verb: "Examine", label: "the boarded window", text: "Nailed shut from the inside. Whoever did it was keeping something in." },
+  { node: "Bed", verb: "Examine", label: "the bed", text: "Made with hospital corners. Nobody has slept in it. Nobody has slept here at all." },
+  { node: "Radiator", verb: "Touch", label: "the radiator", text: "Stone cold. Something taps inside it, once, and stops." },
 ];
 
 export class Room {

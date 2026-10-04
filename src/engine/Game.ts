@@ -54,6 +54,8 @@ export type GameState = {
   ending: EndingView | null;
   /** The main menu over the room, the opening card of a new game, or play. */
   screen: "title" | "prologue" | "game";
+  /** A one-time hint about whatever the player has just met, with the keys it needs. */
+  tip: Tip | null;
   /** Every ending this player has reached, across runs. */
   endingsFound: EndingId[];
   /** Where Continue would resume, or null with nothing to continue. */
@@ -70,6 +72,7 @@ export const INITIAL_GAME: GameState = {
   recalled: false,
   journal: [],
   saveWarning: "",
+  tip: null,
   ending: null,
   screen: "title",
   endingsFound: [],
@@ -77,6 +80,19 @@ export const INITIAL_GAME: GameState = {
 };
 
 const ENDINGS_KEY = "moth.endings";
+const TIPS_KEY = "moth.tips";
+
+export type Tip = { id: string; title: string; text: string; keys: string[] };
+
+/** Each shown once per player, the first time it matters. */
+const TIPS: Readonly<Record<string, Omit<Tip, "id">>> = {
+  look: { title: "Moving", text: "Walk with W A S D and look with the mouse. When the mark in the middle turns red, press E.", keys: ["W", "A", "S", "D", "E"] },
+  evidence: { title: "Evidence", text: "Examine everything with E. Key evidence is what the case turns on: record it, and try to remember.", keys: ["E"] },
+  journal: { title: "Journal", text: "Everything you record goes in the journal. Read it any time.", keys: ["J"] },
+  device: { title: "The device", text: "It decides where this place's doors lead. Turn it when a door leads nowhere useful.", keys: ["P"] },
+  trial: { title: "The trial", text: "Talk to the accused and put what you found to them. When you are ready, give the entity your answer.", keys: ["E"] },
+  gun: { title: "The verdict", text: "Aim at him and click to fire. Or talk to the entity to take it back.", keys: ["Click", "E"] },
+};
 
 const ACT_LABELS: Record<Act, string> = {
   intro: "before the coin",
@@ -106,6 +122,8 @@ export class Game {
   private deviceOff: (() => void) | null = null;
   private entityOff: (() => void) | null = null;
   private travelling = false;
+  /** The act when the last line was shown, to catch the line that changes it. */
+  private shownAct: Act = "intro";
   private wakeTimer: ReturnType<typeof setTimeout> | undefined;
   /** The ending card waiting for its moment to land; cancelled by leaving to the title or starting over. */
   private endingTimer: ReturnType<typeof setTimeout> | undefined;
@@ -113,6 +131,7 @@ export class Game {
   private doorItem: Interactable | null = null;
   private disposed = false;
   private endingsFound: EndingId[] = [];
+  private tipsSeen = new Set<string>();
 
   constructor(private engine: Engine) {
     let raw: string | null = null;
@@ -131,6 +150,23 @@ export class Game {
       // Nothing found yet, as far as this browser knows.
     }
     this.engine.store.set({ endingsFound: [...this.endingsFound] });
+    try {
+      for (const id of JSON.parse(localStorage.getItem(TIPS_KEY) ?? "[]")) this.tipsSeen.add(String(id));
+    } catch {
+      // Every tip shows again; that is all.
+    }
+  }
+
+  /** Show tip `id` if this player has not seen it. */
+  private tip(id: keyof typeof TIPS): void {
+    if (this.tipsSeen.has(id)) return;
+    this.tipsSeen.add(id);
+    try {
+      localStorage.setItem(TIPS_KEY, JSON.stringify([...this.tipsSeen]));
+    } catch {
+      // It will show again next time.
+    }
+    this.engine.store.set({ tip: { id, ...TIPS[id] } });
   }
 
   // --- the front end --------------------------------------------------------------
@@ -155,6 +191,7 @@ export class Game {
   /** The end of the prologue: Rowan wakes up, and a moment later the entity speaks. */
   wake(): void {
     this.engine.store.set({ screen: "game" });
+    this.tip("look");
     this.engine.requestLock();
     clearTimeout(this.wakeTimer);
     this.wakeTimer = setTimeout(() => {
@@ -237,6 +274,10 @@ export class Game {
     );
     this.travelling = false;
     if (ok) this.engine.store.set({ message: arriving ? site.arrival : `${inv.roomName}.` });
+    if (ok && arriving) {
+      this.engine.audio?.sting("arrive");
+      this.tip("evidence");
+    }
     this.publish();
   }
 
@@ -273,7 +314,7 @@ export class Game {
             return;
           }
           this.engine.audio?.blip(300, 0.06);
-          this.engine.store.set({ message: `${prop.verb} ${prop.label} — nothing here yet.` });
+          this.engine.store.set({ message: prop.text });
         },
       };
       if (prop.node === "Door") this.doorItem = item;
@@ -335,6 +376,7 @@ export class Game {
   talkToEntity(): void {
     const entity = this.room01?.entity;
     if (!entity || this.conversation) return;
+    if (!this.story.met) this.engine.audio?.sting("wake");
     entity.hold(true);
     this.converse(ENTITY_SCRIPT, entityStart(this.story));
   }
@@ -376,6 +418,9 @@ export class Game {
   }
 
   private showLine(): void {
+    const before = this.shownAct;
+    this.shownAct = this.story.act;
+    if (before === "trial" && this.story.act === "revealed") this.engine.audio?.sting("reveal");
     const view = this.conversation?.view ?? null;
     this.engine.store.set({ dialogue: view });
     if (view) this.engine.audio?.voice(view.text.length);
@@ -388,6 +433,7 @@ export class Game {
       case "travel":
         return this.beginRound(request.to);
       case "execute":
+        this.tip("gun");
         this.engine.setHolstered(false);
         this.engine.store.set({ message: "One round. The entity is holding him still." });
         return;
@@ -399,6 +445,14 @@ export class Game {
       case "release":
         return this.release();
     }
+  }
+
+  /** How close the entity is, 0..1, for the heartbeat; an execution keeps it going regardless. */
+  private dread(): number {
+    const entity = this.room01?.entity;
+    if (!entity || this.engine.level !== this.room01 || this.engine.store.get().screen !== "game") return 0;
+    const near = Math.min(1, Math.max(0, (4 - entity.position.distanceTo(this.engine.player.position)) / 3));
+    return this.story.act === "execution" ? Math.max(near, 0.5) : near;
   }
 
   // --- the end --------------------------------------------------------------------
@@ -422,6 +476,7 @@ export class Game {
   /** Show ending `id`, after `delay` ms so the moment that caused it can land. */
   private finish(id: EndingId, delay: number): void {
     if (this.story.act === "ended") return;
+    this.engine.audio?.sting(id === "walk-away" ? "arrive" : "death");
     this.story.ending = id;
     this.story.act = "ended";
     this.save();
@@ -442,6 +497,7 @@ export class Game {
 
   /** Per frame: only the walk out of Room 01 is a place rather than an action. */
   update(): void {
+    this.engine.audio?.setDread(this.dread());
     if (this.story.act !== "released" || !this.room01 || this.engine.level !== this.room01) return;
     // The far end of the spec's hallway runs to x = 7.
     if (this.engine.player.position.x > 6.2) this.finish("walk-away", 0);
@@ -468,11 +524,16 @@ export class Game {
   private examine(item: Examinable): void {
     const inv = this.investigation;
     if (!inv) return;
+    // Fridges and cupboards open as Rowan looks in them.
+    const swung = this.site?.open(item.id);
+    if (swung === "fridge") this.engine.audio?.fridge();
+    else if (swung) this.engine.audio?.door();
     const title = item.label.replace(/^the /, "");
     this.inspection = inv.inspection(item.id, title[0].toUpperCase() + title.slice(1), item.text);
     this.engine.audio?.blip(260, 0.08);
     this.engine.store.set({ recalled: false });
     this.openPanel("inspection");
+    this.engine.focusOn(item.object);
   }
 
   /** Let Rowan's memory of what he is looking at come back. */
@@ -493,6 +554,8 @@ export class Game {
     this.engine.store.set({
       message: !wasComplete && inv.complete ? "That is everything. Any door will take you back to Room 01." : "Recorded in your journal.",
     });
+    this.engine.audio?.scribble();
+    this.tip("journal");
     this.publish();
   }
 
@@ -523,6 +586,7 @@ export class Game {
     this.engine.redrawShadows();
     this.save();
     this.openPanel("device");
+    this.tip("device");
   }
 
   async travel(room: string): Promise<void> {
@@ -530,7 +594,19 @@ export class Game {
     if (!inv || this.travelling || !inv.travel(room)) return;
     this.closePanel();
     this.save();
+    await this.throughTheDoor();
     await this.enterSite(inv.site.id, false);
+  }
+
+  /** The exit door swings open on the fold behind it, and only then does the room change. */
+  private async throughTheDoor(): Promise<void> {
+    const site = this.site;
+    if (!site) return;
+    this.travelling = true;
+    this.engine.player.frozen = true;
+    this.engine.audio?.door();
+    setTimeout(() => this.engine.audio?.portal(), 250);
+    await site.openExit();
   }
 
   shiftDevice(): void {
@@ -558,7 +634,9 @@ export class Game {
     this.closePanel();
     this.story.act = "trial";
     this.save();
+    await this.throughTheDoor();
     await this.enterRoom01({ title: "Room 01", line: "The entity folds you back into the room." }, "Back in Room 01. The entity is waiting for an answer.");
+    this.tip("trial");
   }
 
   // --- panels -------------------------------------------------------------------
@@ -566,12 +644,14 @@ export class Game {
     if (panel === "device" && !this.investigation?.progress.device) return;
     if (panel !== "journal" && !this.investigation) return;
     this.engine.store.set({ panel });
+    if (panel !== "inspection") this.engine.focusOn(null);
     this.engine.player.releaseLock();
     this.publish();
   }
 
   closePanel(): void {
     this.engine.store.set({ panel: null });
+    this.engine.focusOn(null);
   }
 
   /** Keys the game owns. Returns true when the key was used. */

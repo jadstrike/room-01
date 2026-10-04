@@ -1,29 +1,33 @@
-/** The controls, as a compact list of keycaps. */
+const CONTROLS: ReadonlyArray<[string, string[]]> = [
+  ["Move", ["W", "A", "S", "D"]],
+  ["Sprint", ["Shift"]],
+  ["Crouch", ["Ctrl"]],
+  ["Jump", ["Space"]],
+  ["Examine · talk · open", ["E"]],
+  ["Journal", ["J"]],
+  ["Device (in the house or the lab)", ["P"]],
+  ["Fire", ["Click"]],
+  ["Reload", ["R"]],
+  ["Look at the gun", ["F"]],
+  ["Draw · put away", ["1", "2"]],
+  ["Dialogue choices", ["1–9", "0"]],
+  ["Pause", ["Esc"]],
+];
+
+/** The controls, one action per row, as a game's controls screen lists them. */
 export function Keys() {
   return (
-    <ul className="keys">
-      <li>
-        <kbd>W</kbd>
-        <kbd>A</kbd>
-        <kbd>S</kbd>
-        <kbd>D</kbd> move
-      </li>
-      <li>
-        <kbd>Shift</kbd> sprint · <kbd>Ctrl</kbd> crouch · <kbd>Space</kbd> jump
-      </li>
-      <li>
-        <kbd>Click</kbd> fire · <kbd>R</kbd> reload · <kbd>F</kbd> inspect · <kbd>E</kbd> interact / talk
-      </li>
-      <li>
-        <kbd>J</kbd> journal · <kbd>P</kbd> device, in a site
-      </li>
-      <li>
-        <kbd>1</kbd> pistol · <kbd>2</kbd> put away · <kbd>Q</kbd> / scroll swap
-      </li>
-      <li>
-        <kbd>Esc</kbd> pause · <kbd>`</kbd> colliders
-      </li>
-    </ul>
-
+    <dl className="controls-table">
+      {CONTROLS.map(([action, keys]) => (
+        <div key={action}>
+          <dt>{action}</dt>
+          <dd>
+            {keys.map((k) => (
+              <kbd key={k}>{k}</kbd>
+            ))}
+          </dd>
+        </div>
+      ))}
+    </dl>
   );
 }

@@ -1,0 +1,52 @@
+import { useEffect } from "react";
+
+export const CREATORS = ["Khant Zwe Naing (Isaac)", "Kyaw Lwin (William)"];
+
+const SECTIONS: ReadonlyArray<{ heading: string; lines: string[] }> = [
+  { heading: "A game by", lines: CREATORS },
+  { heading: "Made for", lines: ["The Moth quantum games hackathon"] },
+  { heading: "Built with", lines: ["three.js · React · TypeScript · Vite"] },
+  { heading: "The pistol", lines: ["“Beretta Pistol FPS ANIMATION” by BURNER", "CC BY 4.0"] },
+  { heading: "The entity", lines: ["“Scary Creature” by shedmon", "CC BY 4.0"] },
+  { heading: "Gun sounds", lines: ["synth2 · GFL7 (CC0)", "fastson (CC BY 3.0) · Debsound (CC BY-NC 4.0)", "via freesound.org"] },
+  { heading: "Everything else", lines: ["The rooms, the characters, the score and the sound design were made for this game"] },
+];
+
+/**
+ * The end credits, rolling up the screen once. Esc, Enter or the button skips
+ * to the end; so does the roll finishing on its own.
+ */
+export function CreditsRoll({ onDone }: { onDone: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code === "Escape" || e.code === "Enter" || e.code === "Space") {
+        e.preventDefault();
+        onDone();
+      }
+    };
+    addEventListener("keydown", onKey);
+    return () => removeEventListener("keydown", onKey);
+  }, [onDone]);
+
+  return (
+    <div className="credits-roll" role="dialog" aria-label="Credits">
+      <div className="roll" onAnimationEnd={onDone}>
+        <h1 className="game-title">
+          ROOM <span>01</span>
+        </h1>
+        {SECTIONS.map((s) => (
+          <section key={s.heading}>
+            <h2>{s.heading}</h2>
+            {s.lines.map((line) => (
+              <p key={line}>{line}</p>
+            ))}
+          </section>
+        ))}
+        <p className="roll-end">Thank you for playing.</p>
+      </div>
+      <button className="quiet roll-skip" onClick={onDone}>
+        Skip <kbd>Esc</kbd>
+      </button>
+    </div>
+  );
+}

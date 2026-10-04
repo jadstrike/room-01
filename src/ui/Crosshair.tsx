@@ -13,11 +13,14 @@ export function Crosshair({
   settings,
   focused,
   hidden,
+  preview = false,
 }: {
   engine: Engine | null;
   settings: CrosshairSettings;
   focused: boolean;
   hidden: boolean;
+  /** Drawn inside a box (the options preview) rather than over the screen centre. */
+  preview?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -45,7 +48,7 @@ export function Crosshair({
   return (
     <div
       ref={ref}
-      className="crosshair"
+      className={preview ? "crosshair preview" : "crosshair"}
       data-hidden={hidden || undefined}
       style={
         {

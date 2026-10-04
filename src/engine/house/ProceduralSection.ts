@@ -9,6 +9,9 @@ const sharedTextures = new Map<TextureKind, THREE.CanvasTexture>();
 /** Something in a room E can be pressed on, and what Rowan sees when it is. */
 export type Examinable = { id: string; object: THREE.Object3D; label: string; text: string };
 
+/** A part that swings open on a hinge: a fridge door, a cupboard. 0 shut .. 1 open. */
+export type Swing = { pivot: THREE.Group; axis: "x" | "y"; angle: number; open: number; target: number; sound: "door" | "fridge" };
+
 /** A doorway in a room's local space: the door the player leaves by. */
 export type Port = { id: string; position: THREE.Vector3; outward: THREE.Vector3; width: number; height: number };
 
@@ -26,6 +29,8 @@ export abstract class Procedural {
   readonly root = new THREE.Group();
   readonly colliders: THREE.Box3[] = [];
   readonly examinables: Examinable[] = [];
+  /** Parts that open when the examinable they belong to is examined, by examinable id. */
+  readonly swings = new Map<string, Swing>();
   protected geometries = new Set<THREE.BufferGeometry>();
   protected materials = new Set<THREE.Material>();
   private cube = new THREE.BoxGeometry(1, 1, 1);
@@ -82,6 +87,23 @@ export abstract class Procedural {
     group.name = name;
     this.root.add(group);
     return group;
+  }
+
+  /**
+   * Hinge `parts` at `hinge` (in their parent's space) so they can swing
+   * `angle` radians open when `owner` is examined. Build the parts shut;
+   * the pivot keeps them where they are.
+   */
+  protected swing(owner: THREE.Object3D, parts: THREE.Object3D[], hinge: THREE.Vector3, angle: number, sound: Swing["sound"] = "door", axis: Swing["axis"] = "y"): THREE.Group {
+    const parent = parts[0].parent ?? this.root;
+    const pivot = new THREE.Group();
+    pivot.name = `${owner.name}_Hinge`;
+    pivot.position.copy(hinge);
+    parent.add(pivot);
+    this.root.updateMatrixWorld(true);
+    for (const part of parts) pivot.attach(part);
+    this.swings.set(`${this.prefix}:${owner.name}`, { pivot, axis, angle, open: 0, target: 0, sound });
+    return pivot;
   }
 
   /** Make an object examinable: E shows `text`. */
@@ -171,7 +193,8 @@ export abstract class Procedural {
 
   /** Objects the raycast must still be able to find after merging. */
   protected interactionObjects(): THREE.Object3D[] {
-    return this.examinables.map((e) => e.object);
+    // A hinge is a moving part: its meshes merge under it, not into whatever is behind it.
+    return [...this.examinables.map((e) => e.object), ...[...this.swings.values()].map((s) => s.pivot)];
   }
 
   dispose(): void {
