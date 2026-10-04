@@ -12,7 +12,7 @@ import { ENTITY_SCRIPT, entityStart } from "../story/entityScript";
 import { Investigation, type Inspection } from "../story/investigation";
 import { SITES, type AccusedId, type Place } from "../story/sites";
 import { SAVE_KEY, currentPlace, newStoryState, parseSave, type Act, type EndingId, type Request, type StoryState } from "../story/state";
-import { endingFor, type EndingView } from "../story/endings";
+import { ENDING_ORDER, endingFor, type EndingView } from "../story/endings";
 
 export type Panel = "inspection" | "journal" | "device" | "passage";
 
@@ -107,6 +107,11 @@ export class Game {
   private entityOff: (() => void) | null = null;
   private travelling = false;
   private wakeTimer: ReturnType<typeof setTimeout> | undefined;
+  /** The ending card waiting for its moment to land; cancelled by leaving to the title or starting over. */
+  private endingTimer: ReturnType<typeof setTimeout> | undefined;
+  /** Room 01's door, whose verb has to follow it when the story opens it. */
+  private doorItem: Interactable | null = null;
+  private disposed = false;
   private endingsFound: EndingId[] = [];
 
   constructor(private engine: Engine) {
@@ -121,7 +126,7 @@ export class Game {
     if (this.story.act === "ended") this.story = newStoryState();
     try {
       const found = JSON.parse(localStorage.getItem(ENDINGS_KEY) ?? "[]");
-      if (Array.isArray(found)) this.endingsFound = found.filter((id): id is EndingId => ["boyfriend", "coworker", "rowan", "walk-away"].includes(id));
+      if (Array.isArray(found)) this.endingsFound = ENDING_ORDER.filter((id) => found.includes(id));
     } catch {
       // Nothing found yet, as far as this browser knows.
     }
@@ -141,7 +146,7 @@ export class Game {
 
   /** The prologue card, with a fresh story loading behind it. */
   async beginNewGame(): Promise<void> {
-    clearTimeout(this.wakeTimer);
+    this.cancelTimers();
     this.engine.store.set({ screen: "prologue", ending: null });
     // A fresh save already sitting in an untouched Room 01 needs no reload.
     if (this.hasProgress || !this.room01 || this.engine.level !== this.room01) await this.newGame();
@@ -160,7 +165,7 @@ export class Game {
 
   /** From the pause menu. Everything is already saved. */
   quitToTitle(): void {
-    clearTimeout(this.wakeTimer);
+    this.cancelTimers();
     if (this.conversation) this.endDialogue();
     this.closePanel();
     this.engine.player.releaseLock();
@@ -169,12 +174,20 @@ export class Game {
 
   /** From an ending: a fresh story waits behind the title. */
   async toTitle(): Promise<void> {
+    this.cancelTimers();
     this.engine.store.set({ screen: "title", ending: null });
     await this.newGame();
   }
 
+  private cancelTimers(): void {
+    clearTimeout(this.wakeTimer);
+    clearTimeout(this.endingTimer);
+  }
+
   /** Put the player wherever the saved story says they are. */
   async start(): Promise<void> {
+    // Saved between the coin landing and the conversation closing: the coin has spoken, so go.
+    if (this.story.act === "intro" && this.story.destination) return this.beginRound(this.story.destination);
     const place = currentPlace(this.story);
     if (place) return this.enterSite(place, false);
     await this.enterRoom01({ title: "Room 01" }, "Click to look around. WASD to move, E to interact.");
@@ -187,7 +200,13 @@ export class Game {
   private async enterRoom01(card: Card, message: string): Promise<void> {
     this.travelling = true;
     const ok = await this.engine.enter(async (report) => {
-      const level = this.room01 ?? (this.room01 = await Room01Level.load(report, this.engine.store.get().autoScale));
+      let level = this.room01;
+      if (!level) {
+        level = await Room01Level.load(report, this.engine.store.get().autoScale);
+        // Closed mid-load (StrictMode does this on every dev start): the closed Engine disposes it.
+        if (this.disposed) return level;
+        this.room01 = level;
+      }
       this.site = null;
       this.investigation = null;
       this.wireRoom01(level);
@@ -257,6 +276,7 @@ export class Game {
           this.engine.store.set({ message: `${prop.verb} ${prop.label} — nothing here yet.` });
         },
       };
+      if (prop.node === "Door") this.doorItem = item;
       this.engine.register(item);
     }
     this.seatOffs = [];
@@ -299,7 +319,7 @@ export class Game {
     }
   }
 
-  private publishSeats(): void {
+  publishSeats(): void {
     const level = this.room01;
     if (!level) return;
     const first = level.seats[0].character;
@@ -392,6 +412,7 @@ export class Game {
     this.entityOff?.();
     this.entityOff = null;
     if (!level.room.doorOpen) level.room.toggleDoor();
+    if (this.doorItem) this.doorItem.verb = "Close";
     if (this.engine.level === level) this.engine.refreshLevel();
     this.engine.setHolstered(true);
     this.engine.store.set({ doorOpen: true, message: "The entity is gone. So are the chairs. The door is open." });
@@ -411,7 +432,8 @@ export class Game {
       // The ending still shows; it just will not be remembered.
     }
     this.engine.store.set({ endingsFound: [...this.endingsFound] });
-    setTimeout(() => {
+    clearTimeout(this.endingTimer);
+    this.endingTimer = setTimeout(() => {
       this.engine.player.releaseLock();
       this.engine.store.set({ ending: endingFor(id, this.story), dialogue: null, panel: null });
       this.publish();
@@ -497,6 +519,8 @@ export class Game {
     this.deviceOff?.();
     this.deviceOff = null;
     this.site.removeDevice();
+    // Site shadows are drawn once on entry; the device's has to go too.
+    this.engine.redrawShadows();
     this.save();
     this.openPanel("device");
   }
@@ -588,12 +612,14 @@ export class Game {
       return false;
     }
     // The gun only works on them once a verdict says it should: the entity is holding the rest of the room still.
-    this.engine.store.set({
-      message:
-        this.story.act === "execution"
-          ? 'The round stops an inch short and drops onto the rug. "Not that one," says the entity.'
-          : 'The round stops an inch short and drops onto the rug. "Not yet," says the entity. "We haven\'t had the trial."',
-    });
+    const said: Partial<Record<Act, string>> = {
+      intro: "\"Not yet,\" says the entity. \"We haven't had the trial.\"",
+      execution: "\"Not that one,\" says the entity.",
+      trial: "\"Say which one first,\" says the entity. \"Then shoot.\"",
+      revealed: "\"Choose first,\" says the entity. \"I do love a ceremony.\"",
+    };
+    const line = said[this.story.act];
+    if (line) this.engine.store.set({ message: `The round stops an inch short and drops onto the rug. ${line}` });
     return true;
   }
 
@@ -683,7 +709,7 @@ export class Game {
   /** Start the story again from the top: a fresh save, and a fresh Room 01. */
   async newGame(): Promise<void> {
     if (this.travelling) return;
-    clearTimeout(this.wakeTimer);
+    this.cancelTimers();
     this.conversation = null;
     this.inspection = null;
     this.story = newStoryState();
@@ -732,6 +758,8 @@ export class Game {
 
   /** Room 01 is persistent, so the Engine never disposes it; this does. */
   dispose(): void {
+    this.disposed = true;
+    this.cancelTimers();
     this.room01?.dispose();
     this.room01 = null;
   }

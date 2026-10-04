@@ -243,8 +243,9 @@ export class Engine {
       this.store.set({ phase: "error", error: error instanceof Error ? error.message : String(error), transition: null });
       return false;
     }
-    if (token !== this.entering || this.disposed) {
-      if (!level.persistent) level.dispose();
+    // A persistent level overtaken by a newer enter() is still the Game's to keep; a closed engine keeps nothing.
+    if (this.disposed || token !== this.entering) {
+      if (this.disposed || !level.persistent) level.dispose();
       return false;
     }
 
@@ -285,9 +286,16 @@ export class Engine {
     this.player.setColliders(level.colliders);
     this.player.setConfinement(this.store.get().confineToRoom ? level.confine : null);
     this.player.spawnAt(level.spawn, level.lookAt);
+    // The title screen's drift starts again from the new view, not the last level's.
+    this.attractYaw = null;
     this.interact.setRoots(level.raycastRoots());
     this.dust.setBulbPosition(level.lightPosition);
     this.buildDebug();
+  }
+
+  /** Static shadows are drawn once; call this when one of their casters goes away. */
+  redrawShadows(): void {
+    this.renderer.shadowMap.needsUpdate = true;
   }
 
   /** Raycast roots and colliders change when something joins or leaves the level. */
@@ -398,7 +406,7 @@ export class Engine {
     }
     try {
       if (await seat.sign.set(file)) {
-        this.publishSigns();
+        this.game.publishSeats();
         this.store.set({ message: `Your picture is on the sign of ${seat.def.label.toLowerCase()} now.` });
       }
     } catch {
@@ -408,18 +416,13 @@ export class Engine {
 
   resetSignPicture(id: string): void {
     this.game.room01?.seats.find((s) => s.def.id === id)?.sign.reset();
-    this.publishSigns();
+    this.game.publishSeats();
   }
 
   /** Where a dropped picture goes: the accused under the crosshair, else the first still showing the old face. */
   signDropTarget(): string | null {
     const { signs, focus } = this.store.get();
     return (signs.find((s) => s.id === focus?.id) ?? signs.find((s) => !s.custom) ?? signs[0])?.id ?? null;
-  }
-
-  private publishSigns(): void {
-    const seats = this.game.room01?.seats ?? [];
-    this.store.set({ signs: seats.filter((s) => s.sign.available).map((s) => ({ id: s.def.id, label: s.def.label, custom: s.sign.custom })) });
   }
 
   // --- settings ----------------------------------------------------------

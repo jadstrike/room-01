@@ -61,6 +61,7 @@ export class Room01Level implements Level {
   private autoScale = true;
   /** The entity let them all go: no entity, no one in the chairs, no confinement. */
   private released = false;
+  private disposed = false;
 
   private constructor(readonly room: Room) {
     this.root.name = "Room01";
@@ -120,6 +121,11 @@ export class Room01Level implements Level {
   /** Seat a fresh figure in every chair, from whatever `make` loads. */
   async setCharacters(make: () => Promise<Character>): Promise<void> {
     const loaded = await Promise.all(this.seats.map(() => make()));
+    // The chairs are gone (released), or the room is (a new game): nowhere to seat anyone.
+    if (this.released || this.disposed) {
+      for (const c of loaded) c.dispose();
+      return;
+    }
     this.seats.forEach((seat, i) => this.seatCharacter(seat, loaded[i]));
     this.refreshColliders();
     this.onSeatsChanged?.();
@@ -216,6 +222,7 @@ export class Room01Level implements Level {
   }
 
   dispose(): void {
+    this.disposed = true;
     for (const seat of this.seats) {
       seat.character?.dispose();
       seat.sign.dispose();
