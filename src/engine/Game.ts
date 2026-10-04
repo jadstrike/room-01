@@ -11,7 +11,8 @@ import { ACCUSED_SCRIPT, accusedStart } from "../story/accusedScript";
 import { ENTITY_SCRIPT, entityStart } from "../story/entityScript";
 import { Investigation, type Inspection } from "../story/investigation";
 import { SITES, type AccusedId, type Place } from "../story/sites";
-import { prepareCoin, waitForCoin } from "../story/quantum";
+import { prepareCoin, prepareSite, siteMeasurement, waitForCoin } from "../story/quantum";
+import { layoutsFrom } from "../story/labyrinth";
 import { SAVE_KEY, currentPlace, newStoryState, parseSave, type Act, type EndingId, type Request, type StoryState } from "../story/state";
 import { ENDING_ORDER, endingFor, type EndingView } from "../story/endings";
 
@@ -30,6 +31,8 @@ export type SiteView = {
   configurations: { index: number; name: string; hint: string; links: string[]; active: boolean }[];
   canShift: boolean;
   complete: boolean;
+  /** The Moth job whose measurements these arrangements are, if Moth answered. */
+  measuredBy: string | null;
 };
 
 export type InspectionView = Inspection & {
@@ -268,7 +271,18 @@ export class Game {
     this.travelling = true;
     const deviceHere = inv.room === site.start && !inv.progress.device;
     const ok = await this.engine.enter(
-      () => {
+      async (report) => {
+        // A first arrival waits for Moth to measure this place's doors; a later visit already has them.
+        if (arriving && !inv.progress.measured) {
+          report(`Moth's Quantum Labyrinth is measuring ${site.id === "house" ? "the house" : "the lab"}`, 0.25);
+          const m = await siteMeasurement(place, 14_000);
+          const layouts = m && layoutsFrom(site, m.jobId, m.measurements);
+          if (layouts) {
+            inv.progress.measured = layouts;
+            this.save();
+          }
+          report(layouts ? "Measured" : "The doors stay where they were built", 0.7);
+        }
         const level = SiteLevel.create(inv.room, deviceHere ? { label: site.device.name, style: site.device.style } : null);
         this.site = level;
         this.wireSite(level, inv);
@@ -437,6 +451,8 @@ export class Game {
   }
 
   private showLine(): void {
+    // The coin (or a challenge) has decided where Rowan goes: start measuring that place now.
+    if (this.story.request?.kind === "travel") prepareSite(this.story.request.to);
     const before = this.shownAct;
     this.shownAct = this.story.act;
     if (before === "trial" && this.story.act === "revealed") this.engine.audio?.sting("reveal");
@@ -761,7 +777,7 @@ export class Game {
       })),
       device: { name: site.device.name, intro: site.device.intro, held: progress.device },
       configurations: progress.history.map((index) => {
-        const c = site.configurations[index];
+        const c = inv.configurations[index];
         return {
           index,
           name: c.name,
@@ -770,8 +786,9 @@ export class Game {
           active: index === progress.configuration,
         };
       }),
-      canShift: progress.device && progress.history.length < site.configurations.length,
+      canShift: progress.device && progress.history.length < inv.configurations.length,
       complete: inv.complete,
+      measuredBy: progress.measured?.jobId ?? null,
     };
   }
 

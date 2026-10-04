@@ -80,3 +80,50 @@ export function tossCoin(): CoinMeasurement {
   const heads = bits.filter((b) => b & 1).length;
   return { coin: heads > 5 ? "heads" : "tails", source: "local", heads, tails: 11 - heads, shots: 11 };
 }
+
+/** Moth's Quantum Labyrinth measurements of one site, as the server returns them. */
+export type SiteMeasurement = { jobId: string; measurements: { bitstring: string; probability: number }[] };
+
+const sites = new Map<string, Promise<SiteMeasurement | null>>();
+
+/**
+ * Start measuring a site's door layouts on Moth's Quantum Labyrinth engine
+ * (api/labyrinth.js). Called the moment the coin decides where Rowan goes,
+ * so the eight-second job runs while the entity is still talking.
+ */
+export function prepareSite(place: string): void {
+  if (sites.has(place) || typeof window === "undefined") return;
+  const job = measureSite(place).catch((error) => {
+    console.warn("[quantum] Moth Labyrinth unavailable, the authored layouts will be used", error);
+    return null;
+  });
+  sites.set(place, job);
+}
+
+/** The site's measurement, waiting at most `ms` for it; null if Moth did not answer in time. */
+export async function siteMeasurement(place: string, ms: number): Promise<SiteMeasurement | null> {
+  prepareSite(place);
+  const job = sites.get(place);
+  if (!job) return null;
+  const result = await Promise.race([job, new Promise<null>((r) => setTimeout(() => r(null), ms))]);
+  // Used once: a later round at the same site measures afresh.
+  if (result) sites.delete(place);
+  return result;
+}
+
+async function measureSite(place: string): Promise<SiteMeasurement | null> {
+  const start = await fetch("/api/labyrinth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ site: place }) });
+  if (!start.ok) throw new Error(`start ${start.status}`);
+  const { jobId } = (await start.json()) as { jobId?: string };
+  if (!jobId) return null;
+  const deadline = Date.now() + 30_000;
+  while (Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 1500));
+    const res = await fetch(`/api/labyrinth?job=${encodeURIComponent(jobId)}`);
+    if (!res.ok) throw new Error(`poll ${res.status}`);
+    const r = (await res.json()) as { status: string; measurements?: SiteMeasurement["measurements"] };
+    if (r.status === "failed" || r.status === "cancelled") return null;
+    if (r.status === "completed" && r.measurements?.length) return { jobId, measurements: r.measurements };
+  }
+  return null;
+}

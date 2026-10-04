@@ -1,0 +1,12 @@
+{
+  "engine": "retrocausal-echo-v1",
+  "depth": 12,
+  "master_ms": 2200,
+  "theta_x": 1.1,
+  "negative_mode": "reverse",
+  "decay": 0.25,
+  "mix": 1,
+  "lattice": "chain",
+  "via": "direct",
+  "job": "66846b1f-5ee6-4c3d-ac18-d9af21b4f975"
+}

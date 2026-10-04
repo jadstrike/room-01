@@ -1,5 +1,6 @@
 import type { Coin, CoinMeasurement } from "./quantum";
 import type { AccusedId, Place } from "./sites";
+import type { MeasuredLayouts } from "./labyrinth";
 
 /**
  * Everything the story remembers, in one plain object: it is what the
@@ -44,6 +45,8 @@ export type SiteProgress = {
   visited: string[];
   device: boolean;
   restores: number;
+  /** The device's arrangements as Moth's Quantum Labyrinth measured them, if it answered in time. */
+  measured?: MeasuredLayouts;
 };
 
 /** Set by a script line; the Game carries it out when the conversation closes. */

@@ -1,47 +1,61 @@
 # How Room 01 uses Moth's quantum engines
 
-## The short version
+Five of Moth's engines are in the game, and each one decides or makes something the story turns on.
 
-The coin that decides where Rowan investigates, the boyfriend's house or the research lab, is measured by Moth's **Coin Toss** engine. One qubit in superposition, measured eleven times; the majority decides. Every playthrough makes its own measurement, the entity reads the counts out, and the end credits show the Moth job ID that decided that run.
+| Engine | What it does in the game | When it runs |
+|---|---|---|
+| **Coin Toss** | Decides whether Rowan investigates the boyfriend's house or the research lab | Live, every playthrough |
+| **Quantum Labyrinth** | Measures how the house's or the lab's rooms connect, giving the device its arrangements | Live, on arriving at a site |
+| **Quantum Blur** | The sister's photograph, never in focus, less clear with each memory | Baked once, shipped as images |
+| **Quantum Teleblur** | At the reveal, her face dissolves into a stranger's | Baked once, shipped as images |
+| **Retrocausal Echo** | The entity's voice echoes back out of order | Baked once, shipped as audio |
 
-## Where it happens in the game
+## 1. Coin Toss: where you go
 
-1. Rowan wakes in Room 01. The moment the entity starts talking, the game starts a Coin Toss job.
-2. Rowan asks where the evidence is and picks a place. The entity overrides him: *"Irrelevant choice, actually, because I'm going to flip a coin."*
-3. The flip uses Moth's measurement: *"Tails. Six out of eleven. One qubit, both sides at once, until I looked. The lab."* If the answer is still in flight, the entity holds on that line for up to six seconds.
-4. The whole investigation, which site, which rooms and which evidence, follows from that one measurement. The credits name the job.
+The entity refuses to let Rowan choose and flips a coin. One qubit in superposition, measured eleven times (an odd count cannot tie); the majority decides. The entity reads the count out: *"Tails. Six out of eleven. One qubit, both sides at once, until I looked."* The measurement starts when Rowan wakes, and the entity holds its line for up to six seconds if the answer is still in flight. The end credits name the job.
 
-## Why a quantum coin
+## 2. Quantum Labyrinth: how the place is joined
 
-The entity is a four-dimensional being that sees every side of a thing at once, and it hands exactly one decision to chance: the one that starts everything. A qubit is the honest version of chance, both answers until it is measured. That is also what the story's twist turns out to be about: Rowan's memory of his sister is a state that never collapses into a face.
+Each room of a site is a qubit on a lattice whose edges are the doors that could exist: the house a 2×3 grid, the lab a chain of five, with the start room radiating. One shot opens a door wherever two neighbouring rooms' qubits measured the same, so one measurement is one whole layout. (A bitstring and its complement open the same doors and count as one.)
+
+`src/story/labyrinth.ts` turns a result into the device's arrangements:
+
+- the three layouts measured most often, skipping the two that say nothing (every door open, every door shut);
+- if together they cannot reach every room, the all-doors-open layout takes the last place, so no measurement can strand Rowan. This is the problem kl25abc's first experiment found ([`docs/quantum-house/`](quantum-house/README.md)).
+
+The job starts the moment the coin decides, so it runs while the entity is still talking. The arrival loading screen says *"Moth's Quantum Labyrinth is measuring the house"* and waits at most fourteen seconds; if Moth does not answer, the hand-made arrangements stand in. The layouts are saved with the story, and the device screen shows each arrangement's share of the shots and the job ID.
+
+Real results are kept as test fixtures (`scripts/moth/fixture-*-labyrinth.json`): the house measured three arrangements seen in 11%, 9% and 8% of the shots, and the lab in 25%, 16% and 5%. Both reach every room.
+
+## 3. Quantum Blur: her face
+
+Rowan cannot remember his sister's face. Her photograph (painted for the game, not of a real person: `scripts/moth/portraits.html`) went through Blur at three strengths. Calibration showed that a wide reach or a y rotation pushes the image into darkness, while a narrow x rotation smears and warps the face without losing it, which is what a memory of a face does. The prologue shows the furthest stage beside *"He cannot remember her face."* Each key memory he recalls shows her photograph, slipping a stage for every three memories recorded.
+
+## 4. Quantum Teleblur: whose face
+
+At the reveal the entity says *"I built her out of bits of other people… Her face I never finished."* While it does, her photograph is morphed into a stranger's by Teleblur in four steps: a ghost of her face in a quantum mosaic, interference, abstraction, and finally someone else entirely.
+
+## 5. Retrocausal Echo: its voice
+
+Without an input, the engine renders a multi-tap echo measured on a qubit chain, in which negative returns play reversed. That rendering is the convolution reverb on the entity's voice.
 
 ## How it is wired
 
 ```
-browser ──POST /api/coin──▶ our server function ──Bearer key──▶ Moth Quantum API
-        ◀── job id ────────                      (coin-toss-v1, emu, 11 shots)
-        ──GET /api/coin?job=…─▶ status, then result ──▶ heads/tails counts back
+browser ──POST /api/coin, /api/labyrinth──▶ our server function ──Bearer key──▶ Moth Quantum API
+        ◀── job id ─────────────────────────
+        ──GET …?job=<id>──────────────────▶ status, then result ──▶ counts / measurements back
 ```
 
-- `api/_moth.js` holds the API key server-side. It runs as a Vercel function (`api/coin.js`) in production and inside the Vite dev server locally. Moth's API sends no CORS headers, so the browser could not call it directly anyway.
-- The endpoint exposes only fixed parameters (an eleven-shot toss and a job read). Eleven, because an odd count cannot tie. It refuses requests without the browser's same-origin header, so it cannot be used to spend credits on other work.
-- `src/story/quantum.ts` starts the measurement, polls for it, and hands the story either Moth's result or, if Moth is slow or unreachable, a local eleven-shot coin from `crypto.getRandomValues`. The entity says plainly when it flipped the coin itself. The story never waits on the network.
-- Each toss is one job on Moth's quantum simulator (`emu` mode, Aer backend), about five seconds end to end, at 2 credits.
+- `api/_moth.js` holds the key server-side. It runs as Vercel functions in production and as Vite dev-server middleware locally. Moth's API sends no CORS headers, so the browser could not call it directly anyway.
+- Only fixed parameters are exposed: an eleven-shot coin toss, a Labyrinth run over one of the two sites' fixed lattices, and reading back a job. Requests without the browser's same-origin header are refused. Nothing can be used to spend credits on other work.
+- If Moth is slow or unreachable, a local coin and the hand-made arrangements stand in, and the game says so. It never waits more than a few seconds on the network.
+- Blur, Teleblur and Echo are baked by `scripts/moth/bake-sister.mjs` and `scripts/moth/bake-echo.mjs` into `public/images/sister/` and `public/audio/`, with each job ID recorded beside them; the credits read those files.
 
-## Researched: the Labyrinth engine
+## Credits used
 
-The house and the lab have a device that rearranges which rooms their doors lead to. We ran Moth's **Quantum Labyrinth** engine on four rooms of the house to see whether measured qubit correlations could be that door graph. The request, the real result and the analysis are in [`docs/quantum-house/`](quantum-house/README.md). The main findings:
-
-- A measured layout can leave a room cut off, and requiring every room to be connected forces every door open. So raw samples cannot be the door graph as-is.
-- The workable design is a guaranteed way back, with Labyrinth deciding the shortcuts, frozen while the player is inside.
-
-In the current build the arrangements are authored. `Investigation.exits` in `src/story/investigation.ts` is the single place a measured layout would plug in.
-
-## Planned
-
-- **Quantum Blur** for the sister's face, which Rowan can never quite remember, and **Quantum Teleblur** to morph it into a stranger's at the reveal. Both would be generated at build time and shipped as images, so play never waits on them.
-- **Retrocausal Echo** on the entity's voice once the twist lands.
+A playthrough costs one coin toss (2 credits) and one Labyrinth run per site visited (5 each). The baked assets cost about 12 credits once.
 
 ## Running it yourself
 
-Put `MOTH_API_KEY=...` in a `.env` file in the project root (git-ignored), then `npm run dev`. The dev server serves `/api/coin` with the same code Vercel runs. Without a key, the game plays with the local coin.
+Put `MOTH_API_KEY=...` in a `.env` file in the project root (git-ignored), then `npm run dev`. Without a key, the game plays with a local coin and the hand-made arrangements.

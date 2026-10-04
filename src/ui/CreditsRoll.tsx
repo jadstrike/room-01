@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import type { StoryState } from "../story/state";
+import { BAKED } from "../story/moth";
 
 export const CREATORS = ["Khant Zwe Naing (Isaac)", "Kyaw Lwin (William)"];
 
@@ -17,7 +18,7 @@ const SECTIONS: ReadonlyArray<{ heading: string; lines: string[] }> = [
  * The end credits, rolling up the screen once. Esc, Enter or the button skips
  * to the end; so does the roll finishing on its own.
  */
-export function CreditsRoll({ onDone, coin }: { onDone: () => void; coin: StoryState["coinProof"] }) {
+export function CreditsRoll({ onDone, coin, labyrinths }: { onDone: () => void; coin: StoryState["coinProof"]; labyrinths: string[] }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.code === "Escape" || e.code === "Enter" || e.code === "Space") {
@@ -35,6 +36,20 @@ export function CreditsRoll({ onDone, coin }: { onDone: () => void; coin: StoryS
         <h1 className="game-title">
           ROOM <span>01</span>
         </h1>
+        <section>
+          <h2>Quantum, by Moth</h2>
+          <p>Five of Moth's engines are in this game.</p>
+          <p className="roll-proof">Coin Toss decided where you went · Quantum Labyrinth measured its doors</p>
+          <p className="roll-proof">Quantum Blur made her face · Quantum Teleblur unmade it · Retrocausal Echo is the entity's voice</p>
+          {labyrinths.map((job) => (
+            <p className="roll-proof" key={job}>
+              your Labyrinth · job {job}
+            </p>
+          ))}
+          <p className="roll-proof">Blur · {BAKED.blur.map((j) => j.slice(0, 8)).join(" · ")}</p>
+          <p className="roll-proof">Teleblur · {BAKED.teleblur.map((j) => j.slice(0, 8)).join(" · ")}</p>
+          <p className="roll-proof">Retrocausal Echo · {BAKED.echo.slice(0, 8)}</p>
+        </section>
         {coin && (
           <section>
             <h2>Your coin</h2>

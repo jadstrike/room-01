@@ -1,0 +1,164 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Portraits</title>
+<!--
+  Paints the two faces the game needs, so no real person's photograph is
+  used: "her" (the sister Rowan remembers) and "stranger" (the face she
+  turns out to be made of). Old-photograph styling: sepia, grain, vignette,
+  scratches. Driven by scripts/moth/paint-portraits.mjs in a headless
+  browser, which saves each canvas as a PNG.
+-->
+<canvas id="her" width="384" height="480"></canvas>
+<canvas id="stranger" width="384" height="480"></canvas>
+<script>
+  function seeded(seed) {
+    return () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296);
+  }
+
+  function portrait(canvas, p) {
+    const c = canvas.getContext("2d");
+    const W = canvas.width, H = canvas.height, rand = seeded(p.seed);
+    const cx = W / 2;
+
+    // Studio backdrop, lit from the left.
+    const bg = c.createRadialGradient(W * 0.3, H * 0.3, 20, W * 0.5, H * 0.5, W * 0.9);
+    bg.addColorStop(0, "#8a7a62");
+    bg.addColorStop(1, "#2a231b");
+    c.fillStyle = bg;
+    c.fillRect(0, 0, W, H);
+
+    // Hair behind the head.
+    c.fillStyle = p.hair;
+    c.beginPath();
+    c.ellipse(cx, p.headY + 10, p.headW * 1.18, p.headH * 1.15 + p.hairLen * 0.25, 0, 0, Math.PI * 2);
+    c.fill();
+    if (p.hairLen > 0) {
+      c.beginPath();
+      c.moveTo(cx - p.headW * 1.15, p.headY);
+      c.quadraticCurveTo(cx - p.headW * 1.35, p.headY + p.hairLen, cx - p.headW * 0.9, p.headY + p.hairLen + 60);
+      c.lineTo(cx + p.headW * 0.9, p.headY + p.hairLen + 60);
+      c.quadraticCurveTo(cx + p.headW * 1.35, p.headY + p.hairLen, cx + p.headW * 1.15, p.headY);
+      c.fill();
+    }
+
+    // Shoulders and collar.
+    c.fillStyle = p.coat;
+    c.beginPath();
+    c.moveTo(cx - 190, H);
+    c.quadraticCurveTo(cx - 160, H - 150, cx - 55, H - 175);
+    c.lineTo(cx + 55, H - 175);
+    c.quadraticCurveTo(cx + 160, H - 150, cx + 190, H);
+    c.fill();
+    c.fillStyle = "#d9cdb4";
+    c.beginPath();
+    c.moveTo(cx - 40, H - 176);
+    c.lineTo(cx, H - 120);
+    c.lineTo(cx + 40, H - 176);
+    c.fill();
+
+    // Neck.
+    c.fillStyle = shade(p.skin, -18);
+    c.fillRect(cx - 28, p.headY + p.headH * 0.7, 56, 100);
+
+    // Face, modelled with a soft light from the left.
+    const face = c.createRadialGradient(cx - p.headW * 0.35, p.headY - p.headH * 0.3, 8, cx, p.headY, p.headW * 1.3);
+    face.addColorStop(0, shade(p.skin, 22));
+    face.addColorStop(0.6, p.skin);
+    face.addColorStop(1, shade(p.skin, -35));
+    c.fillStyle = face;
+    c.beginPath();
+    c.ellipse(cx, p.headY, p.headW, p.headH, 0, 0, Math.PI * 2);
+    c.fill();
+
+    // Fringe or parting over the forehead.
+    c.fillStyle = p.hair;
+    c.beginPath();
+    c.ellipse(cx + p.part, p.headY - p.headH * 0.82, p.headW * 1.02, p.headH * 0.38, p.tilt, Math.PI, Math.PI * 2);
+    c.fill();
+
+    // Features: soft, as a memory would have them.
+    const eyeY = p.headY - p.headH * 0.08;
+    for (const s of [-1, 1]) {
+      c.fillStyle = shade(p.skin, -30);
+      c.beginPath();
+      c.ellipse(cx + s * p.eyeGap, eyeY - 10, 20, 6, 0, 0, Math.PI * 2);
+      c.fill();
+      c.fillStyle = "#efe6d4";
+      c.beginPath();
+      c.ellipse(cx + s * p.eyeGap, eyeY, 13, 6, 0, 0, Math.PI * 2);
+      c.fill();
+      c.fillStyle = p.iris;
+      c.beginPath();
+      c.arc(cx + s * p.eyeGap + 1, eyeY, 5, 0, Math.PI * 2);
+      c.fill();
+      c.strokeStyle = p.brow;
+      c.lineWidth = 4;
+      c.beginPath();
+      c.moveTo(cx + s * (p.eyeGap - 15), eyeY - 20 - p.browArch);
+      c.quadraticCurveTo(cx + s * p.eyeGap, eyeY - 27 - p.browArch, cx + s * (p.eyeGap + 17), eyeY - 18);
+      c.stroke();
+    }
+    c.strokeStyle = shade(p.skin, -40);
+    c.lineWidth = 3;
+    c.beginPath();
+    c.moveTo(cx - 2, eyeY + 8);
+    c.quadraticCurveTo(cx - 9, eyeY + 42, cx + 4, eyeY + 46);
+    c.stroke();
+    c.fillStyle = p.lips;
+    c.beginPath();
+    c.ellipse(cx, eyeY + 72, p.mouthW, 7, 0, 0, Math.PI * 2);
+    c.fill();
+    c.strokeStyle = shade(p.lips, -40);
+    c.lineWidth = 2;
+    c.beginPath();
+    c.moveTo(cx - p.mouthW, eyeY + 72);
+    c.quadraticCurveTo(cx, eyeY + 72 + p.smile, cx + p.mouthW, eyeY + 72);
+    c.stroke();
+
+    // Old photograph: sepia, grain, vignette, scratches.
+    const img = c.getImageData(0, 0, W, H);
+    const d = img.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const l = 0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2];
+      const n = (rand() - 0.5) * 26;
+      d[i] = Math.min(255, l * 1.08 + 18 + n);
+      d[i + 1] = Math.min(255, l * 0.95 + 8 + n);
+      d[i + 2] = Math.min(255, l * 0.78 + n);
+    }
+    c.putImageData(img, 0, 0);
+    const v = c.createRadialGradient(cx, H / 2, W * 0.25, cx, H / 2, W * 0.8);
+    v.addColorStop(0, "rgba(0,0,0,0)");
+    v.addColorStop(1, "rgba(20,12,5,0.75)");
+    c.fillStyle = v;
+    c.fillRect(0, 0, W, H);
+    c.strokeStyle = "rgba(240,225,200,0.18)";
+    for (let i = 0; i < 9; i++) {
+      c.lineWidth = rand() * 1.4;
+      c.beginPath();
+      const x = rand() * W;
+      c.moveTo(x, rand() * H * 0.3);
+      c.lineTo(x + (rand() - 0.5) * 30, H * (0.6 + rand() * 0.4));
+      c.stroke();
+    }
+  }
+
+  function shade(hex, amt) {
+    const n = parseInt(hex.slice(1), 16);
+    const ch = (s) => Math.max(0, Math.min(255, ((n >> s) & 255) + amt));
+    return `rgb(${ch(16)},${ch(8)},${ch(0)})`;
+  }
+
+  // Her: long dark hair, a parting, a small smile.
+  portrait(document.getElementById("her"), {
+    seed: 17, headY: 200, headW: 74, headH: 98, hair: "#2b1d14", hairLen: 150, part: -12, tilt: -0.08,
+    coat: "#3a3029", skin: "#c99a7a", eyeGap: 32, iris: "#3d2a1d", brow: "#2b1d14", browArch: 3,
+    lips: "#9c5a52", mouthW: 22, smile: 6,
+  });
+  // The stranger: short pale hair, a longer face, no smile at all.
+  portrait(document.getElementById("stranger"), {
+    seed: 91, headY: 196, headW: 68, headH: 106, hair: "#9a8467", hairLen: 0, part: 18, tilt: 0.12,
+    coat: "#2a2c30", skin: "#b88e74", eyeGap: 28, iris: "#4a5560", brow: "#6d5a45", browArch: -1,
+    lips: "#8a5450", mouthW: 18, smile: -2,
+  });
+  window.__ready = true;
+</script>

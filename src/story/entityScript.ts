@@ -325,6 +325,8 @@ export const ENTITY_SCRIPT: Script<StoryState> = {
   twist_sister: {
     speaker: "The entity",
     text: "I gave you a sister. Do you like her? I built her out of bits of other people. Her laugh is a woman on a bus in 2009. Her face I never finished. That's why you can't see it.",
+    // Her photograph comes apart into a stranger's while it says so.
+    image: "sister-morph",
     choices: [{ label: "Then who killed her?", next: "twist_nobody" }],
   },
 

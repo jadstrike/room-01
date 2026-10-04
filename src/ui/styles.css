@@ -1849,3 +1849,102 @@ input[type="range"] {
   font: 400 12px/1.5 var(--mono) !important;
   color: var(--dim) !important;
 }
+
+.device-proof {
+  max-width: 680px;
+  margin: 18px 0 0;
+  font: 400 11px/1.6 var(--mono);
+  color: var(--dim);
+}
+
+/* ---------------- her photograph ---------------- */
+.sister-photo {
+  margin: 0;
+  text-align: center;
+}
+
+.sister-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 6px solid #e8dcc4;
+  border-bottom-width: 22px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+  filter: sepia(0.2) contrast(1.05);
+}
+
+.sister-photo figcaption {
+  margin-top: 6px;
+  font: 400 9px/1 var(--mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+/* The prologue: the photograph beside the words, tilted like one left on a table. */
+.prologue-body {
+  justify-content: center;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: clamp(24px, 5vw, 64px);
+}
+
+/* Fades up as the line about her face does, tilted like a photo left on a table. */
+.prologue .sister-photo {
+  flex: 0 0 auto;
+  width: clamp(140px, 18vw, 230px);
+  opacity: 0;
+  transform: rotate(-3deg);
+  animation: photo-in 2.4s ease 3.6s forwards;
+}
+
+@keyframes photo-in {
+  from {
+    opacity: 0;
+    transform: rotate(-3deg) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-3deg);
+  }
+}
+
+.examine-recall {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: center;
+  text-align: left;
+}
+
+.examine-recall .sister-photo {
+  flex: 0 0 auto;
+  width: 92px;
+  transform: rotate(2deg);
+}
+
+.examine-recall .sister-photo img {
+  border-width: 4px 4px 12px;
+}
+
+.dialogue .sister-photo.morph {
+  float: right;
+  width: clamp(110px, 14vw, 170px);
+  margin: -70px 0 10px 16px;
+  transform: rotate(2deg);
+}
+
+.dialogue .sister-photo.morph img {
+  transition: opacity 0.6s ease;
+}
+
+@media (max-width: 760px) {
+  .prologue-body {
+    flex-direction: column;
+  }
+
+  .prologue .sister-photo {
+    width: 120px;
+  }
+}

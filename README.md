@@ -37,9 +37,9 @@ Progress is saved in the browser as you play, so **Quit to title** in the pause 
 
 ## How Moth's quantum engines are used
 
-The coin the entity flips to decide where Rowan investigates is measured live by Moth's **Coin Toss** engine: one qubit, eleven shots, majority decides. The entity reads the counts out and the end credits show the Moth job ID. See [docs/MOTH.md](docs/MOTH.md) for how it is wired, why it fits the story, and the Labyrinth research. In game, **The quantum** on the title screen explains it too.
+Five of Moth's engines are part of the game. **Coin Toss** decides, live, whether Rowan investigates the house or the lab. **Quantum Labyrinth** measures, live, how that place's rooms connect. **Quantum Blur** and **Teleblur** made the sister's face that never comes into focus and comes apart at the reveal. **Retrocausal Echo** is the entity's voice. See [docs/MOTH.md](docs/MOTH.md); in game, **The quantum** on the title screen explains it too.
 
-To run it locally, put `MOTH_API_KEY=...` in a git-ignored `.env`. Without a key the game uses a local coin and says so.
+To run it locally, put `MOTH_API_KEY=...` in a git-ignored `.env`. Without a key the game uses a local coin and the hand-made rooms, and says so.
 
 ## The sites
 

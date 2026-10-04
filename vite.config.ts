@@ -1,6 +1,6 @@
 import { defineConfig, loadEnv, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
-import { coin } from "./api/_moth.js";
+import { coin, labyrinth } from "./api/_moth.js";
 
 /**
  * The /api functions Vercel runs in production, served by the dev server too,
@@ -12,11 +12,13 @@ function mothApi(): Plugin {
     name: "moth-api",
     configureServer(server) {
       process.env.MOTH_API_KEY ??= loadEnv(server.config.mode, process.cwd(), "").MOTH_API_KEY;
-      server.middlewares.use("/api/coin", (req, res) => {
-        // Connect strips the mount path; the handler expects the full one.
-        req.url = `/api/coin${req.url ?? ""}`;
-        void coin(req, res);
-      });
+      for (const [path, handler] of [["/api/coin", coin], ["/api/labyrinth", labyrinth]] as const) {
+        server.middlewares.use(path, (req, res) => {
+          // Connect strips the mount path; the handler expects the full one.
+          req.url = `${path}${req.url ?? ""}`;
+          void handler(req, res);
+        });
+      }
     },
   };
 }
