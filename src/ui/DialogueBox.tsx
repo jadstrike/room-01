@@ -70,8 +70,9 @@ export function DialogueBox({ engine, view }: { engine: Engine; view: DialogueVi
         if (!view.choices.length || !typed) next();
         return;
       }
-      const digit = /^Digit([1-9])$/.exec(e.code);
-      if (digit && typed) choose(Number(digit[1]) - 1);
+      const digit = /^Digit([0-9])$/.exec(e.code);
+      // 1-9, and 0 for a tenth choice, as on a keyboard row.
+      if (digit && typed) choose((Number(digit[1]) + 9) % 10);
     };
     addEventListener("keydown", onKey);
     return () => removeEventListener("keydown", onKey);
@@ -87,7 +88,7 @@ export function DialogueBox({ engine, view }: { engine: Engine; view: DialogueVi
             {view.choices.map((c, i) => (
               <li key={c.label}>
                 <button className={c.seen ? "seen" : undefined} onClick={() => choose(i)} disabled={!typed}>
-                  <kbd>{i + 1}</kbd>
+                  <kbd>{(i + 1) % 10}</kbd>
                   <span>{c.label}</span>
                 </button>
               </li>

@@ -18,6 +18,7 @@ import type { StoryState } from "./state";
 
 /** Where a conversation with the entity starts, given how far the story has got. */
 export function entityStart(s: StoryState): string {
+  if (s.act === "trial") return "trial";
   if (s.destination) return "waiting";
   return s.met ? "again" : "intro";
 }
@@ -149,6 +150,11 @@ export const ENTITY_SCRIPT: Script<StoryState> = {
   send_off: {
     speaker: "The entity",
     text: (s) => `Off you go, then. ${s.destination ? PLACE_NAME[s.destination][0].toUpperCase() + PLACE_NAME[s.destination].slice(1) : "Somewhere"} is waiting. Come back with something worth killing for.`,
+  },
+
+  trial: {
+    speaker: "The entity",
+    text: "Back already, with your pockets full of someone else's life. Go on, ask them. I gave them their mouths back. They'll say what everyone says.",
   },
 
   waiting: {

@@ -6,10 +6,11 @@ import { Room01Level } from "./levels/Room01Level";
 import { SiteLevel } from "./levels/SiteLevel";
 import { ROOMS } from "./levels/rooms";
 import type { Examinable } from "./house/ProceduralSection";
-import { Conversation } from "../story/dialogue";
+import { Conversation, type Script } from "../story/dialogue";
+import { ACCUSED_SCRIPT, accusedStart } from "../story/accusedScript";
 import { ENTITY_SCRIPT, entityStart } from "../story/entityScript";
 import { Investigation, type Inspection } from "../story/investigation";
-import { SITES, type Place } from "../story/sites";
+import { SITES, type AccusedId, type Place } from "../story/sites";
 import { SAVE_KEY, currentPlace, newStoryState, parseSave, type Act, type Request, type StoryState } from "../story/state";
 
 export type Panel = "inspection" | "journal" | "device" | "passage";
@@ -192,17 +193,21 @@ export class Game {
     if (!level) return;
     for (const off of this.seatOffs) off();
     this.seatOffs = [];
+    // Gagged until the trial; after that, they can be questioned.
+    const gagged = this.story.act === "intro" || this.story.act === "investigating";
     for (const seat of level.seats) {
       if (!seat.character) continue;
+      const id = seat.def.id as AccusedId;
       this.seatOffs.push(
         this.engine.register({
-          id: seat.def.id,
+          id,
           object: seat.character.root,
-          verb: "Examine",
+          verb: gagged ? "Examine" : "Talk to",
           label: seat.def.label,
           // Seated back against the chair, each figure is about 2.6 m from the spawn point.
           range: 2.8,
           onInteract: () => {
+            if (!gagged) return this.talkTo(id);
             this.engine.audio?.blip(220, 0.12);
             this.engine.store.set({ message: seat.def.examine });
           },
@@ -227,8 +232,18 @@ export class Game {
   talkToEntity(): void {
     const entity = this.room01?.entity;
     if (!entity || this.conversation) return;
-    this.conversation = new Conversation(ENTITY_SCRIPT, this.story, entityStart(this.story));
     entity.hold(true);
+    this.converse(ENTITY_SCRIPT, entityStart(this.story));
+  }
+
+  /** Question one of the accused. */
+  talkTo(id: AccusedId): void {
+    if (this.conversation) return;
+    this.converse(ACCUSED_SCRIPT, accusedStart(id, this.story));
+  }
+
+  private converse(script: Script<StoryState>, start: string): void {
+    this.conversation = new Conversation(script, this.story, start);
     this.engine.player.releaseLock();
     this.showLine();
   }
@@ -437,7 +452,7 @@ export class Game {
       case "investigating":
         return this.investigation?.objective ?? "";
       case "trial":
-        return "Tell the entity what you found.";
+        return "Question the accused about what you found, then give the entity your answer.";
       default:
         return "";
     }
