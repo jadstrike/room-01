@@ -198,6 +198,11 @@ function DeviceScreen({ engine, state, back }: ScreenProps) {
             </article>
           )}
         </div>
+        <p className="device-proof">
+          {site.measuredBy
+            ? `These arrangements were measured by Moth's Quantum Labyrinth: each room a qubit, a door open where two rooms measured the same. Job ${site.measuredBy}.`
+            : "These are the arrangements the place was built with: Moth did not answer in time."}
+        </p>
         <p className="files-objective">
           From the {site.roomName.toLowerCase()} now: {open.length ? open.join(", ") : "nowhere. Turn it, or restore another."}
         </p>

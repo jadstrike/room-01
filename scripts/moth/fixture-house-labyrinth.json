@@ -1,0 +1,167 @@
+{
+  "job": "622c3f91-9755-499e-9ad9-a642e227d19d",
+  "params": {
+    "shots": 1024,
+    "k": 3,
+    "top_n": 16,
+    "mode": "emu",
+    "fraction": 0.3333333333333333,
+    "steps": 3,
+    "level_data": {
+      "name": "Room 01 house",
+      "grid_size": {
+        "rows": 2,
+        "cols": 3
+      },
+      "num_qubits": 6,
+      "coupling_map": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          5
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          2,
+          5
+        ]
+      ],
+      "initial_states": {
+        "0": {
+          "radiating": true
+        },
+        "1": {
+          "radiating": false
+        },
+        "2": {
+          "radiating": false
+        },
+        "3": {
+          "radiating": false
+        },
+        "4": {
+          "radiating": false
+        },
+        "5": {
+          "radiating": false
+        }
+      }
+    }
+  },
+  "output": {
+    "coupling_map": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        4,
+        5
+      ]
+    ],
+    "measurements": [
+      {
+        "bitstring": "111111",
+        "probability": 0.3203125
+      },
+      {
+        "bitstring": "000000",
+        "probability": 0.16796875
+      },
+      {
+        "bitstring": "011000",
+        "probability": 0.0576171875
+      },
+      {
+        "bitstring": "100100",
+        "probability": 0.052734375
+      },
+      {
+        "bitstring": "011011",
+        "probability": 0.05078125
+      },
+      {
+        "bitstring": "100111",
+        "probability": 0.048828125
+      },
+      {
+        "bitstring": "000111",
+        "probability": 0.0458984375
+      },
+      {
+        "bitstring": "111000",
+        "probability": 0.0439453125
+      },
+      {
+        "bitstring": "110110",
+        "probability": 0.037109375
+      },
+      {
+        "bitstring": "000100",
+        "probability": 0.033203125
+      },
+      {
+        "bitstring": "011111",
+        "probability": 0.01953125
+      },
+      {
+        "bitstring": "111011",
+        "probability": 0.0126953125
+      },
+      {
+        "bitstring": "001001",
+        "probability": 0.01171875
+      },
+      {
+        "bitstring": "001101",
+        "probability": 0.005859375
+      },
+      {
+        "bitstring": "001111",
+        "probability": 0.005859375
+      },
+      {
+        "bitstring": "010010",
+        "probability": 0.005859375
+      }
+    ]
+  }
+}

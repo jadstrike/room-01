@@ -33,8 +33,13 @@ export class Investigation {
     return this.site.roomNames[this.progress.room] ?? this.progress.room;
   }
 
+  /** The device's arrangements: Moth's measured layouts when there are some, else the authored ones. */
+  get configurations(): readonly Configuration[] {
+    return this.progress.measured?.configurations ?? this.site.configurations;
+  }
+
   get config(): Configuration {
-    return this.site.configurations[this.progress.configuration];
+    return this.configurations[this.progress.configuration];
   }
 
   /** Rooms the current configuration connects to this one. */
@@ -50,7 +55,7 @@ export class Investigation {
   /** Turn the device to a configuration it has not shown yet. */
   shift(): boolean {
     const p = this.progress;
-    if (!p.device || p.history.length === this.site.configurations.length) return false;
+    if (!p.device || p.history.length === this.configurations.length) return false;
     p.configuration = p.history.length;
     p.history.push(p.configuration);
     return true;

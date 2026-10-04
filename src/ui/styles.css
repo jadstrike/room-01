@@ -1849,3 +1849,10 @@ input[type="range"] {
   font: 400 12px/1.5 var(--mono) !important;
   color: var(--dim) !important;
 }
+
+.device-proof {
+  max-width: 680px;
+  margin: 18px 0 0;
+  font: 400 11px/1.6 var(--mono);
+  color: var(--dim);
+}

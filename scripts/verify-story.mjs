@@ -199,6 +199,36 @@ try {
     assert.equal(seen.size, site.rooms.length, `${site.id}: the device cannot reach every room`);
   }
 
+  // --- the Labyrinth: measured layouts become arrangements that can reach every room -------
+  {
+    const { layoutsFrom, doorsOf, reachable, LATTICES } = await server.ssrLoadModule("/src/story/labyrinth.ts");
+    const { LABYRINTHS } = await server.ssrLoadModule("/api/_moth.js");
+    for (const place of ["house", "lab"]) {
+      const l = LATTICES[place];
+      const server_ = LABYRINTHS[place];
+      assert.equal(l.rows * l.cols, l.rooms.length, `${place}: lattice size`);
+      assert.deepEqual(l.edges, server_.edges, `${place}: the server and the game disagree on the lattice`);
+      assert.equal(l.rooms[server_.start], SITES[place].start, `${place}: the radiating qubit is not the start room`);
+      assert.deepEqual([...l.rooms].sort(), [...SITES[place].rooms].sort(), `${place}: lattice rooms differ from the site`);
+    }
+    assert.deepEqual(doorsOf("house", "011000"), doorsOf("house", "100111"), "a bitstring and its complement open the same doors");
+    const fixture = JSON.parse(await (await import("node:fs/promises")).readFile(new URL("./moth/fixture-house-labyrinth.json", import.meta.url), "utf8"));
+    const measured = layoutsFrom(SITES.house, fixture.job, fixture.output.measurements);
+    assert(measured && measured.configurations.length >= 2, "a real result gives at least two arrangements");
+    assert.equal(reachable(SITES.house, measured.configurations).size, SITES.house.rooms.length, "a real result strands a room");
+    // A result that only ever opens one corridor still cannot strand Rowan.
+    const poor = layoutsFrom(SITES.house, "x", [{ bitstring: "110000", probability: 0.9 }, { bitstring: "111111", probability: 0.1 }]);
+    assert.equal(reachable(SITES.house, poor.configurations).size, SITES.house.rooms.length, "the fallback must reach every room");
+    assert.equal(layoutsFrom(SITES.house, "x", [{ bitstring: "111111", probability: 1 }]), null, "a result that says nothing is not used");
+    // The device rules over measured arrangements.
+    const s = newStoryState();
+    const inv = new Investigation(SITES.house, s);
+    s.sites.house.measured = measured;
+    inv.acquireDevice();
+    while (inv.shift());
+    assert.equal(s.sites.house.history.length, measured.configurations.length);
+  }
+
   // --- saves ---------------------------------------------------------------------------------
   {
     const s = opening();
@@ -211,7 +241,7 @@ try {
     }
   }
 
-  console.log("ok story: every node resolves; endings 1-4 reachable; challenge, contradiction and reveal; device reaches every room; saves round-trip");
+  console.log("ok story: every node resolves; endings 1-4 reachable; challenge, contradiction and reveal; device reaches every room; measured layouts reach every room; saves round-trip");
 } finally {
   await server.close();
 }
