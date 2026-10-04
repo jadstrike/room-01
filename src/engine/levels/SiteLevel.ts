@@ -6,8 +6,10 @@ import type { WalkRect } from "../Player";
 import type { DebugBox, Level } from "./Level";
 import { ROOMS } from "./rooms";
 
-/** How far the practical light dips when the flicker cuts out: it is not Room 01's bulb. */
-const FLICKER_DEPTH = 0.55;
+/** How far a site's light dips when the flicker cuts out: nearly to black, which is what the torch is for. */
+const FLICKER_DEPTH = 0.85;
+/** Sites are lit lower than they were built: the torch carries the rest. */
+const DIM = 0.42;
 
 /** How long the exit door takes to swing open on the portal before the room changes. */
 export const EXIT_OPEN_MS = 750;
@@ -44,6 +46,9 @@ export class SiteLevel implements Level {
     this.confine = { xMin: b.min.x, xMax: b.max.x, zMin: b.min.z, zMax: b.max.z };
     section.root.traverse((o) => {
       if (!this.keyLight && o instanceof THREE.PointLight && o.castShadow) this.keyLight = o;
+    });
+    section.root.traverse((o) => {
+      if (o instanceof THREE.Light) o.intensity *= DIM;
     });
     this.keyIntensity = this.keyLight?.intensity ?? 0;
     this.hingeExit();

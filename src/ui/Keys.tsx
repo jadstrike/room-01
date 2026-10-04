@@ -4,6 +4,7 @@ const CONTROLS: ReadonlyArray<[string, string[]]> = [
   ["Crouch", ["Ctrl"]],
   ["Jump", ["Space"]],
   ["Examine · talk · open", ["E"]],
+  ["Flashlight", ["L"]],
   ["Journal", ["J"]],
   ["Device (in the house or the lab)", ["P"]],
   ["Fire", ["Click"]],
