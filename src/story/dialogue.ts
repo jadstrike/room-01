@@ -38,6 +38,8 @@ export type DialogueView = {
 
 export class Conversation<S> {
   private node: NodeDef<S>;
+  /** The id of the line on screen. */
+  at: string;
   private choices: ChoiceDef<S>[] = [];
 
   constructor(
@@ -45,6 +47,7 @@ export class Conversation<S> {
     private state: S,
     start: string,
   ) {
+    this.at = start;
     this.node = this.enter(start);
   }
 
@@ -63,6 +66,7 @@ export class Conversation<S> {
     const choice = this.choices[index];
     if (!choice) return false;
     choice.pick?.(this.state);
+    this.at = choice.next;
     this.node = this.enter(choice.next);
     return true;
   }
@@ -72,7 +76,8 @@ export class Conversation<S> {
     if (this.choices.length) return true;
     const next = this.node.next;
     if (!next) return false;
-    this.node = this.enter(typeof next === "function" ? next(this.state) : next);
+    this.at = typeof next === "function" ? next(this.state) : next;
+    this.node = this.enter(this.at);
     return true;
   }
 

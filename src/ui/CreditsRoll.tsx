@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import type { StoryState } from "../story/state";
 
 export const CREATORS = ["Khant Zwe Naing (Isaac)", "Kyaw Lwin (William)"];
 
@@ -16,7 +17,7 @@ const SECTIONS: ReadonlyArray<{ heading: string; lines: string[] }> = [
  * The end credits, rolling up the screen once. Esc, Enter or the button skips
  * to the end; so does the roll finishing on its own.
  */
-export function CreditsRoll({ onDone }: { onDone: () => void }) {
+export function CreditsRoll({ onDone, coin }: { onDone: () => void; coin: StoryState["coinProof"] }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.code === "Escape" || e.code === "Enter" || e.code === "Space") {
@@ -34,6 +35,22 @@ export function CreditsRoll({ onDone }: { onDone: () => void }) {
         <h1 className="game-title">
           ROOM <span>01</span>
         </h1>
+        {coin && (
+          <section>
+            <h2>Your coin</h2>
+            {coin.source === "moth" ? (
+              <>
+                <p>Measured by Moth's Coin Toss engine</p>
+                <p>
+                  {coin.heads} heads, {coin.tails} tails, from one qubit in superposition
+                </p>
+                <p className="roll-proof">job {coin.jobId}</p>
+              </>
+            ) : (
+              <p>Flipped locally: Moth did not answer in time</p>
+            )}
+          </section>
+        )}
         {SECTIONS.map((s) => (
           <section key={s.heading}>
             <h2>{s.heading}</h2>

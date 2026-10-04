@@ -14,7 +14,7 @@ type Stage = "story" | "credits" | "after";
 export function EndingScreen({ engine, ending, found }: { engine: Engine; ending: EndingView; found: string[] }) {
   const [stage, setStage] = useState<Stage>("story");
 
-  if (stage === "credits") return <CreditsRoll onDone={() => setStage("after")} />;
+  if (stage === "credits") return <CreditsRoll onDone={() => setStage("after")} coin={engine.game.story.coinProof} />;
 
   return (
     <div className="ending" role="dialog" aria-label={`Ending ${ending.number}: ${ending.title}`}>

@@ -1,4 +1,4 @@
-import type { Coin } from "./quantum";
+import type { Coin, CoinMeasurement } from "./quantum";
 import type { AccusedId, Place } from "./sites";
 
 /**
@@ -62,6 +62,8 @@ export type StoryState = {
   /** Where Rowan wanted to go, and what the coin said. */
   picked: Place | null;
   coin: Coin | null;
+  /** How the coin was measured: Moth's counts and job id, or the local stand-in. */
+  coinProof: Omit<CoinMeasurement, "coin"> | null;
   destination: Place | null;
   act: Act;
   /** Sites investigated, in order; a second entry is the round a challenge bought. */
@@ -85,6 +87,7 @@ export function newStoryState(): StoryState {
     asked: { who: false, where: false, boyfriend: false, coworker: false, sister: false, research: false },
     picked: null,
     coin: null,
+    coinProof: null,
     destination: null,
     act: "intro",
     rounds: [],
