@@ -212,6 +212,12 @@ try {
       assert.deepEqual([...l.rooms].sort(), [...SITES[place].rooms].sort(), `${place}: lattice rooms differ from the site`);
     }
     assert.deepEqual(doorsOf("house", "011000"), doorsOf("house", "100111"), "a bitstring and its complement open the same doors");
+    for (const place of ["house", "lab"]) {
+      const real = JSON.parse(await (await import("node:fs/promises")).readFile(new URL(`./moth/fixture-${place}-labyrinth.json`, import.meta.url), "utf8"));
+      const layouts = layoutsFrom(SITES[place], real.job, real.output.measurements);
+      assert(layouts && layouts.configurations.length >= 2, `${place}: a real result gives at least two arrangements`);
+      assert.equal(reachable(SITES[place], layouts.configurations).size, SITES[place].rooms.length, `${place}: a real result strands a room`);
+    }
     const fixture = JSON.parse(await (await import("node:fs/promises")).readFile(new URL("./moth/fixture-house-labyrinth.json", import.meta.url), "utf8"));
     const measured = layoutsFrom(SITES.house, fixture.job, fixture.output.measurements);
     assert(measured && measured.configurations.length >= 2, "a real result gives at least two arrangements");
