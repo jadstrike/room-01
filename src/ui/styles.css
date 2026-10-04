@@ -975,6 +975,244 @@ button.danger {
   color: var(--ink);
 }
 
-.ending button {
+.ending-actions button {
+  margin: 0;
+}
+
+/* ---------------- title screen ---------------- */
+/* The room renders behind; the gradient keeps the menu side legible and the far side alive. */
+.title-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  align-items: stretch;
+  background:
+    radial-gradient(ellipse at 75% 50%, transparent 0%, rgba(0, 0, 0, 0.55) 70%),
+    linear-gradient(90deg, rgba(3, 3, 4, 0.94) 0%, rgba(3, 3, 4, 0.82) 34%, rgba(3, 3, 4, 0.2) 72%, rgba(3, 3, 4, 0.45) 100%);
+}
+
+.title-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: min(520px, 100%);
+  padding: clamp(24px, 6vw, 72px);
+  padding-bottom: 96px;
+}
+
+.game-title {
+  margin: 0;
+  font: 400 clamp(56px, 11vw, 112px)/0.9 var(--type);
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  text-shadow: 0 0 24px rgba(0, 0, 0, 0.9);
+  animation: title-flicker 7s infinite;
+}
+
+.game-title span {
+  color: var(--blood);
+}
+
+.tagline {
+  margin: 14px 0 44px;
+  font: 400 15px/1.4 var(--type);
+  color: var(--dim);
+}
+
+.title-menu {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+}
+
+.title-menu button {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  padding: 8px 0 8px 22px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  text-align: left;
+  font: 400 clamp(18px, 2.4vw, 22px)/1.1 var(--type);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+  transition: color 0.15s ease;
+}
+
+.title-menu button small {
+  font: 400 11px/1.3 var(--mono);
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--dim);
+}
+
+.title-menu button::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 13px;
+  width: 8px;
+  height: 8px;
+  background: var(--blood);
+  transform: scale(0) rotate(45deg);
+  transition: transform 0.15s ease;
+}
+
+.title-menu button.selected,
+.title-menu button:focus-visible {
+  color: var(--ink);
+  outline: none;
+}
+
+.title-menu button.selected::before,
+.title-menu button:focus-visible::before {
+  transform: scale(1) rotate(45deg);
+}
+
+.title-menu button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.title-panel {
+  max-width: 460px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.title-panel .credits {
+  max-height: 34vh;
+  overflow: auto;
+}
+
+.title-actions,
+.ending-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
   margin-top: 18px;
+}
+
+.title-footer {
+  position: absolute;
+  left: clamp(24px, 6vw, 72px);
+  right: 24px;
+  bottom: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--dim);
+}
+
+.title-loading {
+  animation: breathe 1.6s ease-in-out infinite;
+}
+
+.endings-found {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.endings-found i {
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--dim);
+  transform: rotate(45deg);
+}
+
+.endings-found i[data-found] {
+  background: var(--blood);
+  border-color: var(--blood);
+}
+
+@keyframes title-flicker {
+  0%, 91%, 93%, 96%, 100% {
+    opacity: 1;
+  }
+  92%, 95% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes breathe {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* ---------------- prologue ---------------- */
+.prologue {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #000;
+}
+
+.prologue .card {
+  width: min(560px, 100%);
+}
+
+.prologue p,
+.prologue button {
+  opacity: 0;
+  animation: rise 1.4s ease forwards;
+}
+
+.prologue p {
+  margin: 0 0 22px;
+  font: 400 clamp(17px, 2.4vw, 21px)/1.6 var(--type);
+  color: var(--ink);
+}
+
+.prologue p:nth-of-type(3) {
+  color: #e0827d;
+}
+
+.prologue button {
+  margin-top: 18px;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-title,
+  .title-loading {
+    animation: none;
+  }
+
+  .prologue p,
+  .prologue button {
+    animation-duration: 0.01s;
+    animation-delay: 0s !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .title-screen {
+    background: rgba(3, 3, 4, 0.86);
+  }
+}
+
+.title-panel .keys {
+  flex-direction: column;
+  align-items: flex-start;
 }

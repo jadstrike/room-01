@@ -133,6 +133,8 @@ export class Engine {
   /** Bumped by each enter(), so a slow load cannot land after a newer one. */
   private entering = 0;
   private shadowAccum = 0;
+  /** The view's yaw before the title screen's drift took over. */
+  private attractYaw: number | null = null;
   private frames = 0;
   private fpsAccum = 0;
   private statAccum = 0;
@@ -555,7 +557,8 @@ export class Engine {
   };
 
   private onKeyDown = (e: KeyboardEvent): void => {
-    if (this.store.get().transition) return;
+    const { transition, screen } = this.store.get();
+    if (transition || screen !== "game") return;
     if (this.game.onKey(e)) {
       e.preventDefault();
       return;
@@ -611,12 +614,23 @@ export class Engine {
     this.pacer.mode = this.paceMode();
     if (!this.pacer.tick(now)) return;
     const level = this.level;
-    // Nothing behind an opaque ending card needs drawing.
-    if (!level || this.store.get().ending) return;
+    const { ending, screen } = this.store.get();
+    // Nothing behind an opaque card (the prologue, an ending) needs drawing.
+    if (!level || ending || screen === "prologue") return;
     this.timer.update(now);
     const dt = Math.min(this.timer.getDelta(), 0.05);
     const t = this.timer.getElapsed();
 
+    // Behind the title the view drifts a little, as if Rowan were coming round.
+    if (screen === "title") {
+      this.attractYaw ??= this.player.yaw;
+      this.player.yaw = this.attractYaw + Math.sin(t * 0.13) * 0.16;
+    } else if (this.attractYaw !== null) {
+      this.player.yaw = this.attractYaw;
+      this.attractYaw = null;
+    }
+    // The hands and gun belong to play, not to the title screen.
+    this.viewmodel.setShown(screen === "game");
     this.player.update(dt);
     this.game.update();
     // The raycast walks the whole level, so run it at 30 Hz rather than every

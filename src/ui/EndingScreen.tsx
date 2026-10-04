@@ -11,9 +11,14 @@ export function EndingScreen({ engine, ending }: { engine: Engine; ending: Endin
         {ending.text.map((line) => (
           <p key={line}>{line}</p>
         ))}
-        <button className="primary" onClick={() => void engine.game.newGame()} autoFocus>
-          Begin again
-        </button>
+        <div className="ending-actions">
+          <button className="primary" onClick={() => void engine.game.beginNewGame()} autoFocus>
+            Begin again
+          </button>
+          <button className="quiet" onClick={() => void engine.game.toTitle()}>
+            Title screen
+          </button>
+        </div>
       </div>
     </div>
   );

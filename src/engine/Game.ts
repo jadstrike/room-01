@@ -52,6 +52,12 @@ export type GameState = {
   saveWarning: string;
   /** The ending card, once the story is over. */
   ending: EndingView | null;
+  /** The main menu over the room, the opening card of a new game, or play. */
+  screen: "title" | "prologue" | "game";
+  /** Every ending this player has reached, across runs. */
+  endingsFound: EndingId[];
+  /** Where Continue would resume, or null with nothing to continue. */
+  progress: string | null;
 };
 
 export const INITIAL_GAME: GameState = {
@@ -65,6 +71,21 @@ export const INITIAL_GAME: GameState = {
   journal: [],
   saveWarning: "",
   ending: null,
+  screen: "title",
+  endingsFound: [],
+  progress: null,
+};
+
+const ENDINGS_KEY = "moth.endings";
+
+const ACT_LABELS: Record<Act, string> = {
+  intro: "before the coin",
+  investigating: "",
+  trial: "the trial",
+  execution: "the verdict",
+  revealed: "after the truth",
+  released: "the door is open",
+  ended: "",
 };
 
 /**
@@ -85,6 +106,8 @@ export class Game {
   private deviceOff: (() => void) | null = null;
   private entityOff: (() => void) | null = null;
   private travelling = false;
+  private wakeTimer: ReturnType<typeof setTimeout> | undefined;
+  private endingsFound: EndingId[] = [];
 
   constructor(private engine: Engine) {
     let raw: string | null = null;
@@ -96,6 +119,58 @@ export class Game {
     this.story = parseSave(raw);
     // An ending is the end; a reload starts the story again.
     if (this.story.act === "ended") this.story = newStoryState();
+    try {
+      const found = JSON.parse(localStorage.getItem(ENDINGS_KEY) ?? "[]");
+      if (Array.isArray(found)) this.endingsFound = found.filter((id): id is EndingId => ["boyfriend", "coworker", "rowan", "walk-away"].includes(id));
+    } catch {
+      // Nothing found yet, as far as this browser knows.
+    }
+    this.engine.store.set({ endingsFound: [...this.endingsFound] });
+  }
+
+  // --- the front end --------------------------------------------------------------
+  private get hasProgress(): boolean {
+    return this.story.met || this.story.act !== "intro";
+  }
+
+  /** Back into the saved story, from the title. The click is the gesture pointer lock needs. */
+  continueGame(): void {
+    this.engine.store.set({ screen: "game" });
+    this.engine.requestLock();
+  }
+
+  /** The prologue card, with a fresh story loading behind it. */
+  async beginNewGame(): Promise<void> {
+    clearTimeout(this.wakeTimer);
+    this.engine.store.set({ screen: "prologue", ending: null });
+    // A fresh save already sitting in an untouched Room 01 needs no reload.
+    if (this.hasProgress || !this.room01 || this.engine.level !== this.room01) await this.newGame();
+  }
+
+  /** The end of the prologue: Rowan wakes up, and a moment later the entity speaks. */
+  wake(): void {
+    this.engine.store.set({ screen: "game" });
+    this.engine.requestLock();
+    clearTimeout(this.wakeTimer);
+    this.wakeTimer = setTimeout(() => {
+      const { screen, transition } = this.engine.store.get();
+      if (screen === "game" && !transition && !this.story.met && !this.conversation && this.engine.level === this.room01) this.talkToEntity();
+    }, 2600);
+  }
+
+  /** From the pause menu. Everything is already saved. */
+  quitToTitle(): void {
+    clearTimeout(this.wakeTimer);
+    if (this.conversation) this.endDialogue();
+    this.closePanel();
+    this.engine.player.releaseLock();
+    this.engine.store.set({ screen: "title" });
+  }
+
+  /** From an ending: a fresh story waits behind the title. */
+  async toTitle(): Promise<void> {
+    this.engine.store.set({ screen: "title", ending: null });
+    await this.newGame();
   }
 
   /** Put the player wherever the saved story says they are. */
@@ -329,6 +404,13 @@ export class Game {
     this.story.ending = id;
     this.story.act = "ended";
     this.save();
+    if (!this.endingsFound.includes(id)) this.endingsFound.push(id);
+    try {
+      localStorage.setItem(ENDINGS_KEY, JSON.stringify(this.endingsFound));
+    } catch {
+      // The ending still shows; it just will not be remembered.
+    }
+    this.engine.store.set({ endingsFound: [...this.endingsFound] });
     setTimeout(() => {
       this.engine.player.releaseLock();
       this.engine.store.set({ ending: endingFor(id, this.story), dialogue: null, panel: null });
@@ -578,9 +660,11 @@ export class Game {
   /** Push the story's state to the UI. */
   publish(): void {
     const inv = this.story.act === "investigating" ? this.investigation : null;
+    const place = inv ? `${inv.site.name} · ${inv.roomName}` : "Room 01";
     this.engine.store.set({
       act: this.story.act,
-      place: inv ? `${inv.site.name} · ${inv.roomName}` : "Room 01",
+      place,
+      progress: this.hasProgress && this.story.act !== "ended" ? [place, ACT_LABELS[this.story.act]].filter(Boolean).join(" · ") : null,
       objective: this.objective(),
       site: inv ? this.siteView(inv) : null,
       inspection: this.inspectionView(),
@@ -599,6 +683,7 @@ export class Game {
   /** Start the story again from the top: a fresh save, and a fresh Room 01. */
   async newGame(): Promise<void> {
     if (this.travelling) return;
+    clearTimeout(this.wakeTimer);
     this.conversation = null;
     this.inspection = null;
     this.story = newStoryState();

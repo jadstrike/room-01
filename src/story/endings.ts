@@ -50,3 +50,13 @@ export function endingFor(id: EndingId, s: StoryState): EndingView {
       };
   }
 }
+
+/** For the title screen's list of endings found. */
+export const ENDING_TITLES: Record<EndingId, string> = {
+  boyfriend: "The boyfriend",
+  coworker: "The coworker",
+  rowan: "Rowan",
+  "walk-away": "The door",
+};
+
+export const ENDING_ORDER: readonly EndingId[] = ["boyfriend", "coworker", "rowan", "walk-away"];
