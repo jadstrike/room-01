@@ -933,3 +933,48 @@ button.danger {
     padding: 16px;
   }
 }
+
+.memory.contradiction {
+  border-left-color: var(--blood);
+  background: rgba(142, 27, 23, 0.12);
+}
+
+/* The last card: opaque, so nothing needs rendering behind it. */
+.ending {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  overflow: auto;
+  background: #000;
+  animation: appear 1.6s ease both;
+  opacity: 0;
+}
+
+.ending .card {
+  width: min(560px, 100%);
+}
+
+.ending .eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #e0827d;
+}
+
+.ending h1 {
+  margin: 10px 0 20px;
+  font: 400 clamp(30px, 6vw, 46px)/1.05 var(--type);
+}
+
+.ending p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--ink);
+}
+
+.ending button {
+  margin-top: 18px;
+}

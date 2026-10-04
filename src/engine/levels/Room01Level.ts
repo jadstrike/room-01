@@ -58,6 +58,8 @@ export class Room01Level implements Level {
   private obstacles: THREE.Box3[] = [];
   private player = new THREE.Vector3();
   private autoScale = true;
+  /** The entity let them all go: no entity, no one in the chairs, no confinement. */
+  private released = false;
 
   private constructor(readonly room: Room) {
     this.root.name = "Room01";
@@ -174,6 +176,17 @@ export class Room01Level implements Level {
     this.refreshColliders();
   }
 
+  /** The entity vanishes, the chairs are empty, and the open door leads out. */
+  release(): void {
+    if (this.released) return;
+    this.released = true;
+    this.entity?.dispose();
+    this.entity = null;
+    for (const seat of this.seats) seat.holder.removeFromParent();
+    this.confine = null;
+    this.refreshColliders();
+  }
+
   isEntity(object: THREE.Object3D): boolean {
     return !!this.entity && isDescendant(object, this.entity.root);
   }
@@ -181,7 +194,7 @@ export class Room01Level implements Level {
   private refreshColliders(): void {
     this.obstacles = [...this.room.colliders];
     for (const seat of this.seats) {
-      if (!seat.character) continue;
+      if (!seat.character || this.released) continue;
       seat.character.refreshCollider();
       this.obstacles.push(seat.character.collider);
     }

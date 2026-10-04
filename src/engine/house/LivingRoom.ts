@@ -101,7 +101,7 @@ export class LivingRoom extends ProceduralSection {
     face.rotation.x = Math.PI / 2; clock.add(face);
     clock.add(box("Minute_Hand", -0.3, 1.54, -2.313, 0.012, 0.115, 0.008, dark));
     clock.add(box("Hour_Hand", -0.26, 1.49, -2.31, 0.085, 0.012, 0.008, dark));
-    inspect(clock, "the stopped clock", "The clock has stopped. Its hands offer a time, but no date—and nothing that says why it stopped.");
+    inspect(clock, "the stopped clock", "The clock has stopped at twenty to twelve. The little date wheel under the face reads 14. Nothing says why it stopped.");
     box("Picture_Frame", -0.3, 2.17, -2.66, 0.93, 0.57, 0.05, darkWood);
     box("Landscape_Print", -0.3, 2.17, -2.627, 0.79, 0.43, 0.014, this.material(0x707363, this.texture("plaster")));
 

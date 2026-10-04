@@ -50,6 +50,8 @@ export type SiteProgress = {
 export type Request =
   | { kind: "travel"; to: Place }
   | { kind: "execute" }
+  /** The verdict was taken back: put the gun away. */
+  | { kind: "stand-down" }
   | { kind: "ending"; ending: EndingId }
   | { kind: "release" };
 

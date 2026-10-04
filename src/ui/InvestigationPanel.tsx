@@ -1,5 +1,6 @@
 import type { Engine, EngineState } from "../engine/Engine";
 import type { Evidence } from "../story/state";
+import { CONTRADICTION } from "../story/entityScript";
 
 const PLACE_NAMES: Record<Evidence["place"], string> = { house: "The boyfriend's house", lab: "The research lab" };
 
@@ -70,6 +71,15 @@ export function InvestigationPanel({ engine, state }: { engine: Engine; state: E
             )}
             <p className="objective-line">{state.objective}</p>
             {!state.journal.length && <p>Nothing yet. Examine things with E, then record what you see.</p>}
+            {CONTRADICTION.every((id) => state.journal.some((e) => e.id === id)) && (
+              <div className="memory contradiction">
+                <h2>These cannot both be true</h2>
+                <p>
+                  The clock in his house stopped at twenty to twelve on the fourteenth. At twenty to twelve on the
+                  fourteenth, her badge opened Lab 2. She cannot have died in two places at once.
+                </p>
+              </div>
+            )}
             {(["house", "lab"] as const).map((place) => {
               const entries = state.journal.filter((e) => e.place === place);
               if (!entries.length) return null;

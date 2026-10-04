@@ -11,7 +11,8 @@ import { ACCUSED_SCRIPT, accusedStart } from "../story/accusedScript";
 import { ENTITY_SCRIPT, entityStart } from "../story/entityScript";
 import { Investigation, type Inspection } from "../story/investigation";
 import { SITES, type AccusedId, type Place } from "../story/sites";
-import { SAVE_KEY, currentPlace, newStoryState, parseSave, type Act, type Request, type StoryState } from "../story/state";
+import { SAVE_KEY, currentPlace, newStoryState, parseSave, type Act, type EndingId, type Request, type StoryState } from "../story/state";
+import { endingFor, type EndingView } from "../story/endings";
 
 export type Panel = "inspection" | "journal" | "device" | "passage";
 
@@ -49,6 +50,8 @@ export type GameState = {
   journal: StoryState["journal"];
   /** Set when the save could not be read or written. */
   saveWarning: string;
+  /** The ending card, once the story is over. */
+  ending: EndingView | null;
 };
 
 export const INITIAL_GAME: GameState = {
@@ -61,6 +64,7 @@ export const INITIAL_GAME: GameState = {
   recalled: false,
   journal: [],
   saveWarning: "",
+  ending: null,
 };
 
 /**
@@ -79,6 +83,7 @@ export class Game {
   private inspection: Inspection | null = null;
   private seatOffs: Array<() => void> = [];
   private deviceOff: (() => void) | null = null;
+  private entityOff: (() => void) | null = null;
   private travelling = false;
 
   constructor(private engine: Engine) {
@@ -97,7 +102,10 @@ export class Game {
   async start(): Promise<void> {
     const place = currentPlace(this.story);
     if (place) return this.enterSite(place, false);
-    return this.enterRoom01({ title: "Room 01" }, "Click to look around. WASD to move, E to interact.");
+    await this.enterRoom01({ title: "Room 01" }, "Click to look around. WASD to move, E to interact.");
+    // Pick up mid-act where the save left off.
+    if (this.story.act === "execution") this.engine.setHolstered(false);
+    if (this.story.act === "released") this.release();
   }
 
   // --- levels ---------------------------------------------------------------
@@ -183,9 +191,9 @@ export class Game {
       this.publishSeats();
     };
     level.onSignsChanged = () => this.publishSeats();
-    if (level.entity) {
-      this.engine.register({ id: "entity", object: level.entity.root, verb: "Talk to", label: "The entity", range: 6, onInteract: () => this.talkToEntity() });
-    }
+    this.entityOff = level.entity
+      ? this.engine.register({ id: "entity", object: level.entity.root, verb: "Talk to", label: "The entity", range: 6, onInteract: () => this.talkToEntity() })
+      : null;
   }
 
   private wireSeats(): void {
@@ -281,7 +289,58 @@ export class Game {
   }
 
   private carryOut(request: Request): void {
-    if (request.kind === "travel") this.beginRound(request.to);
+    switch (request.kind) {
+      case "travel":
+        return this.beginRound(request.to);
+      case "execute":
+        this.engine.setHolstered(false);
+        this.engine.store.set({ message: "One round. The entity is holding him still." });
+        return;
+      case "stand-down":
+        this.engine.setHolstered(true);
+        return;
+      case "ending":
+        return this.finish(request.ending, 600);
+      case "release":
+        return this.release();
+    }
+  }
+
+  // --- the end --------------------------------------------------------------------
+  /** The entity lets all three of them go: it vanishes, the chairs are empty, the door opens. */
+  private release(): void {
+    const level = this.room01;
+    if (!level) return;
+    level.release();
+    for (const off of this.seatOffs) off();
+    this.seatOffs = [];
+    this.entityOff?.();
+    this.entityOff = null;
+    if (!level.room.doorOpen) level.room.toggleDoor();
+    if (this.engine.level === level) this.engine.refreshLevel();
+    this.engine.setHolstered(true);
+    this.engine.store.set({ doorOpen: true, message: "The entity is gone. So are the chairs. The door is open." });
+    this.publish();
+  }
+
+  /** Show ending `id`, after `delay` ms so the moment that caused it can land. */
+  private finish(id: EndingId, delay: number): void {
+    if (this.story.act === "ended") return;
+    this.story.ending = id;
+    this.story.act = "ended";
+    this.save();
+    setTimeout(() => {
+      this.engine.player.releaseLock();
+      this.engine.store.set({ ending: endingFor(id, this.story), dialogue: null, panel: null });
+      this.publish();
+    }, delay);
+  }
+
+  /** Per frame: only the walk out of Room 01 is a place rather than an action. */
+  update(): void {
+    if (this.story.act !== "released" || !this.room01 || this.engine.level !== this.room01) return;
+    // The far end of the spec's hallway runs to x = 7.
+    if (this.engine.player.position.x > 6.2) this.finish("walk-away", 0);
   }
 
   get talking(): boolean {
@@ -439,8 +498,21 @@ export class Game {
       this.engine.store.set({ message: "It is somewhere else now. It did not seem to mind." });
       return true;
     }
-    if (level.seatOf(hit.object)) this.engine.store.set({ message: "The round goes in. It does not react." });
-    return false;
+    const seat = level.seatOf(hit.object);
+    if (!seat) return false;
+    const id = seat.def.id as AccusedId;
+    if (this.story.act === "execution" && this.story.accused === id) {
+      this.finish(id, 1400);
+      return false;
+    }
+    // The gun only works on them once a verdict says it should: the entity is holding the rest of the room still.
+    this.engine.store.set({
+      message:
+        this.story.act === "execution"
+          ? 'The round stops an inch short and drops onto the rug. "Not that one," says the entity.'
+          : 'The round stops an inch short and drops onto the rug. "Not yet," says the entity. "We haven\'t had the trial."',
+    });
+    return true;
   }
 
   // --- state ----------------------------------------------------------------------
@@ -453,6 +525,12 @@ export class Game {
         return this.investigation?.objective ?? "";
       case "trial":
         return "Question the accused about what you found, then give the entity your answer.";
+      case "execution":
+        return `Shoot ${s.accused === "coworker" ? "the coworker" : "the boyfriend"}. Or tell the entity you have changed your mind.`;
+      case "revealed":
+        return "Nobody did anything, and the entity still wants someone dead. Decide.";
+      case "released":
+        return "Walk out through the door.";
       default:
         return "";
     }
@@ -525,7 +603,8 @@ export class Game {
     this.inspection = null;
     this.story = newStoryState();
     this.save();
-    this.engine.store.set({ dialogue: null, panel: null, recalled: false });
+    this.engine.store.set({ dialogue: null, panel: null, recalled: false, ending: null });
+    this.engine.setHolstered(false);
     const old = this.room01;
     this.room01 = null;
     await this.enterRoom01({ title: "Room 01", line: "Again." }, "Click to look around. WASD to move, E to interact.");
@@ -540,21 +619,26 @@ export class Game {
     this.beginRound(place);
   }
 
-  /** Development shortcut: back in Room 01 with everything from `place` in the journal. */
-  async jumpToTrial(place: Place): Promise<void> {
-    const site = SITES[place];
-    if (this.travelling) return;
-    this.story = { ...newStoryState(), met: true, coin: place === "house" ? "heads" : "tails", destination: place, picked: place, rounds: [place] };
-    const inv = new Investigation(site, this.story);
-    for (const room of site.rooms) {
-      const section = ROOMS[room]();
-      for (const item of section.examinables) {
-        if (inv.isKeyClue(item.id)) {
+  /**
+   * Development shortcut: back in Room 01 at the trial, with every key clue
+   * from `places` in the journal, as if each had been investigated in turn.
+   */
+  async jumpToTrial(...places: Place[]): Promise<void> {
+    if (this.travelling || !places.length) return;
+    const first = places[0];
+    this.story = { ...newStoryState(), met: true, coin: first === "house" ? "heads" : "tails", destination: first, picked: first, rounds: [...places] };
+    for (const place of places) {
+      const site = SITES[place];
+      const inv = new Investigation(site, this.story);
+      for (const room of site.rooms) {
+        const section = ROOMS[room]();
+        for (const item of section.examinables) {
+          if (!inv.isKeyClue(item.id)) continue;
           const title = item.label.replace(/^the /, "");
-          inv.record({ ...inv.inspection(item.id, title, item.text), room }, true);
+          inv.record({ ...inv.inspection(item.id, title[0].toUpperCase() + title.slice(1), item.text), room }, true);
         }
+        section.dispose();
       }
-      section.dispose();
     }
     this.story.act = "trial";
     this.save();

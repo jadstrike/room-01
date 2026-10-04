@@ -73,6 +73,9 @@ export function PauseMenu({ engine, state, crosshair, onCrosshair }: Props) {
               <button className="quiet" onClick={() => void engine.game.jumpToTrial("house")}>
                 Trial
               </button>
+              <button className="quiet" onClick={() => void engine.game.jumpToTrial("house", "lab")}>
+                Second trial
+              </button>
             </span>
           )}
         </div>

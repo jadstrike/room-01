@@ -294,6 +294,7 @@ export class Engine {
     if (!level) return;
     this.interact.setRoots(level.raycastRoots());
     this.player.setColliders(level.colliders);
+    this.player.setConfinement(this.store.get().confineToRoom ? level.confine : null);
     this.buildDebug();
   }
 
@@ -610,12 +611,14 @@ export class Engine {
     this.pacer.mode = this.paceMode();
     if (!this.pacer.tick(now)) return;
     const level = this.level;
-    if (!level) return;
+    // Nothing behind an opaque ending card needs drawing.
+    if (!level || this.store.get().ending) return;
     this.timer.update(now);
     const dt = Math.min(this.timer.getDelta(), 0.05);
     const t = this.timer.getElapsed();
 
     this.player.update(dt);
+    this.game.update();
     // The raycast walks the whole level, so run it at 30 Hz rather than every
     // frame: still well inside the time it takes to read the prompt.
     if ((this.interactAccum += dt) >= 1 / 30) {

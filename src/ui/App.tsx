@@ -5,6 +5,7 @@ import { PauseMenu } from "./PauseMenu";
 import { DialogueBox } from "./DialogueBox";
 import { InvestigationPanel } from "./InvestigationPanel";
 import { LoadingScreen } from "./LoadingScreen";
+import { EndingScreen } from "./EndingScreen";
 import { Crosshair } from "./Crosshair";
 import { loadCrosshair, saveCrosshair, type CrosshairSettings } from "./crosshairSettings";
 
@@ -52,7 +53,7 @@ export function App() {
     };
   }, [engine]);
 
-  const ready = state.phase === "ready" && !state.transition;
+  const ready = state.phase === "ready" && !state.transition && !state.ending;
   const playing = ready && state.locked;
 
   return (
@@ -78,6 +79,8 @@ export function App() {
       {ready && !state.locked && !state.dialogue && !state.panel && (
         <PauseMenu engine={engine} state={state} crosshair={crosshair} onCrosshair={updateCrosshair} />
       )}
+
+      {engine && state.ending && !state.transition && <EndingScreen engine={engine} ending={state.ending} />}
 
       <LoadingScreen transition={state.phase === "error" ? null : state.transition} />
 
