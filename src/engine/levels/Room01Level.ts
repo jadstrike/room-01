@@ -6,6 +6,7 @@ import { SignPicture } from "../Sign";
 import { Entity, type EntityContext } from "../Entity";
 import { SEATS, type SeatDef } from "../cast";
 import { ROOM01 } from "../room01";
+import { raycastAsBox } from "../boxRaycast";
 import type { WalkRect } from "../Player";
 import type { DebugBox, Level, LevelContext, Report } from "./Level";
 
@@ -138,6 +139,7 @@ export class Room01Level implements Level {
     dressChair(next.root, this.room.root);
     seat.holder.add(next.root);
     next.fit(this.autoScale);
+    raycastAsBox(next.root, next.collider);
     const clipIndex = next.defaultClipIndex;
     if (clipIndex >= 0) next.playClip(clipIndex);
     this.attachSign(seat);
@@ -173,6 +175,7 @@ export class Room01Level implements Level {
     this.root.add(entity.root);
     // It starts behind the accused, facing the player, where the bulb barely reaches.
     entity.place(new THREE.Vector3(-0.9, 0, -2.05), ROOM01.markers.cameraStart);
+    raycastAsBox(entity.root, entity.collider);
     this.refreshColliders();
   }
 
